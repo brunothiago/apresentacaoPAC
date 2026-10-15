@@ -1,0 +1,19 @@
+.DS_Store
+__pycache__/
+*.pyc
+
+# credenciais e arquivos de conexão — NUNCA commitar (repositório público)
+.env
+*.env
+python/config.env
+
+# temporários do Excel
+~$*
+data/~$*
+
+# arquivos operacionais de atualização do banco (não publicar)
+atualizacao_banco_*.xlsx
+
+# relatórios antes × depois e de inconsistências da base (entregues à parte)
+relatorio_antes_depois_*
+inconsistencias_base_*

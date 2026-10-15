@@ -1,0 +1,28 @@
+[
+  {
+    "carimbo": "15102026_1137",
+    "extraido_em": "2026-10-15 11:37",
+    "arquivos": {
+      "base_unica_gm": "base_unica_gm_15102026_1123.xlsx",
+      "carteira_saci": "carteira_saci_15102026_1123.xlsx",
+      "painelpac_ogu": "painelpac_ogu_15102026_1137.xlsx"
+    },
+    "linhas": {
+      "base_unica_gm": 3522,
+      "carteira_saci": 2981,
+      "painelpac_ogu": 1665
+    },
+    "hash": {
+      "base_unica_gm": "2710e54a6e9e933c",
+      "carteira_saci": "6754a2dbe1eade7a",
+      "painelpac_ogu": "6d1c99a47de056bc"
+    },
+    "atualizacao": {
+      "base_unica_gm": "2026-10-09",
+      "saci": "2026-10-14",
+      "transferegov": "2026-10-15",
+      "bdgestores": "2026-10-14",
+      "power_bi_caixa": "2026-10-13"
+    }
+  }
+]
