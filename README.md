@@ -16,8 +16,12 @@ Secretaria-Executiva, com o caminho da carteira em cinco etapas, dois slides cad
 Abra **`index.html`** em qualquer navegador. Não precisa de servidor.
 
 - **← / →** (ou ↑ / ↓ e a rolagem do mouse) navegam · **M** abre o menu · **F** tela cheia.
-- **Recorte (UF)**, **Status** (Selecionadas / Enquadradas) e **Ano** (2023 / 2025 / 2026) valem
-  para **todos** os slides. Também pela URL: `index.html?uf=SP&status=sel&ano=2025,2026`.
+- **Recorte (UF)**, **Fonte** (OGU / FIN) e **Ano** (23 / 25 / 26) valem para todos os slides;
+  **Status** (Selecionadas / Enquadradas) só para os slides de seleção. Nos slides do painelpac
+  (suspensivas e licitação) a fonte é sempre OGU. Também pela URL:
+  `index.html?uf=SP&fonte=ogu&status=sel&ano=25,26` (ano curto ou completo).
+- As notas de rodapé conciliam os totais entre slides (ex.: novas seleções + migradas = carteira)
+  e se recalculam com os filtros.
 - **Exportar PDF** (encerramento): sem filtro baixa o PDF pré-gerado; com filtro, gera no navegador.
 - Os botões **Seleção / SACI / Painelpac** do encerramento baixam as fotos do banco (com senha).
 
@@ -37,6 +41,16 @@ Depois, se os números mudaram: suba a `VERSAO`, acrescente a linha em `HISTORIC
 rode o build de novo e faça o commit.
 
 > **Não edite o `index.html` à mão**: todo ajuste vai no `build.py`.
+
+## Conferência: contratos sem modalidade
+
+```bash
+uv run --with pandas --with openpyxl --with python-dotenv --with msoffcrypto-tool \
+       python python/conferir_sem_modalidade.py
+```
+
+Grava `conferencia/sem_modalidade.txt` com os contratos em "Outras / sem modalidade" (SACI e
+painelpac). A pasta `conferencia/` fica fora do git (dados por contrato).
 
 ## Versionamento das bases
 

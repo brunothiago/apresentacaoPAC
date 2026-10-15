@@ -17,3 +17,6 @@ atualizacao_banco_*.xlsx
 # relatórios antes × depois e de inconsistências da base (entregues à parte)
 relatorio_antes_depois_*
 inconsistencias_base_*
+
+# conferências com dados por contrato (geradas localmente, não publicar)
+conferencia/

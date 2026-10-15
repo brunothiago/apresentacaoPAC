@@ -2,8 +2,8 @@
 """Gera index.html — apresentação "Novo PAC — MCid · Balanço da carteira" para a Secretaria-Executiva.
 
 Caminho em cinco etapas, dois slides cada: Seleção → Suspensivas → Licitação → Contratação →
-Execução. Layout e navegação da novopac-apresentacao (assets/), com os mesmos filtros de UF,
-status (selecionadas / enquadradas) e ano, que valem para todos os slides.
+Execução. Layout e navegação da novopac-apresentacao (assets/), com filtros de UF, fonte
+(OGU / FIN) e ano em todos os slides; o de status (selecionadas / enquadradas) só na seleção.
 
 Fontes (fotos do banco em data/, carga e regras em dados.py):
 - Seleção: se_cgpac.tab_base_unica_gm (painelgm);
@@ -24,10 +24,11 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.0'  # subir a cada commit que altere a apresentação
+VERSAO = '1.1'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
+    ('1.1', 'Status só na seleção; filtro OGU/FIN; anos curtos; notas de conciliação; suspensivas reestruturadas.'),
 ]
 
 D = dados.load()
@@ -151,6 +152,7 @@ EXTRA_CSS = """
   .tmeta{ font-size:18px; color:var(--ink-soft); margin:0 0 10px; line-height:1.4; }
   .tmeta b{ color:var(--navy); font-weight:700; }
   .tmeta .sep{ margin:0 10px; opacity:.5; }
+  .nota b{ font-style:normal; color:var(--navy); }
   .nota{ font-size:17px; color:var(--ink-soft); margin:8px 0 0; font-style:italic; line-height:1.35; }
   /* destaques (KPIs) */
   .kpis{ display:grid; grid-template-columns:repeat(4, 1fr); gap:22px; margin:0 0 14px; }
@@ -172,6 +174,7 @@ EXTRA_CSS = """
   .stbtn{ font-family:'rawline','Raleway',sans-serif; font-size:18px; font-weight:700; letter-spacing:.02em; padding:8px 16px; background:#fff; color:var(--ink-soft); border:0; cursor:pointer; }
   .stbtn + .stbtn{ border-left:1px solid var(--line-strong); }
   .stbtn[aria-pressed="true"]{ background:var(--blue); color:#fff; }
+  .stbtn.fixo{ background:var(--paper-2); color:var(--navy); cursor:default; }
   .stbtn:focus-visible{ outline:2px solid var(--blue); outline-offset:-2px; }
   .title-row{ display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:40px; }
   @media print{ .ufctl select{ border:0; padding:0; } }
@@ -280,9 +283,22 @@ def cabecalho(colunas):
     return '<tr class="grp">' + ''.join(grp) + '</tr><tr>' + ''.join(sub) + '</tr>'
 
 
-def slide(etapa, n, titulo, tabela_id, colunas, legenda, atualizado, fonte, dek='', kpis=None, nota=''):
+def slide(etapa, n, titulo, tabela_id, colunas, legenda, atualizado, fonte, dek='', kpis=None, nota='',
+          status=False, so_ogu=False):
+    """status: mostra o filtro selecionadas/enquadradas (só nos slides de seleção);
+    so_ogu: base só de OGU (painelpac) — o filtro de fonte vira etiqueta fixa."""
     dek_html = f'\n          <p class="dek" style="max-width:66ch; font-style:italic; font-size:23px; margin:6px 0 0 126px;">{dek}</p>' if dek else ''
-    anos_btns = ''.join(f'<button type="button" class="stbtn anobtn" data-ano="{a}" aria-pressed="true">{a}</button>' for a in ANOS)
+    anos_btns = ''.join(f'<button type="button" class="stbtn anobtn" data-ano="{a}" aria-pressed="true" title="{a}">{a[2:]}</button>' for a in ANOS)
+    st_ctl = ('<div class="stctl"><label>Status</label><div class="stgrp"><button type="button" class="stbtn" data-st="sel" aria-pressed="true">Selecionadas</button>'
+              '<button type="button" class="stbtn" data-st="enq" aria-pressed="true">Enquadradas</button></div></div>') if status else ''
+    st_meta = '<span class="sep">·</span>Status: <b class="stname">selecionadas + enquadradas</b>' if status else ''
+    if so_ogu:
+        fon_ctl = '<div class="stctl"><label>Fonte</label><div class="stgrp"><span class="stbtn fixo">OGU</span></div></div>'
+        fon_meta = '<span class="sep">·</span>Fonte: <b>OGU</b>'
+    else:
+        fon_ctl = ('<div class="stctl"><label>Fonte</label><div class="stgrp"><button type="button" class="stbtn fonbtn" data-fon="ogu" aria-pressed="true">OGU</button>'
+                   '<button type="button" class="stbtn fonbtn" data-fon="fin" aria-pressed="true">FIN</button></div></div>')
+        fon_meta = '<span class="sep">·</span>Fonte: <b class="fonname">OGU + FIN</b>'
     kpi_html = ''
     if kpis:
         cards = ''.join(f'<div class="kpi{" " + k[2] if len(k) > 2 else ""}"><div class="kv" data-kpi="{tabela_id}:{i}">—</div><div class="kl">{k[0]}</div></div>'
@@ -299,13 +315,13 @@ def slide(etapa, n, titulo, tabela_id, colunas, legenda, atualizado, fonte, dek=
         <div class="ctrls">
           <div class="ufctl"><label for="{tabela_id}-uf">Recorte</label><select id="{tabela_id}-uf" class="ufsel">{uf_opts}</select></div>
           <div class="ctrow">
-            <div class="stctl"><label>Status</label><div class="stgrp"><button type="button" class="stbtn" data-st="sel" aria-pressed="true">Selecionadas</button><button type="button" class="stbtn" data-st="enq" aria-pressed="true">Enquadradas</button></div></div>
+            {st_ctl}{fon_ctl}
             <div class="stctl anoctl"><label>Ano</label><div class="stgrp">{anos_btns}</div></div>
           </div>
         </div>
       </div>
       <div class="col grow" style="justify-content:flex-start;">{kpi_html}
-        <p class="tmeta">{atualizado}<span class="sep">·</span>{legenda}<span class="sep">·</span>Status: <b class="stname">selecionadas + enquadradas</b><span class="sep">·</span>Anos: <b class="anoname">todos</b><span class="sep">·</span>Recorte: <b class="ufname">Brasil</b></p>
+        <p class="tmeta">{atualizado}<span class="sep">·</span>{legenda}{st_meta}{fon_meta}<span class="sep">·</span>Anos: <b class="anoname">todos</b><span class="sep">·</span>Recorte: <b class="ufname">Brasil</b></p>
         <table class="data dense" id="{tabela_id}">
           <thead>{cabecalho(colunas)}</thead>
           <tbody></tbody>
@@ -371,37 +387,41 @@ SLIDES = f"""
     </div>
   </section>
 
-{slide(1, 1, 'Carteira de seleções do Novo PAC', 't-sel1',
+{slide(1, 1, 'Carteira de seleções', 't-sel1',
        ['Qtd. FIN', 'Qtd. OGU', 'Total', 'Valor OGU<br>(R$ mi)', 'Valor FIN<br>(R$ mi)', 'Valor total<br>(R$ mi)'],
        'Contagem: migradas + novas seleções', AT_GM, SRC_GM,
-       kpis=[('Propostas',), ('Valor total',), ('OGU',), ('Financiamento',)])}
+       kpis=[('Propostas',), ('Valor total',), ('OGU',), ('Financiamento',)], status=True,
+       nota='<span data-ref="sel1"></span>')}
 {slide(1, 2, 'Novas seleções por ano', 't-sel2',
        [('Quantidade', ANOS + ['Total']), ('Valor (R$ mi)', ANOS + ['Total'])],
        'Contagem: novas seleções, sem migradas', AT_GM, SRC_GM,
-       dek='Portarias de 2023, 2025 e 2026 — selecionadas e enquadradas/habilitadas.')}
+       dek='Portarias de 2023, 2025 e 2026 — selecionadas e enquadradas/habilitadas.', status=True,
+       nota='<span data-ref="sel2"></span>')}
 {slide(2, 1, 'Cláusulas suspensivas — OGU', 't-susp1',
-       ['Contratos<br>OGU', 'Com<br>suspensiva', 'Retiradas', 'Pendentes', '% retirada', 'Repasse<br>pendente (R$ mi)'],
+       ['Sem<br>suspensiva', ('Com cláusula suspensiva', ['Retiradas', 'Pendentes', 'Subtotal']), 'Total<br>contratos OGU', '% retirada', 'Repasse<br>pendente (R$ mi)'],
        'Contagem: contratos OGU do Novo PAC Seleção (sem SNH), sem cancelados', AT_PAC, SRC_PAC,
-       kpis=[('Com suspensiva',), ('Retiradas', '', 'ok'), ('Pendentes', '', 'alerta'), ('Repasse pendente',)])}
+       dek='Contratos OGU = sem suspensiva + suspensiva retirada + suspensiva pendente.',
+       kpis=[('Contratos OGU',), ('Com suspensiva',), ('Retiradas', '', 'ok'), ('Pendentes', '', 'alerta')],
+       nota='% retirada = retiradas ÷ contratos com cláusula suspensiva.', so_ogu=True)}
 {slide(2, 2, 'Prazo das suspensivas pendentes', 't-susp2',
        ['Pendentes', ('Prazo inicial (PC 48/2026)', ['No prazo', 'Vence em<br>30 dias', 'Vencido']), 'Teto da<br>prorrogação<br>vencido', 'Sem prazo<br>calculado'],
-       'Contagem: suspensivas pendentes (OGU)', AT_PAC, SRC_PAC,
+       'Contagem: suspensivas pendentes (OGU)', AT_PAC, SRC_PAC, so_ogu=True,
        kpis=[('Pendentes',), ('Prazo inicial vencido', '', 'alerta'), ('Teto da prorrogação vencido', '', 'alerta'), ('Vencem em 30 dias',)],
        nota=f'Prazo contado da assinatura (PC 48/2026, art. 12): 6, 8 ou 10 meses conforme o nível do contrato; prorrogação única até 8, 12 ou 14 meses. Situação em {EXTRAIDO:%d/%m/%Y}.')}
 {slide(3, 1, 'Etapa atual dos contratos OGU', 't-lic1',
        ['Sem<br>registro', 'Em<br>suspensiva', 'Suspensiva<br>retirada/LAE', 'Edital<br>publicado', 'Licitação<br>homologada', 'VRPL /<br>AIO', 'Obra<br>iniciada', 'Total'],
        'Contagem: contratos OGU do Novo PAC Seleção, sem cancelados — etapa mais avançada', AT_PAC, SRC_PAC,
-       kpis=[('Aguardando licitação',), ('Edital publicado',), ('Homologada até AIO',), ('Obra iniciada', '', 'ok')])}
+       kpis=[('Aguardando licitação',), ('Edital publicado',), ('Homologada até AIO',), ('Obra iniciada', '', 'ok')], so_ogu=True)}
 {slide(3, 2, 'Prazos da licitação — art. 36-A', 't-lic2',
        [('Publicação do edital', ['Publicado', 'No prazo', 'Vence em<br>30 dias', 'Vencido']), ('Homologação', ['Homologada', 'No prazo', 'Vence em<br>30 dias', 'Vencido'])],
-       'Contagem: contratos OGU assinados após a PC 72/2025, com LAE', AT_PAC, SRC_PAC,
+       'Contagem: contratos OGU assinados após a PC 72/2025, com LAE', AT_PAC, SRC_PAC, so_ogu=True,
        dek='Publicação em até 60 dias da LAE e homologação em até 120 dias da publicação — data-limite de 30/10/2026.',
        nota=f'Prazos vencidos ou vencendo antes de 30/10/2026 passam para 30/10/2026 (regra do painelpac). Situação em {EXTRAIDO:%d/%m/%Y}.')}
 {slide(4, 1, 'Selecionado × contratado', 't-ct1',
        ['Seleções', 'Contratos<br>assinados', 'Em<br>contratação', 'Cancelados /<br>distratados', '% assinado', 'Investimento<br>assinado (R$ mi)'],
        'Contagem: novas seleções (GM) × contratos do Novo PAC Seleção (SACI)', AT_CT, 'base única GM e ' + SRC_SACI,
        kpis=[('Seleções',), ('Contratos assinados', '', 'ok'), ('% assinado',), ('Investimento assinado',)],
-       nota='Uma linha por fonte nas duas bases: proposta com OGU e FIN conta uma vez em cada fonte.')}
+       nota='<span data-ref="ct1"></span> Proposta com OGU e FIN conta uma vez em cada fonte.')}
 {slide(4, 2, 'Situação dos contratos assinados', 't-ct2',
        ['Normal', 'Suspensiva', 'Concluído', 'Outros*', 'Total', 'Qtd. OGU', 'Qtd. FIN', 'Repasse /<br>financ. (R$ mi)'],
        'Contagem: contratos assinados do Novo PAC Seleção (SACI)', AT_SACI, SRC_SACI,
@@ -410,7 +430,8 @@ SLIDES = f"""
 {slide(5, 1, 'Situação das obras', 't-ex1',
        ['Não<br>iniciada', 'Em<br>execução', 'Paralisada', 'Concluída', 'Inacabada', 'Total', '% concluída'],
        'Contagem: contratos do Novo PAC Seleção + Migrado (SACI), sem cancelados', AT_SACI, SRC_SACI,
-       kpis=[('Em execução',), ('Paralisadas', '', 'alerta'), ('Concluídas', '', 'ok'), ('Não iniciadas',)])}
+       kpis=[('Em execução',), ('Paralisadas', '', 'alerta'), ('Concluídas', '', 'ok'), ('Não iniciadas',)],
+       nota='<span data-ref="ex1"></span>')}
 {slide(5, 2, 'Execução média e paralisações', 't-ex2',
        [('% físico médio', ['Novas<br>seleções', 'Migradas', 'Total']), '% financeiro<br>médio', 'Paralisadas', 'Investimento<br>paralisado (R$ mi)', 'Concluídas'],
        'Médias: obras em execução ou paralisadas (média simples por contrato)', AT_SACI, SRC_SACI,
@@ -519,7 +540,7 @@ SLIDES = f"""
 """
 
 APP_JS = r"""
-// ===== dados e filtros (UF, status e ano) — valem para todos os slides =====
+// ===== dados e filtros: UF, fonte e ano em todos os slides; status só nas tabelas de seleção =====
 const MODS = __MODS__;
 const ANOS = __ANOS__;
 // seleção (base GM): [mod, fonte, uf, kind, ogu, fin, ano] · fonte 0 FIN · 1 OGU
@@ -535,10 +556,10 @@ const CT = __CT__;
 //   3 ≤30 dias · 4 vencida
 const OG = __OG__;
 
-// posição de uf / kind / ano em cada fonte
+// posição de uf / kind / ano / fonte em cada base (OG é todo OGU: sem filtro de fonte)
 const SRC = {
-  sel: { rows: SEL, uf: 2, kind: 3, ano: 6 },
-  ct:  { rows: CT,  uf: 2, kind: 3, ano: 4 },
+  sel: { rows: SEL, uf: 2, kind: 3, ano: 6, fon: 1 },
+  ct:  { rows: CT,  uf: 2, kind: 3, ano: 4, fon: 1 },
   og:  { rows: OG,  uf: 1, kind: 2, ano: 3 },
 };
 
@@ -556,25 +577,28 @@ const media = (s, n) => (n ? fmtPct.format(s / n) + '%' : '—');
 
 // célula: string ou [string, classe]
 const TABLES = [
-  { id: 't-sel1', parts: [{ src: 'sel', add: (a, r) => {
+  { id: 't-sel1', status: true, parts: [{ src: 'sel', add: (a, r) => {
       a.n++; if (r[1] === 0) a.qf++; else if (r[1] === 1) a.qo++;
+      if (r[3] === 0) a.mig++; else a.nov++;
       a.ogu += r[4]; a.fin += r[5]; } }],
-    init: () => ({ n: 0, qf: 0, qo: 0, ogu: 0, fin: 0 }),
+    init: () => ({ n: 0, qf: 0, qo: 0, mig: 0, nov: 0, ogu: 0, fin: 0 }),
     cols: (a) => [I(a.qf), I(a.qo), H(a.n), M(a.ogu), M(a.fin), [M(a.ogu + a.fin), 'hl']],
     kpis: (t) => [I(t.n), B(t.ogu + t.fin), B(t.ogu), B(t.fin)] },
 
-  { id: 't-sel2', parts: [{ src: 'sel', keep: (r) => r[3] >= 1, add: (a, r) => {
+  { id: 't-sel2', status: true, parts: [{ src: 'sel', keep: (r) => r[3] >= 1, add: (a, r) => {
       a.n++; a.q[r[6]] = (a.q[r[6]] || 0) + 1; a.v[r[6]] = (a.v[r[6]] || 0) + r[4] + r[5]; a.vt += r[4] + r[5]; } }],
     init: () => ({ n: 0, q: {}, v: {}, vt: 0 }),
     cols: (a) => ANOS.map((y) => anoOn(y) ? I(a.q[y] || 0) : ['—', 'zero']).concat([H(a.n)])
       .concat(ANOS.map((y) => anoOn(y) ? M(a.v[y] || 0) : ['—', 'zero'])).concat([[M(a.vt), 'hl']]) },
 
   { id: 't-susp1', parts: [{ src: 'og', keep: (r) => !r[5], add: (a, r) => {
-      a.n++; if (r[6] === 0) a.ret++; if (r[6] === 1) { a.pen++; a.vpen += r[4]; } } }],
-    init: () => ({ n: 0, ret: 0, pen: 0, vpen: 0 }),
-    cols: (a) => [I(a.n), H(a.ret + a.pen), I(a.ret), A(a.pen),
+      a.n++;
+      if (r[6] === 0) a.ret++; else if (r[6] === 1) { a.pen++; a.vpen += r[4]; } else a.sem++; } }],
+    init: () => ({ n: 0, sem: 0, ret: 0, pen: 0, vpen: 0 }),
+    // sem + retiradas + pendentes = total
+    cols: (a) => [I(a.sem), I(a.ret), A(a.pen), I(a.ret + a.pen), H(a.n),
                   P(a.ret, a.ret + a.pen), M(a.vpen)],
-    kpis: (t) => [I(t.ret + t.pen), I(t.ret) + ' · ' + P(t.ret, t.ret + t.pen), I(t.pen), B(t.vpen)] },
+    kpis: (t) => [I(t.n), I(t.ret + t.pen), I(t.ret) + ' · ' + P(t.ret, t.ret + t.pen), I(t.pen)] },
 
   { id: 't-susp2', parts: [{ src: 'og', keep: (r) => !r[5] && r[6] === 1, add: (a, r) => {
       a.n++; a.p[r[7]]++; if (r[8]) a.teto++; } }],
@@ -600,10 +624,12 @@ const TABLES = [
 
   { id: 't-ct1', parts: [
       { src: 'sel', keep: (r) => r[3] >= 1, add: (a, r) => { a.n++; a.sel++; } },
+      // migradas: só para a nota de conciliação (não entram na tabela)
+      { src: 'sel', keep: (r) => r[3] === 0, add: (a) => { a.mig++; } },
       { src: 'ct', keep: (r) => r[3] >= 1, add: (a, r) => {
           a.n++; const s = r[5];
           if (s === 3) a.emc++; else if (s === 4) a.canc++; else { a.ass++; a.inv += r[7]; } } }],
-    init: () => ({ n: 0, sel: 0, ass: 0, emc: 0, canc: 0, inv: 0 }),
+    init: () => ({ n: 0, sel: 0, mig: 0, ass: 0, emc: 0, canc: 0, inv: 0 }),
     cols: (a) => [I(a.sel), H(a.ass), I(a.emc), I(a.canc), P(a.ass, a.sel), M(a.inv)],
     kpis: (t) => [I(t.sel), I(t.ass), P(t.ass, t.sel), B(t.inv)] },
 
@@ -616,8 +642,8 @@ const TABLES = [
     kpis: (t) => [I(t.n), I(t.s[0]), I(t.s[1]), B(t.rep)] },
 
   { id: 't-ex1', parts: [{ src: 'ct', keep: (r) => r[5] !== 4 && r[6] !== 5, add: (a, r) => {
-      a.n++; a.o[r[6]]++; } }],
-    init: () => ({ n: 0, o: [0, 0, 0, 0, 0] }),
+      a.n++; a.o[r[6]]++; if (r[3] === 0) a.mig++; else a.sel++; } }],
+    init: () => ({ n: 0, o: [0, 0, 0, 0, 0], sel: 0, mig: 0 }),
     cols: (a) => [I(a.o[0]), I(a.o[1]), A(a.o[2]), I(a.o[3]), I(a.o[4]),
                   H(a.n), P(a.o[3], a.n)],
     kpis: (t) => [I(t.o[1]), I(t.o[2]), I(t.o[3]) + ' · ' + P(t.o[3], t.n), I(t.o[0])] },
@@ -636,16 +662,40 @@ const TABLES = [
     kpis: (t) => [media(t.fs.s + t.fs.m, t.fn.s + t.fn.m), media(t.fis, t.fin_n), I(t.par), B(t.vpar)] },
 ];
 
-const state = { uf: '', sel: true, enq: true, anos: {} };
+// notas de conciliação entre slides: [data-ref] ← html calculado com os totais de cada tabela
+const SEMANO = ' Com recorte de ano, as migradas (legado, sem ano de seleção) ficam fora.';
+const REFS = {
+  sel1: (T) => '<b>' + I(T['t-sel1'].n) + '</b> propostas = <b>' + I(T['t-sel1'].nov)
+    + '</b> novas seleções (detalhadas por ano no slide 3) + <b>' + I(T['t-sel1'].mig)
+    + '</b> migradas (legado).' + (anoFiltrado() ? SEMANO : ''),
+  sel2: (T) => anoFiltrado()
+    ? 'Com recorte de ano, as migradas (legado, sem ano de seleção) ficam fora: o total é o mesmo do slide 2.'
+    : !T['t-sel1'].mig ? 'Sem migradas (legado) neste recorte: o total é o mesmo do slide 2.'
+    : 'Somadas as <b>' + I(T['t-sel1'].mig) + '</b> migradas (legado), são <b>' + I(T['t-sel1'].n)
+      + '</b> propostas — o total do slide 2.',
+  ct1: (T) => 'Seleções = as <b>' + I(T['t-ct1'].sel) + '</b> novas seleções do slide 3'
+    + (state.sel && state.enq ? '' : ' (selecionadas + enquadradas)')
+    + '; as <b>' + I(T['t-ct1'].mig) + '</b> migradas (legado) entram direto na execução (slides 10 e 11).',
+  ex1: (T) => 'Total = <b>' + I(T['t-ex1'].sel) + '</b> contratos do Novo PAC Seleção (assinados ou em contratação) + <b>'
+    + I(T['t-ex1'].mig) + '</b> migrados, sem contratos cancelados/distratados nem obras canceladas.'
+    + (anoFiltrado() ? ' Com recorte de ano, os migrados ficam fora.' : ''),
+};
+
+const state = { uf: '', sel: true, enq: true, ogu: true, fin: true, anos: {} };
 ANOS.forEach((a) => { state.anos[a] = true; });
 const anoFiltrado = () => ANOS.some((a) => !state.anos[a]);
 const anoOn = (y) => !!state.anos[y];
 
-// filtros comuns: UF, status (migradas contam como selecionadas) e ano (com recorte de ano,
-// migradas e linhas sem ano saem da conta)
-function passa(s, r) {
+// filtros comuns: UF, fonte (fonte desconhecida só com as duas ligadas), ano (com recorte de
+// ano, migradas e linhas sem ano saem da conta) e, só nas tabelas de seleção, status
+// (migradas contam como selecionadas)
+function passa(s, r, t) {
   if (state.uf && r[s.uf] !== state.uf) return false;
-  if (!(r[s.kind] <= 1 ? state.sel : state.enq)) return false;
+  if (s.fon !== undefined) {
+    const f = r[s.fon];
+    if (!(f === 1 ? state.ogu : f === 0 ? state.fin : state.ogu && state.fin)) return false;
+  }
+  if (t.status && !(r[s.kind] <= 1 ? state.sel : state.enq)) return false;
   if (anoFiltrado() && !state.anos[r[s.ano]]) return false;
   return true;
 }
@@ -655,6 +705,7 @@ function td(c) {
 }
 
 function render() {
+  const T = {};
   for (const t of TABLES) {
     const acc = MODS.map(() => t.init());
     const tot = t.init();
@@ -662,11 +713,12 @@ function render() {
       const s = SRC[p.src];
       for (const r of s.rows) {
         if (p.keep && !p.keep(r)) continue;
-        if (!passa(s, r)) continue;
+        if (!passa(s, r, t)) continue;
         p.add(acc[r[0]], r);
         p.add(tot, r);
       }
     }
+    T[t.id] = tot;
     const body = [];
     acc.forEach((a, i) => { if (a.n) body.push('<tr><td>' + MODS[i] + '</td>' + t.cols(a).map(td).join('') + '</tr>'); });
     const tb = document.querySelector('#' + t.id + ' tbody');
@@ -682,6 +734,12 @@ function render() {
       if (el) el.textContent = tot.n ? v : '—';
     });
   }
+  document.querySelectorAll('[data-ref]').forEach((el) => { el.innerHTML = REFS[el.dataset.ref](T); });
+  const fonname = state.ogu && state.fin ? 'OGU + FIN' : (state.ogu ? 'somente OGU' : 'somente FIN');
+  document.querySelectorAll('.fonname').forEach((el) => { el.textContent = fonname; });
+  document.querySelectorAll('.fonbtn').forEach((el) => {
+    el.setAttribute('aria-pressed', String(state[el.dataset.fon]));
+  });
   const stname = state.sel && state.enq ? 'selecionadas + enquadradas'
     : (state.sel ? 'somente selecionadas' : 'somente enquadradas');
   const anosOn = ANOS.filter((a) => state.anos[a]);
@@ -690,7 +748,7 @@ function render() {
   document.querySelectorAll('.stname').forEach((el) => { el.textContent = stname; });
   document.querySelectorAll('.anoname').forEach((el) => { el.textContent = anoname; });
   document.querySelectorAll('select.ufsel').forEach((el) => { el.value = state.uf; });
-  document.querySelectorAll('.stbtn:not(.anobtn)').forEach((el) => {
+  document.querySelectorAll('.stbtn[data-st]').forEach((el) => {
     el.setAttribute('aria-pressed', String(state[el.dataset.st]));
   });
   document.querySelectorAll('.anobtn').forEach((el) => {
@@ -705,19 +763,24 @@ function render() {
   state.uf = uf;
   const st = (params.get('status') || '').toLowerCase().trim();
   if (st === 'sel') state.enq = false; else if (st === 'enq') state.sel = false;
+  const fon = (params.get('fonte') || '').toLowerCase().trim();
+  if (fon === 'ogu') state.fin = false; else if (fon === 'fin') state.ogu = false;
   const anoParam = (params.get('ano') || '').trim();
   if (anoParam) {
-    const pedidos = anoParam.split(',').map((a) => a.trim()).filter((a) => ANOS.includes(a));
+    // aceita o ano completo (2025) ou curto (25)
+    const pedidos = anoParam.split(',').map((a) => a.trim()).map((a) => a.length === 2 ? '20' + a : a)
+      .filter((a) => ANOS.includes(a));
     if (pedidos.length) ANOS.forEach((a) => { state.anos[a] = pedidos.includes(a); });
   }
   render();
   document.querySelectorAll('select.ufsel').forEach((el) => {
     el.addEventListener('change', function () { state.uf = this.value; render(); });
   });
-  document.querySelectorAll('.stbtn:not(.anobtn)').forEach((el) => {
+  document.querySelectorAll('.stbtn[data-st], .fonbtn').forEach((el) => {
     el.addEventListener('click', function () {
-      const k = this.dataset.st, other = k === 'sel' ? 'enq' : 'sel';
-      if (state[k] && !state[other]) return; // pelo menos um status ativo
+      const k = this.dataset.st || this.dataset.fon;
+      const other = { sel: 'enq', enq: 'sel', ogu: 'fin', fin: 'ogu' }[k];
+      if (state[k] && !state[other]) return; // pelo menos um ativo em cada grupo
       state[k] = !state[k];
       render();
     });
@@ -808,6 +871,7 @@ function render() {
       }
       const partes = ['novopac-balanco-carteira', (state.uf || 'brasil').toLowerCase()];
       if (!(state.sel && state.enq)) partes.push(state.sel ? 'selecionadas' : 'enquadradas');
+      if (!(state.ogu && state.fin)) partes.push(state.ogu ? 'ogu' : 'fin');
       const anosOn = ANOS.filter((a) => state.anos[a]);
       if (anosOn.length !== ANOS.length) partes.push(anosOn.join('-'));
       pdf.save(partes.join('_') + '.pdf');
@@ -821,7 +885,8 @@ function render() {
   const pdfLink = document.querySelector('a.xlsxlink[href$=".pdf"]');
   if (pdfLink) {
     pdfLink.addEventListener('click', function (e) {
-      const filtrado = state.uf !== '' || !state.sel || !state.enq || ANOS.some((a) => !state.anos[a]);
+      const filtrado = state.uf !== '' || !state.sel || !state.enq || !state.ogu || !state.fin
+        || ANOS.some((a) => !state.anos[a]);
       if (!filtrado) return;
       e.preventDefault();
       gerarPdfFiltrado(pdfLink);
