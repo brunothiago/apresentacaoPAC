@@ -20,3 +20,7 @@ inconsistencias_base_*
 
 # conferências com dados por contrato (geradas localmente, não publicar)
 conferencia/
+
+# planilhas do balanço (Governa) — dados internos, não publicar
+Balanço*.xlsx
+Base Balanço*.xlsx
