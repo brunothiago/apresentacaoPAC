@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.11'  # subir a cada commit que altere a apresentação
+VERSAO = '1.12'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -39,6 +39,7 @@ HISTORICO = [
     ('1.9', 'Sai o slide de prazos das suspensivas (PC 48); o alinhamento das suspensivas passa a ser o 2.2.'),
     ('1.10', 'Slide 1.2: seletores Quantidade/Valor e Total/% e animação de preenchimento no painel de quadrados.'),
     ('1.11', 'Saem os contratos com fase Novo PAC mas bln_pac = NÃO no SACI (emendas e ações estratégicas); notas citam.'),
+    ('1.12', 'Slide 1.2: animação de preenchimento mais lenta e visível.'),
 ]
 
 D = dados.load()
@@ -250,9 +251,9 @@ EXTRA_CSS = """
   .waf-num .f b{ color:var(--navy); margin:0 4px; }
   .waf-num .f span{ font-size:14px; margin-left:auto; padding-left:6px; }
   .waf-cap{ font-size:12px; color:var(--ink-soft); }
-  .waf.anim .wq{ animation:wq .38s cubic-bezier(.2,.7,.3,1) both; transform-box:fill-box; transform-origin:center; }
-  .waf.anim .waf-seg{ animation:wseg 1s cubic-bezier(.65,0,.35,1) both; transform-origin:left center; }
-  .waf.anim .waf-seg.fin{ animation-delay:.25s; }
+  .waf.anim .wq{ animation:wq .7s cubic-bezier(.2,.7,.3,1) both; transform-box:fill-box; transform-origin:center; }
+  .waf.anim .waf-seg{ animation:wseg 1.8s cubic-bezier(.65,0,.35,1) both; transform-origin:left center; }
+  .waf.anim .waf-seg.fin{ animation-delay:.5s; }
   @keyframes wq{ from{ opacity:0; transform:scale(.25); } to{ opacity:1; transform:none; } }
   @keyframes wseg{ from{ transform:scaleX(0); } to{ transform:none; } }
   @media print{ .waf.anim *{ animation:none !important; } }
@@ -1180,7 +1181,7 @@ function waffleSvg(qo, qf, un, id) {
     const b = Math.max(0, Math.min(un, qo - ini)) / un;          // fração OGU deste quadrado
     const g = Math.max(0, Math.min(un, tot - ini) / un - b);     // fração FIN
     cor.push('<rect x="' + x + '" y="' + y + '" width="' + S + '" height="' + S + '" fill="' + COR_VAZIO + '"></rect>');
-    const d = ' class="wq" style="animation-delay:' + (i * 16) + 'ms"';  // preenchimento em sequência (animação)
+    const d = ' class="wq" style="animation-delay:' + (i * 35) + 'ms"';  // preenchimento em sequência (animação)
     if (b > 0) cor.push('<rect' + d + ' x="' + x + '" y="' + y + '" width="' + (S * b) + '" height="' + S + '" fill="' + COR_OGU + '"></rect>');
     if (g > 0) cor.push('<rect' + d + ' x="' + (x + S * b) + '" y="' + y + '" width="' + (S * g) + '" height="' + S + '" fill="' + COR_FIN + '"></rect>');
   }
@@ -1253,7 +1254,7 @@ function animarWaffle() {
   if (!el || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
   el.classList.remove('anim'); void el.offsetWidth; el.classList.add('anim');
   clearTimeout(WAF.timer);
-  WAF.timer = setTimeout(() => el.classList.remove('anim'), 2600);
+  WAF.timer = setTimeout(() => el.classList.remove('anim'), 70 * 35 + 900);  // último quadrado + duração
 }
 
 // ---- 2.2 · alinhamento das suspensivas (DMP, 08/2026) — porte do alinhamento-timeline.js do painelpac:
