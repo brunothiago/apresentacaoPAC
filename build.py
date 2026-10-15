@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.8'  # subir a cada commit que altere a apresentação
+VERSAO = '1.9'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -36,6 +36,7 @@ HISTORICO = [
     ('1.6', 'Balanço Governa jun/2026 como 2ª fonte da situação das obras (4.3, 5.1, 5.2); numeração N/total.'),
     ('1.7', 'Notas do 2.1 e do 3.1: cadeia das seleções OGU até os contratos OGU do painelpac.'),
     ('1.8', 'Slide 1.2 vira o painel de quadrados (waffle) por modalidade e fonte, no lugar da tabela por ano.'),
+    ('1.9', 'Sai o slide de prazos das suspensivas (PC 48); o alinhamento das suspensivas passa a ser o 2.2.'),
 ]
 
 D = dados.load()
@@ -590,12 +591,7 @@ SLIDES = f"""
        dek='Contratos OGU = sem suspensiva + suspensiva retirada + suspensiva pendente.',
        kpis=[('Contratos OGU',), ('Com suspensiva',), ('Retiradas', '', 'ok'), ('Pendentes', '', 'alerta')],
        nota='% retirada = retiradas ÷ contratos com cláusula suspensiva. <span data-ref="susp1"></span>', so_ogu=True)}
-{slide(2, 2, 'Prazo das suspensivas pendentes', 't-susp2',
-       ['Pendentes', ('Prazo inicial (PC 48/2026)', ['No prazo', 'Vence em<br>30 dias', 'Vencido']), 'Teto da<br>prorrogação<br>vencido', 'Sem prazo<br>calculado'],
-       'Contagem: suspensivas pendentes (OGU)', AT_PAC, SRC_PAC, so_ogu=True,
-       kpis=[('Pendentes',), ('Prazo inicial vencido', '', 'alerta'), ('Teto da prorrogação vencido', '', 'alerta'), ('Vencem em 30 dias',)],
-       nota=f'Prazo contado da assinatura (PC 48/2026, art. 12): 6, 8 ou 10 meses conforme o nível do contrato; prorrogação única até 8, 12 ou 14 meses. Situação em {EXTRAIDO:%d/%m/%Y}.')}
-{slide_alinhamento(2, 3, 'Alinhamento das suspensivas',
+{slide_alinhamento(2, 2, 'Alinhamento das suspensivas',
        'Contagem: contratos OGU com data alinhada pela DMP (08/2026)', AT_PAC, SRC_PAC,
        dek='Datas de retirada das suspensivas pactuadas pela DMP em 08/2026, por modalidade.')}
 {slide(3, 1, 'Etapa atual dos contratos OGU', 't-lic1',
@@ -827,13 +823,6 @@ const TABLES = [
     cols: (a) => [I(a.sem), I(a.ret), A(a.pen), I(a.ret + a.pen), H(a.n),
                   P(a.ret, a.ret + a.pen), M(a.vpen)],
     kpis: (t) => [I(t.n), I(t.ret + t.pen), I(t.ret) + ' · ' + P(t.ret, t.ret + t.pen), I(t.pen)] },
-
-  { id: 't-susp2', parts: [{ src: 'og', keep: (r) => !r[5] && r[6] === 1, add: (a, r) => {
-      a.n++; a.p[r[7]]++; if (r[8]) a.teto++; } }],
-    init: () => ({ n: 0, p: [0, 0, 0, 0], teto: 0 }),
-    cols: (a) => [H(a.n), I(a.p[1]), I(a.p[2]), A(a.p[3]),
-                  A(a.teto), I(a.p[0])],
-    kpis: (t) => [I(t.n), I(t.p[3]), I(t.teto), I(t.p[2])] },
 
   { id: 't-lic1', parts: [{ src: 'og', keep: (r) => !r[5], add: (a, r) => {
       a.n++; const f = r[9];
@@ -1208,7 +1197,7 @@ function renderWaffle() {
 }
 const WAF = { tot: 0, outros: 0 };
 
-// ---- 2.3 · alinhamento das suspensivas (DMP, 08/2026) — porte do alinhamento-timeline.js do painelpac:
+// ---- 2.2 · alinhamento das suspensivas (DMP, 08/2026) — porte do alinhamento-timeline.js do painelpac:
 // uma linha por modalidade, um círculo por data alinhada (área ∝ repasse ou nº de contratos) e o anel
 // verde com a fatia já retirada. A data é fixa: o gráfico parte de todos os contratos com data.
 const HOJE_ISO = __HOJE__;

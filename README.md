@@ -6,7 +6,7 @@ Secretaria-Executiva, com o caminho da carteira em cinco etapas (slides numerado
 | Etapa | Slides | Fonte |
 |---|---|---|
 | 01 Seleção | Carteira de seleções (migradas + novas) · Painel de quadrados por modalidade e fonte | `se_cgpac.tab_base_unica_gm` (painelgm) |
-| 02 Suspensivas | Cláusulas suspensivas OGU · Prazo das pendentes (PC 48/2026) · Alinhamento das suspensivas (DMP 08/2026) | consulta OGU do painelpac |
+| 02 Suspensivas | Cláusulas suspensivas OGU · Alinhamento das suspensivas (DMP 08/2026) | consulta OGU do painelpac |
 | 03 Licitação | Etapa atual dos contratos OGU · Prazos do art. 36-A | consulta OGU do painelpac |
 | 04 Contratação | Selecionado × contratado · Situação dos contratos assinados · Da seleção à obra (gráfico de blocos) | base GM × `se_saci.view_mat_carteira_investimento` |
 | 05 Execução | Situação das obras · Execução média e paralisações | `se_saci.view_mat_carteira_investimento` |
@@ -22,7 +22,7 @@ Abra **`index.html`** em qualquer navegador. Não precisa de servidor.
   `index.html?uf=SP&fonte=ogu&status=sel&ano=25,26` (ano curto ou completo).
 - Slide 1.1: filtro **Origem** (Migradas / Novas, `?origem=mig|nov`) e, no rodapé, **Exibir
   Valores / % do total** (participação da modalidade em cada coluna, `?pct=1`).
-- Slide 2.3 (alinhamento): **Tamanho** Repasse / Contratos (com Repasse, a bolha mostra o valor somado) e
+- Slide 2.2 (alinhamento): **Tamanho** Repasse / Contratos (com Repasse, a bolha mostra o valor somado) e
   **Mostrar** Todos / Só pendentes (`?aln=n&alnp=pend`).
 - Rodapé com a numeração **N/total**.
 - Slide 4.3 (da seleção à obra): **Medida** Quantidade / Valor e **Exibir** Total / %
@@ -108,7 +108,7 @@ painelpac). A pasta `conferencia/` fica fora do git (dados por contrato).
 - **Valor das migradas** (4.3 e investimento paralisado do 5.2): o da base GM — `vlr_portaria_ogu +
   vlr_portaria_fin` da retomada com o mesmo `cod_tci` —, que é a parte pós-2023 (repasse vigente menos o
   desembolsado até 31/12/2022, regra do painelgm). Sem correspondência, vale o valor do SACI.
-- **Alinhamento das suspensivas (2.3)**: porte do gráfico `alinhamento-timeline.js` do painelpac, com a
+- **Alinhamento das suspensivas (2.2)**: porte do gráfico `alinhamento-timeline.js` do painelpac, com a
   coluna `alinhamento_suspensivas_0826` da consulta OGU. A data é fixa: o gráfico conta também as já
   retiradas; a nota concilia com as pendentes do 2.1 (`?aln=n` dimensiona por nº de contratos).
 
