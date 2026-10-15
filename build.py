@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.14'  # subir a cada commit que altere a apresentação
+VERSAO = '1.15'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -42,6 +42,7 @@ HISTORICO = [
     ('1.12', 'Slide 1.2: animação de preenchimento mais lenta e visível.'),
     ('1.13', 'Trilha das etapas na linha de baixo de cada slide: a etapa atual em destaque, as demais como marca d\'água.'),
     ('1.14', 'A mesma trilha das etapas também na linha de cima dos slides.'),
+    ('1.15', 'Slide 2.2: mais espaço entre as linhas das modalidades.'),
 ]
 
 D = dados.load()
@@ -635,7 +636,7 @@ SLIDES = f"""
        nota='% retirada = retiradas ÷ contratos com cláusula suspensiva. <span data-ref="susp1"></span>', so_ogu=True)}
 {slide_alinhamento(2, 2, 'Alinhamento das suspensivas',
        'Contagem: contratos OGU com data alinhada pela DMP (08/2026)', AT_PAC, SRC_PAC,
-       dek='Datas de retirada das suspensivas pactuadas pela DMP em 08/2026, por modalidade.')}
+       dek='Datas de retirada pactuadas pela DMP (08/2026), por modalidade.')}
 {slide(3, 1, 'Etapa atual dos contratos OGU', 't-lic1',
        ['Sem<br>registro', 'Em<br>suspensiva', 'Suspensiva<br>retirada/LAE', 'Edital<br>publicado', 'Licitação<br>homologada', 'VRPL /<br>AIO', 'Obra<br>iniciada', 'Total'],
        'Contagem: contratos OGU do Novo PAC Seleção, sem cancelados — etapa mais avançada', AT_PAC, SRC_PAC,
@@ -968,11 +969,10 @@ const REFS = {
     + (state.c95 === '1' ? ' Concluídas: + iniciadas com ≥ 95% físico' + (comBal() ? ' (SACI ou balanço)' : '') + '.' : '')
     + (state.gmig ? ' Migradas pelo valor da base GM (pós-2023).' : ''),
   aln: () => !ALN.n ? 'Nenhum contrato com data alinhada neste recorte.'
-    : (state.alnp === 'pend' ? 'Mostrando só as <b>' + I(ALN.pc) + '</b> pendentes com data (sem retiradas nem cancelados). ' : '') + '<b>' + I(ALN.n) + '</b> com data alinhada = <b>' + I(ALN.pc) + '</b> pendentes + <b>' + I(ALN.ret)
-      + '</b> já retiradas' + (ALN.canc ? ' + <b>' + I(ALN.canc) + '</b> cancelado(s)' : '')
-      + ' — a data é fixa e continua valendo depois da retirada. As <b>' + I(ALN.pc + ALN.ps)
-      + '</b> pendentes do slide 2.1 = <b>' + I(ALN.pc) + '</b> com data alinhada + <b>' + I(ALN.ps)
-      + '</b> sem data (contratos que não entraram no alinhamento de 08/2026).',
+    : (state.alnp === 'pend' ? 'Só pendentes. ' : '') + '<b>' + I(ALN.n) + '</b> com data alinhada = <b>' + I(ALN.pc)
+      + '</b> pendentes + <b>' + I(ALN.ret) + '</b> já retiradas' + (ALN.canc ? ' + <b>' + I(ALN.canc) + '</b> cancelado(s)' : '')
+      + ' (a data vale mesmo após a retirada). As <b>' + I(ALN.pc + ALN.ps) + '</b> pendentes do 2.1 = <b>' + I(ALN.pc)
+      + '</b> com data + <b>' + I(ALN.ps) + '</b> fora do alinhamento de 08/2026.',
   ex1: (T) => {
     const t = T['t-ex1'];
     let s = 'Total = <b>' + I(t.sel) + '</b> Novo PAC Seleção + <b>' + I(t.mig) + '</b> migrados'
@@ -1319,7 +1319,7 @@ function renderAlinhamento() {
   }
   if (!lista.length) { el.innerHTML = '<p class="nota">Sem contratos com data alinhada neste recorte.</p>'; return; }
 
-  const W = 1712, LEFT = 260, RIGHT = 16, HEAD = 34, HMAX = 540;
+  const W = 1712, LEFT = 260, RIGHT = 16, HEAD = 34, HMAX = 572, FOLGA = 12;  // FOLGA: respiro entre as linhas
   const T0 = Date.UTC(2026, 3, 1), T1 = Date.UTC(2027, 3, 1), PLOT = W - LEFT - RIGHT;
   const x = (ms) => LEFT + (ms - T0) / (T1 - T0) * PLOT;
   const pelo = state.aln === 'n' ? 'n' : 'vlr';
@@ -1332,7 +1332,7 @@ function renderAlinhamento() {
   // empacota círculos em faixas na linha; se não couber na altura, reduz o raio máximo
   let RMAX = 30, linhas, altura;
   for (;;) {
-    const RMIN = Math.min(12, RMAX);
+    const RMIN = Math.min(11, RMAX);
     altura = HEAD;
     linhas = mods.map((m) => {
       const itens = lista.filter((g) => g.mod === m)
@@ -1349,12 +1349,12 @@ function renderAlinhamento() {
         if (!f) faixas.push(f = { itens: [], fim: -1e9, rmax: 0 });
         f.itens.push(it); f.fim = it.fim; f.rmax = Math.max(f.rmax, it.r);
       }
-      const h = Math.max(46, faixas.reduce((s, l) => s + l.rmax * 2 + 10, 0) + 6);
+      const h = Math.max(42 + FOLGA, faixas.reduce((s, l) => s + l.rmax * 2 + 8, 0) + 6 + FOLGA);
       const linha = { m, y: altura, h, faixas };
       altura += h;
       return linha;
     });
-    if (altura + 14 <= HMAX || RMAX <= 18) break;
+    if (altura + 14 <= HMAX || RMAX <= 14) break;
     RMAX -= 2;
   }
   const H = altura + 14;
@@ -1374,9 +1374,9 @@ function renderAlinhamento() {
     o.push('<text x="0" y="' + (ly + 2) + '" font-size="19" font-weight="700" fill="#071D41" ' + FONT + '>' + MODS[l.m].replace('Mobilidade: Médias e Grandes Cidades', 'Mobilidade').replace('Abastecimento de Água', 'Água') + '</text>');
     o.push('<text x="0" y="' + (ly + 22) + '" font-size="15" fill="#636363" ' + FONT + '>' + (pelo === 'vlr' ? BM(totMod.get(l.m).v) + ' · ' : '') + I(totMod.get(l.m).n)
       + (totMod.get(l.m).n === 1 ? ' contrato' + (pend ? ' pendente' : '') : ' contratos' + (pend ? ' pendentes' : '')) + '</text>');
-    let cy = l.y + 6;
+    let cy = l.y + 6 + FOLGA / 2;
     for (const f of l.faixas) {
-      cy += f.rmax + 5;
+      cy += f.rmax + 4;
       for (const { g, cx, r, txt, fora } of f.itens) {
         const dt = g.iso.slice(8, 10) + '/' + g.iso.slice(5, 7) + '/' + g.iso.slice(0, 4);
         o.push('<g><title>' + MODS[g.mod] + ' · ' + dt + '\n' + I(g.n) + (pend ? ' pendentes · ' : ' contratos · ') + BM(g.vlr)
@@ -1393,7 +1393,7 @@ function renderAlinhamento() {
           ? '<text x="' + (cx + r + (g.ret ? 9 : 5)) + '" y="' + (cy + 5) + '" font-size="' + fs + '" font-weight="800" fill="#071D41" ' + FONT + '>' + txt + '</text></g>'
           : '<text x="' + cx + '" y="' + (cy + 5) + '" text-anchor="middle" font-size="' + fs + '" font-weight="800" fill="#FFFFFF" ' + FONT + '>' + txt + '</text></g>');
       }
-      cy += f.rmax + 5;
+      cy += f.rmax + 4;
     }
   }
   const hx = x(dUTC(HOJE_ISO));
