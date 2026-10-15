@@ -829,11 +829,24 @@
   .rodape-row .nota{ margin:0; padding-top:4px; }
   .rodape-ctl{ flex:none; }
   /* gráfico de blocos (4.3): uma barra por etapa, altura proporcional ao 1º bloco */
-  .funil{ display:grid; grid-template-columns:1fr 150px 1fr 150px 1fr 150px 1fr; height:540px; margin-top:6px; }
+  .funil{ position:relative; display:grid; grid-template-columns:1fr 150px 1fr 150px 1fr 150px 1fr; height:540px; margin-top:6px; }
   .fbloco{ display:flex; flex-direction:column; justify-content:flex-end; min-width:0; }
+  /* coluna: barra na base, sombra tracejada na altura das seleções e rótulos acima da barra */
+  .fcol{ position:relative; height:440px; }
+  .fbar, .fghost{ position:absolute; left:22px; right:22px; bottom:0; }
+  .fbar{ background:var(--accent); border-radius:4px 4px 0 0; transition:height .7s cubic-bezier(.65,0,.35,1); }
+  .fghost{ border:2px dashed var(--accent); border-bottom:0; border-radius:4px 4px 0 0; opacity:.35; transition:height .7s cubic-bezier(.65,0,.35,1), opacity .4s; }
+  .flab{ position:absolute; left:0; right:0; transition:bottom .7s cubic-bezier(.65,0,.35,1); }
   .fval{ font-size:46px; font-weight:800; color:var(--navy); text-align:center; letter-spacing:-.02em; font-variant-numeric:tabular-nums; line-height:1.05; }
-  .fsec{ font-size:19px; color:var(--ink-soft); text-align:center; margin:2px 0 10px; font-variant-numeric:tabular-nums; }
-  .fbar{ background:var(--accent); border-radius:4px 4px 0 0; margin:0 22px; min-height:0; }
+  .fsec{ font-size:19px; color:var(--ink-soft); text-align:center; margin:2px 0 0; font-variant-numeric:tabular-nums; }
+  .fseta{ transition:opacity .45s ease, transform .45s ease; }
+  .fseta.oculta{ opacity:0; transform:translateX(-14px); }
+  .funil.sem-trans *{ transition:none !important; }
+  .freplay{ position:absolute; top:-4px; right:0; z-index:2; font-family:'rawline','Raleway',sans-serif; font-size:15px; font-weight:700;
+    letter-spacing:.06em; color:var(--ink-soft); background:#fff; border:1px solid var(--line-strong); border-radius:2px; padding:5px 10px; cursor:pointer; }
+  .freplay:hover{ color:var(--accent-deep); border-color:var(--accent); }
+  @media print{ .freplay{ display:none !important; } .funil *{ transition:none !important; } }
+  @media (prefers-reduced-motion: reduce){ .funil *{ transition:none !important; } }
   .fbase{ border-top:2px solid var(--line-strong); padding-top:10px; text-align:center; height:96px; box-sizing:border-box; }
   .fnome{ font-size:24px; font-weight:700; color:var(--navy); }
   .fdet{ font-size:16px; color:var(--ink-soft); margin-top:4px; line-height:1.3; font-variant-numeric:tabular-nums; }
@@ -972,7 +985,7 @@
     <div class="bot" style="border-top:0; padding-top:18px;">
       <span class="org" style="color:var(--paper);">Ministério das Cidades - DMP/SE</span>
       <div style="flex: 1;"></div>
-      <span class="org" style="color:var(--paper);">Extração de 15/10/2026 18:11<span class="ver">versão 1.4</span></span>
+      <span class="org" style="color:var(--paper);">Extração de 15/10/2026 18:11<span class="ver">versão 1.5</span></span>
     </div>
   </section>
 
@@ -1008,7 +1021,7 @@
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: MCid · Portarias de seleção do Novo PAC (base única GM) · extração de 15/10/2026 18:11</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.4</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.5</span></span>
     </div>
   </section>
 
@@ -1044,7 +1057,7 @@
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: MCid · Portarias de seleção do Novo PAC (base única GM) · extração de 15/10/2026 18:11</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.4</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.5</span></span>
     </div>
   </section>
 
@@ -1081,7 +1094,7 @@
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: painelpac (SACI 15/10 · Transferegov 15/10 · Caixa 13/10 · BDGestores 15/10) · extração de 15/10/2026 18:11</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.4</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.5</span></span>
     </div>
   </section>
 
@@ -1117,7 +1130,7 @@
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: painelpac (SACI 15/10 · Transferegov 15/10 · Caixa 13/10 · BDGestores 15/10) · extração de 15/10/2026 18:11</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.4</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.5</span></span>
     </div>
   </section>
 
@@ -1151,7 +1164,7 @@
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: painelpac (SACI 15/10 · Transferegov 15/10 · Caixa 13/10 · BDGestores 15/10) · extração de 15/10/2026 18:11</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.4</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.5</span></span>
     </div>
   </section>
 
@@ -1186,7 +1199,7 @@
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: painelpac (SACI 15/10 · Transferegov 15/10 · Caixa 13/10 · BDGestores 15/10) · extração de 15/10/2026 18:11</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.4</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.5</span></span>
     </div>
   </section>
 
@@ -1222,7 +1235,7 @@
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: painelpac (SACI 15/10 · Transferegov 15/10 · Caixa 13/10 · BDGestores 15/10) · extração de 15/10/2026 18:11</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.4</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.5</span></span>
     </div>
   </section>
 
@@ -1258,7 +1271,7 @@
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: base única GM e SACI (view_mat_carteira_investimento) · extração de 15/10/2026 18:11</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.4</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.5</span></span>
     </div>
   </section>
 
@@ -1294,7 +1307,7 @@
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: SACI (view_mat_carteira_investimento) · extração de 15/10/2026 18:11</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.4</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.5</span></span>
     </div>
   </section>
 
@@ -1328,7 +1341,7 @@
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: base única GM e SACI (view_mat_carteira_investimento) · extração de 15/10/2026 18:11</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.4</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.5</span></span>
     </div>
   </section>
 
@@ -1364,7 +1377,7 @@
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: SACI (view_mat_carteira_investimento) · extração de 15/10/2026 18:11</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.4</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.5</span></span>
     </div>
   </section>
 
@@ -1400,7 +1413,7 @@
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: SACI (view_mat_carteira_investimento) · extração de 15/10/2026 18:11</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.4</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.5</span></span>
     </div>
   </section>
 
@@ -1426,7 +1439,7 @@
     <div class="bot" style="border-top:0; padding-top:18px;">
       <span class="org" style="color:var(--paper);">Ministério das Cidades - DMP/SE</span>
       <div style="flex: 1;"></div>
-      <span class="org" style="color:var(--paper);">Extração de 15/10/2026<span class="verwrap"><button type="button" class="ver verlink" id="verBtn" aria-haspopup="dialog" aria-expanded="false" title="Ver histórico de atualizações">versão 1.4</button>
+      <span class="org" style="color:var(--paper);">Extração de 15/10/2026<span class="verwrap"><button type="button" class="ver verlink" id="verBtn" aria-haspopup="dialog" aria-expanded="false" title="Ver histórico de atualizações">versão 1.5</button>
         <div class="verlog" id="verLog" role="dialog" aria-label="Histórico de atualizações" hidden>
           <h3>Atualizações da apresentação</h3>
           <ul>
@@ -1435,6 +1448,7 @@
             <li><b>1.2</b>Numeração 1.1…5.2; slide 1.1 com % e filtro de origem; novo slide 4.3 — da seleção à obra.</li>
             <li><b>1.3</b>Slide 4.3: filtro de origem (migradas / novas) e critério de conclusão ≥ 95% de execução física.</li>
             <li><b>1.4</b>Migradas pelo valor da base GM (pós-2023) no 4.3 e no 5.2; novo slide 2.3 — alinhamento das suspensivas (DMP 08/2026).</li>
+            <li><b>1.5</b>Slide 4.3 animado: o todo das seleções se quebra em contratos, obras iniciadas e concluídas.</li>
           </ul>
         </div></span></span>
       <a class="xlsxlink" href="novopac-balanco-carteira.pdf" download title="Baixar o PDF da apresentação (um slide por página) — com filtros aplicados, o PDF é gerado refletindo os filtros">
@@ -3500,23 +3514,122 @@ function renderFunil() {
   const base = b.sel[k];
   // altura pela maior barra: nas migradas o repasse contratado pode passar do valor da portaria na base GM
   const teto = Math.max(...BLOCOS.map(([id]) => b[id][k]));
-  const fmt = (v) => (k ? BM(v) : I(v));
-  const out = [];
-  BLOCOS.forEach(([id, nome, det], i) => {
+  const pct = state.modo === 'pct';
+  // formato do número principal: % das seleções, R$ ou quantidade (usado também pelo contador)
+  const fmtNum = pct ? (x) => fmtPct.format(x) + '%' : (k ? BM : (x) => I(Math.round(x)));
+  if (!FUN.blocos) montarFunil(el);
+  FUN.fmt = fmtNum;
+  FUN.alvo = BLOCOS.map(([id, nome, det], i) => {
     const v = b[id][k];
-    if (i) {
-      const ant = b[BLOCOS[i - 1][0]][k];
-      out.push('<div class="fseta"><div class="pc">' + P(v, ant) + '</div>' + SETA + '<div class="lb">do anterior</div></div>');
-    }
-    const alt = teto ? Math.max(v ? 3 : 0, Math.round(340 * v / teto)) : 0;
-    const principal = state.modo === 'pct' ? P(v, base) : fmt(v);
-    const secundario = state.modo === 'pct' ? fmt(v) : (k ? I(b[id][0]) + (id === 'sel' ? ' seleções' : ' contratos') : BM(b[id][1]));
-    out.push('<div class="fbloco" title="' + nome + ': ' + I(b[id][0]) + ' · ' + BM(b[id][1]) + '">'
-      + '<div class="fval">' + principal + '</div><div class="fsec">' + secundario + '</div>'
-      + '<div class="fbar" style="height:' + alt + 'px"></div>'
-      + '<div class="fbase"><div class="fnome">' + nome + '</div><div class="fdet">' + det + '</div></div></div>');
+    return {
+      h: teto ? Math.max(v ? 3 : 0, Math.round(340 * v / teto)) : 0,
+      n: pct ? (base ? 100 * v / base : 0) : v,
+      sec: pct ? (k ? BM(v) : I(v)) : (k ? I(b[id][0]) + (id === 'sel' ? ' seleções' : ' contratos') : BM(b[id][1])),
+      conv: i ? P(v, b[BLOCOS[i - 1][0]][k]) : '',
+      nome, det, title: nome + ': ' + I(b[id][0]) + ' · ' + BM(b[id][1]),
+    };
   });
-  el.innerHTML = out.join('');
+  pararFunil();
+  aplicarFunil();
+}
+
+// ---- animação do 4.3: o todo (as seleções) aparece inteiro e se quebra nos blocos seguintes.
+// Sem biblioteca: transição CSS de altura + contador em requestAnimationFrame.
+const FUN = { blocos: null, setas: null, timers: [], rafs: [], alvo: [], fmt: null };
+function montarFunil(el) {
+  el.innerHTML = '';
+  FUN.blocos = []; FUN.setas = [];
+  for (let i = 0; i < 4; i++) {
+    if (i) {
+      const s = document.createElement('div');
+      s.className = 'fseta';
+      s.innerHTML = '<div class="pc"></div>' + SETA + '<div class="lb">do anterior</div>';
+      el.append(s); FUN.setas.push(s);
+    }
+    const bl = document.createElement('div');
+    bl.className = 'fbloco';
+    bl.innerHTML = '<div class="fcol">' + (i ? '<div class="fghost"></div>' : '')
+      + '<div class="fbar"></div><div class="flab"><div class="fval"></div><div class="fsec"></div></div></div>'
+      + '<div class="fbase"><div class="fnome"></div><div class="fdet"></div></div>';
+    el.append(bl);
+    FUN.blocos.push({
+      el: bl, bar: bl.querySelector('.fbar'), ghost: bl.querySelector('.fghost'), lab: bl.querySelector('.flab'),
+      val: bl.querySelector('.fval'), sec: bl.querySelector('.fsec'),
+      nome: bl.querySelector('.fnome'), det: bl.querySelector('.fdet'),
+    });
+  }
+  const bt = document.createElement('button');
+  bt.type = 'button'; bt.className = 'freplay'; bt.textContent = '↻ Animar';
+  bt.title = 'Repetir a animação: o todo das seleções se quebrando nas etapas';
+  bt.addEventListener('click', animarFunil);
+  el.append(bt);
+}
+function posFunil(i, h) {  // barra e rótulo na altura h
+  const B = FUN.blocos[i];
+  B.bar.style.height = h + 'px';
+  B.lab.style.bottom = (h + 10) + 'px';
+}
+function aplicarFunil() {  // estado final (sem animação pendente)
+  const a = FUN.alvo;
+  a.forEach((x, i) => {
+    const B = FUN.blocos[i];
+    posFunil(i, x.h);
+    if (B.ghost) { B.ghost.style.height = a[0].h + 'px'; B.ghost.style.opacity = ''; }
+    B.val.textContent = FUN.fmt(x.n);
+    B.sec.textContent = x.sec;
+    B.nome.textContent = x.nome; B.det.textContent = x.det; B.el.title = x.title;
+    if (i) { FUN.setas[i - 1].querySelector('.pc').textContent = x.conv; FUN.setas[i - 1].classList.remove('oculta'); }
+  });
+}
+function pararFunil() {
+  FUN.timers.forEach(clearTimeout); FUN.rafs.forEach(cancelAnimationFrame);
+  FUN.timers = []; FUN.rafs = [];
+  const el = document.getElementById('g-funil');
+  if (el) el.classList.remove('sem-trans');
+}
+function contar(B, de, ate, ms) {  // contador do número principal, com a mesma curva da barra
+  const t0 = performance.now();
+  const passo = (t) => {
+    const p = Math.min(1, (t - t0) / ms);
+    const e = p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+    B.val.textContent = FUN.fmt(de + (ate - de) * e);
+    if (p < 1) FUN.rafs.push(requestAnimationFrame(passo));
+  };
+  FUN.rafs.push(requestAnimationFrame(passo));
+}
+function animarFunil() {
+  const el = document.getElementById('g-funil');
+  if (!el || !FUN.blocos || !FUN.alvo.length) return;
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  pararFunil();
+  const a = FUN.alvo, hSel = a[0].h;
+  // 1) zera tudo sem transição: barras na base, setas ocultas, todos com o número das seleções
+  el.classList.add('sem-trans');
+  a.forEach((x, i) => {
+    posFunil(i, 0);
+    const B = FUN.blocos[i];
+    if (B.ghost) { B.ghost.style.height = '0px'; B.ghost.style.opacity = '0'; }
+    B.val.textContent = FUN.fmt(a[0].n); B.sec.textContent = a[0].sec;
+    if (i) FUN.setas[i - 1].classList.add('oculta');
+  });
+  void el.offsetHeight;
+  el.classList.remove('sem-trans');
+  // 2) o todo: as quatro barras sobem juntas até a altura das seleções
+  a.forEach((x, i) => posFunil(i, hSel));
+  // 3) a quebra, em cascata: cada etapa encolhe até o seu valor, a sombra fica, a seta aparece
+  const T = (ms, f) => FUN.timers.push(setTimeout(f, ms));
+  for (let i = 1; i < 4; i++) {
+    const t = 1000 + (i - 1) * 420;
+    T(t, () => {
+      const B = FUN.blocos[i];
+      B.ghost.style.height = hSel + 'px'; B.ghost.style.opacity = '';
+      posFunil(i, a[i].h);
+      B.sec.textContent = a[i].sec;
+      contar(B, a[0].n, a[i].n, 700);
+    });
+    T(t + 520, () => FUN.setas[i - 1].classList.remove('oculta'));
+  }
+  T(1000 + 2 * 420 + 900, () => { FUN.timers = []; aplicarFunil(); });
 }
 
 // ---- 2.3 · alinhamento das suspensivas (DMP, 08/2026) — porte do alinhamento-timeline.js do painelpac:
@@ -3747,6 +3860,13 @@ function render() {
     });
   });
 
+  // ---- animação do 4.3 ao entrar no slide ----
+  const deck = document.querySelector('deck-stage');
+  if (deck) deck.addEventListener('slidechange', (e) => {
+    if (e.detail && e.detail.slide && e.detail.slide.querySelector('#g-funil')) animarFunil();
+  });
+  setTimeout(() => { if (document.querySelector('[data-deck-active] #g-funil')) animarFunil(); }, 120);
+
   // ---- Exportar PDF: com filtros aplicados, gera e baixa o PDF refletindo os filtros ----
   // Sem filtros, baixa o PDF pré-gerado (vetorial, leve). Com recorte ativo, cada slide é
   // rasterizado em 1920×1080 com html2canvas e adicionado a um jsPDF; se algo falhar,
@@ -3807,6 +3927,7 @@ function render() {
   async function gerarPdfFiltrado(link) {
     if (gerandoPdf) return;
     gerandoPdf = true;
+    pararFunil(); if (FUN.blocos) aplicarFunil();  // gráfico 4.3 no estado final
     const txt = link.querySelector('.pdftxt');
     const antes = txt ? txt.textContent : '';
     try {
