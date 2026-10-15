@@ -61,8 +61,8 @@ PAINELPAC = os.path.abspath(os.getenv('PAINELPAC_DIR') or os.path.join(RAIZ, '..
 GM_COLUNAS = [
     'num_proposta_selecao', 'fonte', 'subfonte', 'regiao', 'uf', 'municipio', 'proponente',
     'vlr_portaria_total', 'vlr_portaria_ogu', 'vlr_portaria_fin', 'eixo', 'subeixo', 'modalidade',
-    'grupo_modalidade', 'ano_selecao', 'status_selecao', 'tipo_financiamento', 'dte_carga',
-]
+    'grupo_modalidade', 'ano_selecao', 'status_selecao', 'tipo_financiamento', 'cod_tci', 'dte_carga',
+]  # cod_tci: liga a retomada (migrada) ao contrato do SACI — valor das migradas pela base GM
 SQL_GM = f'SELECT {", ".join(GM_COLUNAS)} FROM se_cgpac.tab_base_unica_gm ORDER BY id_linha'
 
 SACI_COLUNAS = [
@@ -93,7 +93,7 @@ PAC_COLUNAS = [
     'dte_publicacao_licitacao_tgov', 'dte_homologacao_licitacao_tgov', 'dte_vrpl_tdb', 'dte_aio_tdb',
     'dte_inicio_obra_mcid_saci', 'prazo_pub_licitacao_calc', 'prazo_homolog_licitacao_calc',
     'status_pub_licitacao_calc', 'status_homolog_licitacao_calc', 'status_regra_casa_civil_calc',
-    'status_inicio_obra_calc',
+    'status_inicio_obra_calc', 'alinhamento_suspensivas_0826', 'origem_regra_alinhamento',
 ]
 
 

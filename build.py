@@ -24,13 +24,14 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.3'  # subir a cada commit que altere a apresentação
+VERSAO = '1.4'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
     ('1.1', 'Status só na seleção; filtro OGU/FIN; anos curtos; notas de conciliação; suspensivas reestruturadas.'),
     ('1.2', 'Numeração 1.1…5.2; slide 1.1 com % e filtro de origem; novo slide 4.3 — da seleção à obra.'),
     ('1.3', 'Slide 4.3: filtro de origem (migradas / novas) e critério de conclusão ≥ 95% de execução física.'),
+    ('1.4', 'Migradas pelo valor da base GM (pós-2023) no 4.3 e no 5.2; novo slide 2.3 — alinhamento das suspensivas (DMP 08/2026).'),
 ]
 
 D = dados.load()
@@ -95,16 +96,17 @@ for _, r in D['sel'].iterrows():
     SEL.append([MODS.index(r['mod']), FONTE.get(r.fonte, 2), r.uf, 2 if r.status_selecao == 'enquadrada' else 1,
                 num(r.vlr_portaria_ogu), num(r.vlr_portaria_fin), dados.ANO_LABEL[int(r.ano_selecao)]])
 
-# contratos SACI: [mod, fonte, uf, kind, ano, sitContrato, sitObra, investimento, repasse, %fís, %fin]
+# contratos SACI: [mod, fonte, uf, kind, ano, sitContrato, sitObra, investimento, repasse, %fís, %fin,
+#                  valor GM da migrada (pós-2023) ou None]
 CT = []
 for _, r in D['saci'].iterrows():
     CT.append([MODS.index(r['mod']), FONTE.get(r.txt_fonte, 2), r.uf, int(r.kind), r.ano,
                idx_sit_ct(r.dsc_situacao_contrato_mcid), SIT_OBRA.get(r.dsc_situacao_objeto_mcid, 0),
                num(r.vlr_investimento) or 0, num(r.vlr_repasse) or 0,
-               num(r.prc_execucao_fisica), num(r.prc_execucao_financ)])
+               num(r.prc_execucao_fisica), num(r.prc_execucao_financ), num(r.vlr_gm)])
 
 # contratos OGU (painelpac): [mod, uf, kind, ano, repasse, cancelado, susp, pc48, tetoVencido,
-#                             fase, pubLicitação, homLicitação, casaCivil]
+#                             fase, pubLicitação, homLicitação, casaCivil, data alinhada DMP 08/26]
 OG = []
 for _, r in D['ogu'].iterrows():
     teto = pd.to_datetime(r.prazo_suspensiva_pc48_prorrogado_calc, errors='coerce')
@@ -114,7 +116,8 @@ for _, r in D['ogu'].iterrows():
                1 if (r.status_suspensiva_calc == 'PENDENTE' and pd.notna(teto) and teto < HOJE) else 0,
                FASES.index(r.fase_atual_calc) if r.fase_atual_calc in FASES else 0,
                PRAZO.get(r.status_pub_licitacao_calc, 0), PRAZO.get(r.status_homolog_licitacao_calc, 0),
-               1 if r.status_regra_casa_civil_calc == 'Cumpriu o prazo' else 0])
+               1 if r.status_regra_casa_civil_calc == 'Cumpriu o prazo' else 0,
+               '' if pd.isna(r.dt_alinhamento) else f'{r.dt_alinhamento:%Y-%m-%d}'])
 
 ANOS = sorted({r[6] for r in SEL if r[6]})
 ufs = sorted(({r[2] for r in SEL} | {r[2] for r in CT} | {r[1] for r in OG}) - {'BR', ''})
@@ -170,6 +173,14 @@ EXTRA_CSS = """
   .fseta{ align-self:end; margin-bottom:120px; text-align:center; color:var(--ink-soft); }
   .fseta .pc{ font-size:28px; font-weight:800; color:var(--accent-deep); font-variant-numeric:tabular-nums; }
   .fseta svg{ display:block; margin:4px auto; width:90px; height:18px; stroke:var(--ink-soft); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  #t-ex2 td{ padding-top:3px; padding-bottom:3px; }  /* 12 linhas + nota no 5.2 */
+  .alin{ margin-top:4px; }
+  .alin svg{ display:block; width:100%; height:auto; }
+  .alin-leg{ display:flex; gap:28px; font-size:16px; color:var(--ink-soft); margin-top:6px; }
+  .alin-leg i{ display:inline-block; vertical-align:-3px; margin-right:8px; }
+  .alin-leg .lg-dot{ width:16px; height:16px; border-radius:50%; background:#1351B4; opacity:.85; }
+  .alin-leg .lg-ring{ width:12px; height:12px; border-radius:50%; border:3px solid #168821; }
+  .alin-leg .lg-hoje{ width:0; height:16px; border-left:2px dashed #BC4749; }
   .fseta .lb{ font-size:14px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
   .nota{ font-size:17px; color:var(--ink-soft); margin:8px 0 0; font-style:italic; line-height:1.35; }
   /* destaques (KPIs) */
@@ -358,14 +369,19 @@ def tmeta(atualizado, legenda, status=False, so_ogu=False, origem=None, ori_txt=
     return '<p class="tmeta">' + '<span class="sep">·</span>'.join(partes) + '</p>'
 
 
+def cartoes(tid, kpis):
+    """linha de destaques (KPIs): kpis = [(rótulo, '', classe opcional)], preenchidos pelo JS."""
+    if not kpis:
+        return ''
+    cards = ''.join(f'<div class="kpi{" " + k[2] if len(k) > 2 else ""}"><div class="kv" data-kpi="{tid}:{i}">—</div><div class="kl">{k[0]}</div></div>'
+                    for i, k in enumerate(kpis))
+    return f'\n        <div class="kpis">{cards}</div>'
+
+
 def slide(etapa, n, titulo, tabela_id, colunas, legenda, atualizado, fonte, dek='', kpis=None, nota='',
           status=False, so_ogu=False, origem=None, rodape=''):
     """slide de tabela; rodape: controles exibidos à direita da nota (ex.: valores × %)."""
-    kpi_html = ''
-    if kpis:
-        cards = ''.join(f'<div class="kpi{" " + k[2] if len(k) > 2 else ""}"><div class="kv" data-kpi="{tabela_id}:{i}">—</div><div class="kl">{k[0]}</div></div>'
-                        for i, k in enumerate(kpis))
-        kpi_html = f'\n        <div class="kpis">{cards}</div>'
+    kpi_html = cartoes(tabela_id, kpis)
     nota_html = f'<p class="nota">{nota}</p>' if nota else '<p class="nota"></p>'
     nota_html = (f'\n        <div class="rodape-row">{nota_html}<div class="rodape-ctl">{rodape}</div></div>' if rodape
                  else (f'\n        {nota_html}' if nota else ''))
@@ -393,6 +409,20 @@ def slide_transicao(etapa, n, titulo, legenda, atualizado, fonte, dek='', nota='
         {tmeta(atualizado, legenda, origem='g', ori_txt='somente novas')}
         <div class="funil" id="g-funil"></div>
         <div class="rodape-row"><p class="nota">{nota}</p><div class="rodape-ctl">{criterio}</div></div>
+      </div>
+    </div>
+{foot(fonte)}  </section>
+""")
+
+
+def slide_alinhamento(etapa, n, titulo, legenda, atualizado, fonte, dek='', kpis=None):
+    """linha do tempo do alinhamento das suspensivas (gráfico do painelpac) — montada no render() do JS."""
+    extra = radio('Tamanho', 'aln', [('vlr', 'Repasse'), ('n', 'Contratos')])
+    return (cabeca(etapa, n, titulo, 'g-alin', dek, so_ogu=True, extra=extra)
+            + f"""{cartoes('g-alin', kpis)}
+        {tmeta(atualizado, legenda, so_ogu=True)}
+        <div class="alin" id="g-alin"></div>
+        <p class="nota"><span data-ref="aln"></span></p>
       </div>
     </div>
 {foot(fonte)}  </section>
@@ -476,6 +506,9 @@ SLIDES = f"""
        'Contagem: suspensivas pendentes (OGU)', AT_PAC, SRC_PAC, so_ogu=True,
        kpis=[('Pendentes',), ('Prazo inicial vencido', '', 'alerta'), ('Teto da prorrogação vencido', '', 'alerta'), ('Vencem em 30 dias',)],
        nota=f'Prazo contado da assinatura (PC 48/2026, art. 12): 6, 8 ou 10 meses conforme o nível do contrato; prorrogação única até 8, 12 ou 14 meses. Situação em {EXTRAIDO:%d/%m/%Y}.')}
+{slide_alinhamento(2, 3, 'Alinhamento das suspensivas',
+       'Contagem: contratos OGU com data alinhada pela DMP (08/2026)', AT_PAC, SRC_PAC,
+       dek='Datas de retirada das suspensivas pactuadas pela DMP em 08/2026, por modalidade.')}
 {slide(3, 1, 'Etapa atual dos contratos OGU', 't-lic1',
        ['Sem<br>registro', 'Em<br>suspensiva', 'Suspensiva<br>retirada/LAE', 'Edital<br>publicado', 'Licitação<br>homologada', 'VRPL /<br>AIO', 'Obra<br>iniciada', 'Total'],
        'Contagem: contratos OGU do Novo PAC Seleção, sem cancelados — etapa mais avançada', AT_PAC, SRC_PAC,
@@ -498,8 +531,8 @@ SLIDES = f"""
 {slide_transicao(4, 3, 'Da seleção à obra',
        'Contagem: seleções (GM) × contratos do Novo PAC Seleção / Migrado (SACI)', AT_CT, 'base única GM e ' + SRC_SACI,
        dek='Quanto das seleções já virou contrato assinado, obra iniciada e obra concluída.',
-       nota='<span data-ref="g43"></span> Valor: seleções pela portaria (OGU + FIN); contratos e obras pelo '
-            'repasse/financiamento do SACI. Setas: conversão em relação ao bloco anterior.')}
+       nota='<span data-ref="g43"></span> Valor: seleções pela portaria (OGU + FIN); contratos e obras das novas '
+            'seleções pelo repasse/financiamento do SACI. Setas: conversão em relação ao bloco anterior.')}
 {slide(5, 1, 'Situação das obras', 't-ex1',
        ['Não<br>iniciada', 'Em<br>execução', 'Paralisada', 'Concluída', 'Inacabada', 'Total', '% concluída'],
        'Contagem: contratos do Novo PAC Seleção + Migrado (SACI), sem cancelados', AT_SACI, SRC_SACI,
@@ -508,7 +541,9 @@ SLIDES = f"""
 {slide(5, 2, 'Execução média e paralisações', 't-ex2',
        [('% físico médio', ['Novas<br>seleções', 'Migradas', 'Total']), '% financeiro<br>médio', 'Paralisadas', 'Investimento<br>paralisado (R$ mi)', 'Concluídas'],
        'Médias: obras em execução ou paralisadas (média simples por contrato)', AT_SACI, SRC_SACI,
-       kpis=[('% físico médio',), ('% financeiro médio',), ('Paralisadas', '', 'alerta'), ('Investimento paralisado', '', 'alerta')])}
+       kpis=[('% físico médio',), ('% financeiro médio',), ('Paralisadas', '', 'alerta'), ('Investimento paralisado', '', 'alerta')],
+       nota='Investimento paralisado: migradas pelo valor da base GM (pós-2023: repasse menos o desembolsado até 2022); '
+            'novas seleções pelo investimento do SACI.')}
 
   <!-- ============ ENCERRAMENTO ============ -->
   <section class="p2 dark" data-label="Encerramento">
@@ -647,6 +682,8 @@ const P = (a, b) => (b ? fmtPct.format(100 * a / b) + '%' : '—');
 const H = (v) => [I(v), v ? 'hl' : 'zero'];      // destaque
 const A = (v) => [I(v), v ? 'alerta' : 'zero'];  // alerta
 const media = (s, n) => (n ? fmtPct.format(s / n) + '%' : '—');
+// valor do contrato: migrada pelo valor da base GM (pós-2023) quando houver; senão o campo do SACI
+const vMig = (r, i) => (r[3] === 0 && r[11] !== null ? r[11] : r[i]);
 const BM = (v) => (Math.abs(v) >= 1e9 ? B(v) : 'R$ ' + fmtBi.format(v / 1e6) + ' mi');  // bi ou mi
 
 // célula: string ou [string, classe]
@@ -730,7 +767,7 @@ const TABLES = [
 
   { id: 't-ex2', parts: [{ src: 'ct', keep: (r) => r[5] !== 4 && r[6] !== 5, add: (a, r) => {
       a.n++;
-      if (r[6] === 2) { a.par++; a.vpar += r[7]; }
+      if (r[6] === 2) { a.par++; a.vpar += vMig(r, 7); }
       if (r[6] === 3) a.conc++;
       if ((r[6] === 1 || r[6] === 2)) {
         if (r[9] !== null) { const k = r[3] === 0 ? 'm' : 's'; a.fs[k] += r[9]; a.fn[k]++; }
@@ -759,7 +796,14 @@ const REFS = {
   g43: () => (state.gmig && state.gnov ? 'Migradas (legado) + novas seleções; migradas não têm ano: com recorte de ano, saem.'
     : state.gmig ? 'Só as migradas (legado): sem ano de seleção — com recorte de ano, o gráfico fica vazio.'
     : 'Só as novas seleções, como no slide 4.1 (ligue Migradas para incluir o legado).')
-    + (state.c95 === '1' ? ' Concluídas: situação no SACI + obras iniciadas com execução física ≥ 95%.' : ''),
+    + (state.c95 === '1' ? ' Concluídas: situação no SACI + obras iniciadas com execução física ≥ 95%.' : '')
+    + (state.gmig ? ' Valor das migradas: o da base GM (painelgm), a parte pós-2023 — repasse vigente menos o desembolsado até 31/12/2022.' : ''),
+  aln: () => !ALN.n ? 'Nenhum contrato com data alinhada neste recorte.'
+    : '<b>' + I(ALN.n) + '</b> com data alinhada = <b>' + I(ALN.pc) + '</b> pendentes + <b>' + I(ALN.ret)
+      + '</b> já retiradas' + (ALN.canc ? ' + <b>' + I(ALN.canc) + '</b> cancelado(s)' : '')
+      + ' — a data é fixa e continua valendo depois da retirada. As <b>' + I(ALN.pc + ALN.ps)
+      + '</b> pendentes do slide 2.1 = <b>' + I(ALN.pc) + '</b> com data alinhada + <b>' + I(ALN.ps)
+      + '</b> sem data (contratos que não entraram no alinhamento de 08/2026).',
   ex1: (T) => 'Total = <b>' + I(T['t-ex1'].sel) + '</b> contratos do Novo PAC Seleção (assinados ou em contratação) + <b>'
     + I(T['t-ex1'].mig) + '</b> migrados, sem contratos cancelados/distratados nem obras canceladas.'
     + (anoFiltrado() ? ' Com recorte de ano, os migrados ficam fora.' : ''),
@@ -769,7 +813,7 @@ const REFS = {
 // origem: mig/nov no slide 1.1 · gmig/gnov no gráfico 4.3 (começa só com as novas) · c95: no 4.3,
 // conta como concluída também a obra iniciada com ≥ 95% de execução física
 const state = { uf: '', sel: true, enq: true, ogu: true, fin: true, mig: true, nov: true,
-                gmig: false, gnov: true, anos: {}, pct1: '0', med: 'qtd', modo: 'tot', c95: '0' };
+                gmig: false, gnov: true, anos: {}, pct1: '0', med: 'qtd', modo: 'tot', c95: '0', aln: 'vlr' };
 const PAR = { sel: 'enq', enq: 'sel', ogu: 'fin', fin: 'ogu', mig: 'nov', nov: 'mig', gmig: 'gnov', gnov: 'gmig' };
 const ORIGENS = ['', 'g'];  // prefixos das chaves de origem
 ANOS.forEach((a) => { state.anos[a] = true; });
@@ -807,11 +851,12 @@ function renderFunil() {
   }
   for (const r of CT) {
     if (!origem(r) || r[5] === 3 || r[5] === 4 || !passa(SRC.ct, r, t)) continue;
-    b.ass[0]++; b.ass[1] += r[8];
+    const v = vMig(r, 8);
+    b.ass[0]++; b.ass[1] += v;
     const o = r[6];
-    if (o >= 1 && o <= 4) { b.ini[0]++; b.ini[1] += r[8]; obra[o]++; }
+    if (o >= 1 && o <= 4) { b.ini[0]++; b.ini[1] += v; obra[o]++; }
     const quase = state.c95 === '1' && o >= 1 && o <= 4 && o !== 3 && r[9] !== null && r[9] >= 95;
-    if (o === 3 || quase) { b.con[0]++; b.con[1] += r[8]; if (quase) c95++; }
+    if (o === 3 || quase) { b.con[0]++; b.con[1] += v; if (quase) c95++; }
   }
   const anosSel = state.gmig && state.gnov ? 'migradas + portarias de 2023, 2025 e 2026'
     : state.gmig ? 'migradas (legado)' : 'portarias de 2023, 2025 e 2026';
@@ -842,6 +887,107 @@ function renderFunil() {
       + '<div class="fbase"><div class="fnome">' + nome + '</div><div class="fdet">' + det + '</div></div></div>');
   });
   el.innerHTML = out.join('');
+}
+
+// ---- 2.3 · alinhamento das suspensivas (DMP, 08/2026) — porte do alinhamento-timeline.js do painelpac:
+// uma linha por modalidade, um círculo por data alinhada (área ∝ repasse ou nº de contratos) e o anel
+// verde com a fatia já retirada. A data é fixa: o gráfico parte de todos os contratos com data.
+const HOJE_ISO = __HOJE__;
+const ALN = { n: 0, ret: 0, pc: 0, canc: 0, ps: 0 };
+const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+const dUTC = (iso) => Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10));
+function renderAlinhamento() {
+  const el = document.getElementById('g-alin');
+  if (!el) return;
+  const t = {};
+  Object.assign(ALN, { n: 0, ret: 0, pc: 0, canc: 0, ps: 0 });
+  const grupos = new Map(), totMod = new Map();
+  for (const r of OG) {
+    if (!passa(SRC.og, r, t)) continue;
+    if (!r[13]) { if (r[6] === 1 && !r[5]) ALN.ps++; continue; }
+    ALN.n++;
+    const ret = r[6] === 0;
+    if (ret) ALN.ret++; else if (r[5]) ALN.canc++; else ALN.pc++;
+    const k = r[0] + '|' + r[13];
+    let g = grupos.get(k);
+    if (!g) grupos.set(k, g = { mod: r[0], iso: r[13], n: 0, vlr: 0, ret: 0 });
+    g.n++; g.vlr += r[4]; if (ret) g.ret++;
+    totMod.set(r[0], (totMod.get(r[0]) || 0) + 1);
+  }
+  if (!grupos.size) { el.innerHTML = '<p class="nota">Sem contratos com data alinhada neste recorte.</p>'; return; }
+
+  const W = 1712, LEFT = 260, RIGHT = 16, HEAD = 34, HMAX = 540;
+  const T0 = Date.UTC(2026, 3, 1), T1 = Date.UTC(2027, 3, 1), PLOT = W - LEFT - RIGHT;
+  const x = (ms) => LEFT + (ms - T0) / (T1 - T0) * PLOT;
+  const pelo = state.aln === 'n' ? 'n' : 'vlr';
+  const lista = [...grupos.values()];
+  const max = Math.max(1, ...lista.map((g) => g[pelo]));
+  const mods = MODS.map((_, i) => i).filter((i) => totMod.has(i));
+  // empacota círculos em faixas na linha; se não couber na altura, reduz o raio máximo
+  let RMAX = 30, linhas, altura;
+  for (;;) {
+    const RMIN = Math.min(12, RMAX);
+    altura = HEAD;
+    linhas = mods.map((m) => {
+      const itens = lista.filter((g) => g.mod === m)
+        .map((g) => ({ g, cx: x(dUTC(g.iso)), r: Math.max(RMIN, Math.sqrt(g[pelo] / max) * RMAX) }))
+        .sort((a, b) => (a.cx - a.r) - (b.cx - b.r));
+      const faixas = [];
+      for (const it of itens) {
+        let f = faixas.find((l) => l.fim + 8 <= it.cx - it.r);
+        if (!f) faixas.push(f = { itens: [], fim: -1e9, rmax: 0 });
+        f.itens.push(it); f.fim = it.cx + it.r; f.rmax = Math.max(f.rmax, it.r);
+      }
+      const h = Math.max(46, faixas.reduce((s, l) => s + l.rmax * 2 + 10, 0) + 6);
+      const linha = { m, y: altura, h, faixas };
+      altura += h;
+      return linha;
+    });
+    if (altura + 14 <= HMAX || RMAX <= 18) break;
+    RMAX -= 2;
+  }
+  const H = altura + 14;
+  const FONT = "font-family=\"rawline, Raleway, sans-serif\"";
+  const o = ['<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Linha do tempo do alinhamento das suspensivas">'];
+  for (let i = 0, m = new Date(T0); m.getTime() < T1; i++) {
+    const a = m.getTime(), b = Date.UTC(m.getUTCFullYear(), m.getUTCMonth() + 1, 1);
+    const x0 = x(a), x1 = x(Math.min(b, T1));
+    if (i % 2 === 0) o.push('<rect x="' + x0 + '" y="' + (HEAD - 24) + '" width="' + (x1 - x0) + '" height="' + (H - HEAD + 24) + '" fill="#F3F5F8"></rect>');
+    const lbl = MESES[m.getUTCMonth()] + (m.getUTCMonth() === 0 || i === 0 ? '/' + String(m.getUTCFullYear()).slice(2) : '');
+    o.push('<text x="' + (x0 + x1) / 2 + '" y="' + (HEAD - 8) + '" text-anchor="middle" font-size="17" font-weight="700" fill="#636363" ' + FONT + '>' + lbl + '</text>');
+    m = new Date(b);
+  }
+  for (const l of linhas) {
+    o.push('<line x1="0" x2="' + W + '" y1="' + (l.y + l.h) + '" y2="' + (l.y + l.h) + '" stroke="#DCDCDC" stroke-width="1"></line>');
+    const ly = l.y + Math.min(l.h / 2, 26);
+    o.push('<text x="0" y="' + (ly + 2) + '" font-size="19" font-weight="700" fill="#071D41" ' + FONT + '>' + MODS[l.m].replace('Mobilidade: Médias e Grandes Cidades', 'Mobilidade').replace('Abastecimento de Água', 'Água') + '</text>');
+    o.push('<text x="0" y="' + (ly + 22) + '" font-size="15" fill="#636363" ' + FONT + '>' + I(totMod.get(l.m)) + (totMod.get(l.m) === 1 ? ' contrato' : ' contratos') + '</text>');
+    let cy = l.y + 6;
+    for (const f of l.faixas) {
+      cy += f.rmax + 5;
+      for (const { g, cx, r } of f.itens) {
+        const dt = g.iso.slice(8, 10) + '/' + g.iso.slice(5, 7) + '/' + g.iso.slice(0, 4);
+        o.push('<g><title>' + MODS[g.mod] + ' · ' + dt + '\n' + I(g.n) + ' contratos · ' + BM(g.vlr)
+          + '\nJá retiradas: ' + I(g.ret) + ' · pendentes: ' + I(g.n - g.ret) + '</title>');
+        o.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#1351B4" fill-opacity="0.85"></circle>');
+        if (g.ret) {
+          const rr = r + 5, c = 2 * Math.PI * rr;
+          o.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + rr + '" fill="none" stroke="#DCE3EC" stroke-width="3.5"></circle>');
+          o.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + rr + '" fill="none" stroke="#168821" stroke-width="3.5" stroke-dasharray="'
+            + (c * g.ret / g.n).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 ' + cx + ' ' + cy + ')"></circle>');
+        }
+        o.push('<text x="' + cx + '" y="' + (cy + 5) + '" text-anchor="middle" font-size="' + (r < 15 ? 12 : 14) + '" font-weight="800" fill="#FFFFFF" ' + FONT + '>' + I(g.n) + '</text></g>');
+      }
+      cy += f.rmax + 5;
+    }
+  }
+  const hx = x(dUTC(HOJE_ISO));
+  o.push('<line x1="' + hx + '" x2="' + hx + '" y1="' + (HEAD - 24) + '" y2="' + H + '" stroke="#BC4749" stroke-width="2" stroke-dasharray="6 5"></line>');
+  o.push('<text x="' + (hx + 6) + '" y="' + (H - 4) + '" font-size="14" font-weight="700" fill="#9A383A" ' + FONT + '>extração ' + HOJE_ISO.slice(8, 10) + '/' + HOJE_ISO.slice(5, 7) + '</text>');
+  o.push('</svg>');
+  o.push('<div class="alin-leg"><span><i class="lg-dot"></i>círculo = data alinhada · área ∝ ' + (pelo === 'n' ? 'nº de contratos' : 'repasse')
+    + ' · número = contratos</span><span><i class="lg-ring"></i>anel verde = fatia já retirada</span><span><i class="lg-hoje"></i>data da extração</span></div>');
+  el.innerHTML = o.join('');
 }
 
 function td(c) {
@@ -886,6 +1032,7 @@ function render() {
     });
   }
   renderFunil();
+  renderAlinhamento();
   ORIGENS.forEach((sf) => {
     const m = state[sf + 'mig'], n = state[sf + 'nov'];
     const txt = m && n ? 'migradas + novas' : (m ? 'somente migradas' : 'somente novas');
@@ -931,6 +1078,7 @@ function render() {
   const ori43 = (params.get('origem43') || '').toLowerCase().trim();
   if (ori43 === 'mig') { state.gmig = true; state.gnov = false; } else if (ori43 === 'ambas') state.gmig = true;
   if (params.get('c95') === '1') state.c95 = '1';
+  if (params.get('aln') === 'n') state.aln = 'n';
   if (params.get('pct') === '1') state.pct1 = '1';
   if (params.get('med') === 'valor') state.med = 'valor';
   if (params.get('modo') === 'pct') state.modo = 'pct';
@@ -1062,7 +1210,7 @@ function render() {
     pdfLink.addEventListener('click', function (e) {
       const filtrado = state.uf !== '' || !state.sel || !state.enq || !state.ogu || !state.fin
         || !state.mig || !state.nov || state.pct1 !== '0' || state.med !== 'qtd' || state.modo !== 'tot'
-        || state.gmig || !state.gnov || state.c95 !== '0'
+        || state.gmig || !state.gnov || state.c95 !== '0' || state.aln !== 'vlr'
         || ANOS.some((a) => !state.anos[a]);
       if (!filtrado) return;
       e.preventDefault();
@@ -1102,7 +1250,7 @@ def js(v):
     return json.dumps(v, ensure_ascii=False, separators=(',', ':'))
 
 
-app_js = (APP_JS.replace('__MODS__', js(MODS)).replace('__ANOS__', js(ANOS))
+app_js = (APP_JS.replace('__MODS__', js(MODS)).replace('__ANOS__', js(ANOS)).replace('__HOJE__', js(f'{HOJE:%Y-%m-%d}'))
           .replace('__SEL__', js(SEL)).replace('__CT__', js(CT)).replace('__OG__', js(OG)))
 
 html = (HEAD + SLIDES

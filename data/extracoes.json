@@ -24,5 +24,31 @@
       "bdgestores": "2026-10-14",
       "power_bi_caixa": "2026-10-13"
     }
+  },
+  {
+    "carimbo": "15102026_1811",
+    "extraido_em": "2026-10-15 18:11",
+    "arquivos": {
+      "base_unica_gm": "base_unica_gm_15102026_1811.xlsx",
+      "carteira_saci": "carteira_saci_15102026_1811.xlsx",
+      "painelpac_ogu": "painelpac_ogu_15102026_1811.xlsx"
+    },
+    "linhas": {
+      "base_unica_gm": 3522,
+      "carteira_saci": 2982,
+      "painelpac_ogu": 1666
+    },
+    "hash": {
+      "base_unica_gm": "0f7643c20d13de4d",
+      "carteira_saci": "73eee99906ae3a9f",
+      "painelpac_ogu": "29be56b73c9dd483"
+    },
+    "atualizacao": {
+      "base_unica_gm": "2026-10-09",
+      "saci": "2026-10-15",
+      "transferegov": "2026-10-15",
+      "bdgestores": "2026-10-15",
+      "power_bi_caixa": "2026-10-13"
+    }
   }
 ]

@@ -6,7 +6,7 @@ Secretaria-Executiva, com o caminho da carteira em cinco etapas (slides numerado
 | Etapa | Slides | Fonte |
 |---|---|---|
 | 01 Seleção | Carteira de seleções (migradas + novas) · Novas seleções por ano | `se_cgpac.tab_base_unica_gm` (painelgm) |
-| 02 Suspensivas | Cláusulas suspensivas OGU · Prazo das pendentes (PC 48/2026) | consulta OGU do painelpac |
+| 02 Suspensivas | Cláusulas suspensivas OGU · Prazo das pendentes (PC 48/2026) · Alinhamento das suspensivas (DMP 08/2026) | consulta OGU do painelpac |
 | 03 Licitação | Etapa atual dos contratos OGU · Prazos do art. 36-A | consulta OGU do painelpac |
 | 04 Contratação | Selecionado × contratado · Situação dos contratos assinados · Da seleção à obra (gráfico de blocos) | base GM × `se_saci.view_mat_carteira_investimento` |
 | 05 Execução | Situação das obras · Execução média e paralisações | `se_saci.view_mat_carteira_investimento` |
@@ -87,6 +87,12 @@ painelpac). A pasta `conferencia/` fica fora do git (dados por contrato).
 - **Modalidade**: a da base GM quando casa; senão a do SACI. O que não é uma das 10 modalidades
   (Assessoria Técnica HIS, sem modalidade) aparece em "Outras / sem modalidade".
 - **% físico / financeiro médio**: média simples por contrato, só das obras em execução ou paralisadas.
+- **Valor das migradas** (4.3 e investimento paralisado do 5.2): o da base GM — `vlr_portaria_ogu +
+  vlr_portaria_fin` da retomada com o mesmo `cod_tci` —, que é a parte pós-2023 (repasse vigente menos o
+  desembolsado até 31/12/2022, regra do painelgm). Sem correspondência, vale o valor do SACI.
+- **Alinhamento das suspensivas (2.3)**: porte do gráfico `alinhamento-timeline.js` do painelpac, com a
+  coluna `alinhamento_suspensivas_0826` da consulta OGU. A data é fixa: o gráfico conta também as já
+  retiradas; a nota concilia com as pendentes do 2.1 (`?aln=n` dimensiona por nº de contratos).
 
 ## Estrutura
 

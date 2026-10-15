@@ -12,7 +12,10 @@ Regras de recorte:
   instrumento (ou da assinatura) e conta como selecionada; sem nenhum ano, fica sem ano
   (só aparece com todos os anos ligados, como as migradas);
 - modalidade: a da base GM quando casa; senão a do SACI, com a grafia da base GM. O que não
-  é uma das 10 modalidades (Assessoria Técnica HIS, sem modalidade) vai para "Outras".
+  é uma das 10 modalidades (Assessoria Técnica HIS, sem modalidade) vai para "Outras";
+- valor das migradas: o da base GM (vlr_portaria_ogu + vlr_portaria_fin da retomada com o mesmo
+  cod_tci) — a parte pós-2023, repasse vigente menos o desembolsado até 31/12/2022 (regra do
+  painelgm). Sem correspondência, vlr_gm fica vazio e o build usa o valor do SACI.
 """
 import io
 import json
@@ -153,6 +156,11 @@ def load():
                                            'num_ano_instrumento', 'dte_assinatura_contrato', migr, gm)
     saci['kind'], saci['ano'], saci['casou_gm'] = kind, ano, casou
     saci['mod'] = mod_gm.fillna(saci.txt_modalidade.map(modalidade))
+    # valor das migradas pela base GM (pós-2023), casando a retomada pelo cod_tci
+    tci = lambda c: c.astype(str).str.strip()
+    vgm = (mig.assign(t=tci(mig.cod_tci), v=mig.vlr_portaria_ogu + mig.vlr_portaria_fin)
+              .loc[lambda d: mig.cod_tci.notna()].groupby('t').v.sum())
+    saci['vlr_gm'] = tci(saci.cod_tci).map(vgm).where(migr)
     for c in ('vlr_investimento', 'vlr_repasse', 'vlr_desembolsado', 'prc_execucao_fisica',
               'prc_execucao_financ'):
         saci[c] = pd.to_numeric(saci[c], errors='coerce')
@@ -167,5 +175,6 @@ def load():
     ogu['kind'], ogu['ano'] = kind, ano
     ogu['mod'] = mod_gm.fillna(ogu.txt_modalidade_saci.map(modalidade))
     ogu['vlr_repasse_saci'] = pd.to_numeric(ogu.vlr_repasse_saci, errors='coerce').fillna(0)
+    ogu['dt_alinhamento'] = pd.to_datetime(ogu.alinhamento_suspensivas_0826, errors='coerce')
 
     return {'sel': sel, 'mig': mig, 'saci': saci, 'ogu': ogu, 'extracao': ext}
