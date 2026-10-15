@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.7'  # subir a cada commit que altere a apresentação
+VERSAO = '1.8'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -35,6 +35,7 @@ HISTORICO = [
     ('1.5', 'Slide 4.3 animado: o todo das seleções se quebra em contratos, obras iniciadas e concluídas.'),
     ('1.6', 'Balanço Governa jun/2026 como 2ª fonte da situação das obras (4.3, 5.1, 5.2); numeração N/total.'),
     ('1.7', 'Notas do 2.1 e do 3.1: cadeia das seleções OGU até os contratos OGU do painelpac.'),
+    ('1.8', 'Slide 1.1 em matrizes de quadrados: carteira por modalidade e fonte (1 quadrado = 10 propostas).'),
 ]
 
 D = dados.load()
@@ -144,6 +145,11 @@ for _, r in D['ogu'].iterrows():
                1 if str(r.num_proposta_selecao_pac_saci).strip() in PROP_SEL_OGU else 0,
                1 if r.dsc_situacao_contrato_mcid_saci == 'Em Contratação' else 0])
 
+# 1.1 (matrizes de quadrados): azul = Qtd. OGU e verde = Qtd. FIN, então total = OGU + FIN em cada modalidade
+_sem_fonte = [r for r in SEL if r[1] not in (0, 1)]
+if _sem_fonte:
+    print(f'AVISO: {len(_sem_fonte)} seleções sem fonte OGU/FIN — no slide 1.1 o total da modalidade passa de OGU + FIN')
+
 ANOS = sorted({r[6] for r in SEL if r[6]})
 ufs = sorted(({r[2] for r in SEL} | {r[2] for r in CT} | {r[1] for r in OG}) - {'BR', ''})
 uf_opts = '<option value="">Brasil — todas as UFs</option>' + ''.join(
@@ -232,6 +238,52 @@ EXTRA_CSS = """
   .kpi.alerta .kv{ color:#9A383A; }
   .kpi.ok{ border-left-color:#168821; }
   .kpi.ok .kv{ color:#0F5F18; }
+  /* ---- 1.1 · carteira por modalidade em matrizes de quadrados (1 quadrado = 10 propostas) ---- */
+  .cart{ --c-ogu:#2563EB; --c-fin:#16A34A; --c-vazio:#E5E7EB; --t-ogu:#1D4ED8; --t-fin:#15803D;
+    --cell:16px; --gap:3px; display:flex; flex-direction:column; gap:12px; }
+  .cart .sq{ display:inline-block; width:16px; height:16px; border-radius:3px; vertical-align:-2px; margin-right:8px; }
+  .cart .sq.ogu{ background:var(--c-ogu); } .cart .sq.fin{ background:var(--c-fin); } .cart .sq.vazio{ background:var(--c-vazio); }
+  .cart-top{ display:grid; grid-template-columns:auto 1fr auto; gap:44px; align-items:center; }
+  .cart-tot .v{ font-size:58px; font-weight:800; color:var(--navy); letter-spacing:-.03em; line-height:1; font-variant-numeric:tabular-nums; }
+  .cart-tot .l{ font-size:16px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); margin-top:6px; }
+  .cs-lab{ display:flex; justify-content:space-between; font-size:20px; font-weight:700; color:var(--ink); margin-bottom:8px; font-variant-numeric:tabular-nums; }
+  .cs-lab b{ font-size:26px; font-weight:800; color:var(--navy); margin:0 10px 0 6px; }
+  .cs-lab .p{ font-weight:700; }
+  .cs-lab .cs-o .p{ color:var(--t-ogu); } .cs-lab .cs-f .p{ color:var(--t-fin); }
+  .cs-lab .cs-o, .cs-lab .cs-f{ display:inline-flex; align-items:baseline; }
+  .cs-bar{ display:flex; height:30px; border-radius:4px; overflow:hidden; background:var(--c-vazio); }
+  .cs-bar .seg.ogu{ background:var(--c-ogu); } .cs-bar .seg.fin{ background:var(--c-fin); }
+  .cs-bar .seg + .seg{ border-left:2px solid #fff; }
+  .cart-leg{ border:1px solid var(--line); border-radius:6px; padding:10px 16px; font-size:16px; color:var(--ink-soft);
+    display:grid; grid-template-columns:auto auto auto; gap:6px 18px; align-items:center; }
+  .cart-leg .esc{ grid-column:1 / -1; font-weight:700; color:var(--navy); }
+  .cart-grid{ display:grid; gap:12px 16px; }
+  .wf-card{ background:#fff; border:1px solid #E3E8EF; border-radius:8px; box-shadow:0 1px 3px rgba(7,29,65,.06);
+    padding:12px 16px 12px; display:flex; flex-direction:column; gap:8px; min-width:0; }
+  .wf-card.zero{ opacity:.5; }
+  .wf-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; height:46px; }
+  .wf-nome{ font-size:19px; font-weight:700; color:var(--navy); line-height:1.2; }
+  .wf-tot{ flex:none; text-align:right; line-height:1; }
+  .wf-tot b{ display:block; font-size:34px; font-weight:800; color:var(--navy); letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+  .wf-tot span{ font-size:13px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); }
+  .wf-body{ display:flex; justify-content:space-between; align-items:center; gap:14px; }
+  .wf-grid{ display:grid; grid-template-columns:repeat(10, var(--cell)); grid-auto-rows:var(--cell); gap:var(--gap); flex:none; }
+  .wf-grid i{ display:block; border-radius:3px; background:var(--c-vazio); }
+  .wf-grid i.o{ background:var(--c-ogu); } .wf-grid i.f{ background:var(--c-fin); }
+  .wf-src{ display:flex; flex-direction:column; gap:12px; text-align:right; font-variant-numeric:tabular-nums; }
+  .wf-s .k{ font-size:14px; font-weight:800; letter-spacing:.08em; }
+  .wf-s.ogu .k{ color:var(--t-ogu); } .wf-s.fin .k{ color:var(--t-fin); }
+  .wf-s .k .sq{ width:12px; height:12px; margin-right:6px; vertical-align:0; }
+  .wf-s b{ display:block; font-size:24px; font-weight:800; color:var(--ink); line-height:1.1; }
+  .wf-s .p{ font-size:16px; font-weight:600; color:var(--ink-soft); }
+  .cart-fin{ display:grid; grid-template-columns:auto 1fr 1fr 1fr; gap:16px; align-items:stretch; }
+  .cart-fin .cap{ font-size:15px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft);
+    line-height:1.35; align-self:center; padding-right:8px; }
+  .cart-fin .cf{ background:var(--paper-2); border-left:5px solid var(--navy); border-radius:2px; padding:6px 20px;
+    display:flex; justify-content:space-between; align-items:baseline; gap:16px; }
+  .cart-fin .cf.ogu{ border-left-color:var(--c-ogu); } .cart-fin .cf.fin{ border-left-color:var(--c-fin); }
+  .cart-fin .cf .l{ font-size:16px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); }
+  .cart-fin .cf b{ font-size:30px; font-weight:800; color:var(--navy); letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
   /* controles de filtro (UF + status + ano), numa linha só */
   .ctrls{ display:flex; flex-direction:column; align-items:flex-end; gap:10px; }
   .ufctl, .stctl{ display:flex; align-items:center; gap:12px; }
@@ -474,6 +526,37 @@ def slide_alinhamento(etapa, n, titulo, legenda, atualizado, fonte, dek='', kpis
 """)
 
 
+def slide_carteira(etapa, n, titulo, tid, legenda, atualizado, fonte, dek='', nota=''):
+    """carteira por modalidade em matrizes de quadrados (1 quadrado = 10 propostas) — montada no render() do JS:
+    resumo (total + faixa OGU/FIN + legenda), um cartão por modalidade e a faixa dos valores (linha TOTAL)."""
+    return (cabeca(etapa, n, titulo, tid, dek, status=True, origem='')
+            + f"""
+        {tmeta(atualizado, legenda, status=True, origem='')}
+        <div class="cart" id="{tid}">
+          <div class="cart-top">
+            <div class="cart-tot"><div class="v" data-c="n">—</div><div class="l">propostas na carteira</div></div>
+            <div class="cart-split">
+              <div class="cs-lab"><span class="cs-o"><i class="sq ogu"></i>OGU<b data-c="qo">—</b><span class="p" data-c="po"></span></span><span class="cs-f"><i class="sq fin"></i>FIN<b data-c="qf">—</b><span class="p" data-c="pf"></span></span></div>
+              <div class="cs-bar"><div class="seg ogu" data-c="wo"></div><div class="seg fin" data-c="wf"></div></div>
+            </div>
+            <div class="cart-leg"><span><i class="sq ogu"></i>OGU</span><span><i class="sq fin"></i>FIN</span><span><i class="sq vazio"></i>Posição não utilizada</span>
+              <span class="esc">Cada quadrado completo representa 10 propostas.</span></div>
+          </div>
+          <div class="cart-grid"></div>
+          <div class="cart-fin">
+            <div class="cap">Valores da carteira<br>(R$ milhões)</div>
+            <div class="cf ogu"><span class="l">Valor OGU</span><b data-c="vo">—</b></div>
+            <div class="cf fin"><span class="l">Valor FIN</span><b data-c="vf">—</b></div>
+            <div class="cf"><span class="l">Valor total</span><b data-c="vt">—</b></div>
+          </div>
+        </div>
+        <p class="nota">{nota}</p>
+      </div>
+    </div>
+{foot(fonte)}  </section>
+""")
+
+
 BALANCO_NOME = 'se_cgpac.balancojun2026_com_inativas'
 HISTORICO_LI = '\n'.join(f'            <li><b>{v}</b>{t}</li>' for v, t in HISTORICO)
 XLSX = EXT['arquivos']
@@ -530,12 +613,10 @@ SLIDES = f"""
     </div>
   </section>
 
-{slide(1, 1, 'Carteira de seleções', 't-sel1',
-       ['Qtd. FIN', 'Qtd. OGU', 'Total', 'Valor OGU<br>(R$ mi)', 'Valor FIN<br>(R$ mi)', 'Valor total<br>(R$ mi)'],
+{slide_carteira(1, 1, 'Carteira por modalidade', 't-sel1',
        'Contagem: migradas + novas seleções', AT_GM, SRC_GM,
-       kpis=[('Propostas',), ('Valor total',), ('OGU',), ('Financiamento',)], status=True, origem='',
-       nota='<span data-ref="sel1"></span>',
-       rodape=radio('Exibir', 'pct1', [('0', 'Valores'), ('1', '% do total')]))}
+       dek='Novo PAC — distribuição das propostas por fonte de recursos.',
+       nota='<span data-ref="sel1"></span> As cores mostram só a quantidade de propostas, nunca valores.')}
 {slide(1, 2, 'Novas seleções por ano', 't-sel2',
        [('Quantidade', ANOS + ['Total']), ('Valor (R$ mi)', ANOS + ['Total'])],
        'Contagem: novas seleções, sem migradas', AT_GM, SRC_GM,
@@ -764,17 +845,13 @@ function exAdd(a, r) {
 
 // célula: string ou [string, classe]
 const TABLES = [
-  { id: 't-sel1', status: true, origem: true, pctHead: true, parts: [{ src: 'sel', add: (a, r) => {
+  // 1.1: em vez de tabela, matrizes de quadrados por modalidade (renderCarteira)
+  { id: 't-sel1', status: true, origem: true, parts: [{ src: 'sel', add: (a, r) => {
       a.n++; if (r[1] === 0) a.qf++; else if (r[1] === 1) a.qo++;
       if (r[3] === 0) a.mig++; else a.nov++;
       a.ogu += r[4]; a.fin += r[5]; } }],
     init: () => ({ n: 0, qf: 0, qo: 0, mig: 0, nov: 0, ogu: 0, fin: 0 }),
-    // "% do total": participação da modalidade no total de cada coluna
-    cols: (a, t) => state.pct1 === '1'
-      ? [P(a.qf, t.qf), P(a.qo, t.qo), [P(a.n, t.n), 'hl'], P(a.ogu, t.ogu), P(a.fin, t.fin),
-         [P(a.ogu + a.fin, t.ogu + t.fin), 'hl']]
-      : [I(a.qf), I(a.qo), H(a.n), M(a.ogu), M(a.fin), [M(a.ogu + a.fin), 'hl']],
-    kpis: (t) => [I(t.n), B(t.ogu + t.fin), B(t.ogu), B(t.fin)] },
+    render: (acc, tot) => renderCarteira(acc, tot) },
 
   { id: 't-sel2', status: true, parts: [{ src: 'sel', keep: (r) => r[3] >= 1, add: (a, r) => {
       a.n++; a.q[r[6]] = (a.q[r[6]] || 0) + 1; a.v[r[6]] = (a.v[r[6]] || 0) + r[4] + r[5]; a.vt += r[4] + r[5]; } },
@@ -923,11 +1000,11 @@ const REFS = {
       + 'com o % físico do balanço).' : '.'),
 };
 
-// filtros (liga/desliga) e seletores exclusivos (pct1: tabela 1.1 em % · med/modo: gráfico 4.3)
+// filtros (liga/desliga) e seletores exclusivos (med/modo: gráfico 4.3)
 // origem: mig/nov no slide 1.1 · gmig/gnov no gráfico 4.3 (começa só com as novas) · c95: no 4.3,
 // conta como concluída também a obra iniciada com ≥ 95% de execução física
 const state = { uf: '', sel: true, enq: true, ogu: true, fin: true, mig: true, nov: true,
-                gmig: false, gnov: true, anos: {}, pct1: '0', med: 'qtd', modo: 'tot', c95: '0', aln: 'vlr',
+                gmig: false, gnov: true, anos: {}, med: 'qtd', modo: 'tot', c95: '0', aln: 'vlr',
                 sitobra: 'bal', alnp: 'todos' };
 const PAR = { sel: 'enq', enq: 'sel', ogu: 'fin', fin: 'ogu', mig: 'nov', nov: 'mig', gmig: 'gnov', gnov: 'gmig' };
 const ORIGENS = ['', 'g'];  // prefixos das chaves de origem
@@ -1235,6 +1312,59 @@ function renderAlinhamento() {
   el.innerHTML = o.join('');
 }
 
+// ---- 1.1 · carteira por modalidade: uma matriz de 10 colunas por modalidade, mesma escala em todas
+// (1 quadrado = 10 propostas), preenchida em ordem — primeiro OGU, depois FIN; o quadrado da transição
+// e o último se dividem na proporção exata (sem arredondar para múltiplos de 10). Cinza = posição vazia.
+const WF = { un: 10, cols: 10, cor: { o: '#2563EB', f: '#16A34A', v: '#E5E7EB' } };
+// todas as modalidades da base aparecem (mesmo zeradas no recorte); a altura da matriz é a mesma em
+// todos os cartões: 7 linhas (70 posições) ou mais, se alguma modalidade passar de 700 propostas
+WF.mods = MODS.map((_, i) => i).filter((i) => SEL.some((r) => r[0] === i));
+WF.rows = Math.max(7, ...WF.mods.map((i) => Math.ceil(SEL.filter((r) => r[0] === i).length / (WF.un * WF.cols))));
+function quadrados(qo, qf) {
+  const o = [];
+  for (let k = 0; k < WF.cols * WF.rows; k++) {
+    const ini = k * WF.un;
+    const a = Math.max(0, Math.min(WF.un, qo - ini)) / WF.un * 100;       // % do quadrado em OGU
+    const b = Math.max(0, Math.min(WF.un, qo + qf - ini)) / WF.un * 100;  // % em OGU + FIN
+    if (b === 0) o.push('<i></i>');
+    else if (a === 100) o.push('<i class="o"></i>');
+    else if (a === 0 && b === 100) o.push('<i class="f"></i>');
+    else o.push('<i style="background:linear-gradient(90deg,' + WF.cor.o + ' 0 ' + a + '%,' + WF.cor.f + ' ' + a + '% '
+      + b + '%,' + WF.cor.v + ' ' + b + '%)"></i>');
+  }
+  return o.join('');
+}
+function renderCarteira(acc, tot) {
+  const el = document.getElementById('t-sel1');
+  if (!el) return;
+  const c = (k) => el.querySelector('[data-c="' + k + '"]');
+  const q = tot.qo + tot.qf;
+  c('n').textContent = I(tot.n);
+  c('qo').textContent = I(tot.qo); c('po').textContent = P(tot.qo, q);
+  c('qf').textContent = I(tot.qf); c('pf').textContent = P(tot.qf, q);
+  c('wo').style.width = (q ? 100 * tot.qo / q : 0) + '%';
+  c('wf').style.width = (q ? 100 * tot.qf / q : 0) + '%';
+  c('wf').style.borderLeftWidth = tot.qo && tot.qf ? '' : '0';  // divisória só com as duas fontes
+  c('vo').textContent = M(tot.ogu); c('vf').textContent = M(tot.fin); c('vt').textContent = M(tot.ogu + tot.fin);
+  // cartões da maior para a menor modalidade (no recorte), duas linhas
+  const ordem = WF.mods.slice().sort((x, y) => acc[y].n - acc[x].n || x - y);
+  const grid = el.querySelector('.cart-grid');
+  grid.style.gridTemplateColumns = 'repeat(' + Math.ceil(ordem.length / 2) + ', minmax(0, 1fr))';
+  grid.innerHTML = ordem.map((i) => {
+    const a = acc[i], s = a.qo + a.qf, nome = MODS[i];
+    return '<div class="wf-card' + (a.n ? '' : ' zero') + '" title="' + nome + ': ' + I(a.n) + ' propostas · OGU ' + I(a.qo)
+      + ' · FIN ' + I(a.qf) + '">'
+      + '<div class="wf-head"><div class="wf-nome">' + nome + '</div><div class="wf-tot"><b>' + I(a.n) + '</b><span>'
+      + (a.n === 1 ? 'proposta' : 'propostas') + '</span></div></div>'
+      + '<div class="wf-body"><div class="wf-grid" role="img" aria-label="' + nome + ': ' + I(a.qo) + ' OGU e ' + I(a.qf)
+      + ' FIN">' + quadrados(a.qo, a.qf) + '</div>'
+      + '<div class="wf-src"><div class="wf-s ogu"><span class="k"><i class="sq ogu"></i>OGU</span><b>' + I(a.qo)
+      + '</b><span class="p">' + P(a.qo, s) + '</span></div>'
+      + '<div class="wf-s fin"><span class="k"><i class="sq fin"></i>FIN</span><b>' + I(a.qf)
+      + '</b><span class="p">' + P(a.qf, s) + '</span></div></div></div></div>';
+  }).join('');
+}
+
 function td(c) {
   return Array.isArray(c) ? '<td class="' + c[1] + '">' + c[0] + '</td>' : '<td>' + c + '</td>';
 }
@@ -1254,6 +1384,7 @@ function render() {
       }
     }
     T[t.id] = tot;
+    if (t.render) { t.render(acc, tot); continue; }
     const body = [];
     acc.forEach((a, i) => { if (a.n) body.push('<tr><td>' + MODS[i] + '</td>' + t.cols(a, tot).map(td).join('') + '</tr>'); });
     const tb = document.querySelector('#' + t.id + ' tbody');
@@ -1263,13 +1394,6 @@ function render() {
     } else {
       body.push('<tr class="tot"><td>TOTAL</td>' + t.cols(tot, tot).map((c) => td(Array.isArray(c) ? c[0] : c)).join('') + '</tr>');
       tb.innerHTML = body.join('');
-    }
-    if (t.pctHead) {  // cabeçalhos em % quando a tabela está em "% do total"
-      document.querySelectorAll('#' + t.id + ' thead th').forEach((th, i) => {
-        if (th.dataset.orig === undefined) th.dataset.orig = th.innerHTML;
-        const o = th.dataset.orig;
-        th.innerHTML = state.pct1 !== '1' || !i ? o : (o.includes('R$ mi') ? o.replace('R$ mi', '%') : o + ' (%)');
-      });
     }
     if (t.kpis) t.kpis(tot).forEach((v, i) => {
       const el = document.querySelector('[data-kpi="' + t.id + ':' + i + '"]');
@@ -1326,7 +1450,6 @@ function render() {
   if (params.get('aln') === 'n') state.aln = 'n';
   if (params.get('alnp') === 'pend') state.alnp = 'pend';
   if (params.get('obra') === 'saci') state.sitobra = 'saci';
-  if (params.get('pct') === '1') state.pct1 = '1';
   if (params.get('med') === 'valor') state.med = 'valor';
   if (params.get('modo') === 'pct') state.modo = 'pct';
   const fon = (params.get('fonte') || '').toLowerCase().trim();
@@ -1464,7 +1587,7 @@ function render() {
   if (pdfLink) {
     pdfLink.addEventListener('click', function (e) {
       const filtrado = state.uf !== '' || !state.sel || !state.enq || !state.ogu || !state.fin
-        || !state.mig || !state.nov || state.pct1 !== '0' || state.med !== 'qtd' || state.modo !== 'tot'
+        || !state.mig || !state.nov || state.med !== 'qtd' || state.modo !== 'tot'
         || state.gmig || !state.gnov || state.c95 !== '0' || state.aln !== 'vlr' || state.alnp !== 'todos' || state.sitobra !== 'bal'
         || ANOS.some((a) => !state.anos[a]);
       if (!filtrado) return;

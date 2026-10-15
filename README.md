@@ -5,7 +5,7 @@ Secretaria-Executiva, com o caminho da carteira em cinco etapas (slides numerado
 
 | Etapa | Slides | Fonte |
 |---|---|---|
-| 01 Seleção | Carteira de seleções (migradas + novas) · Novas seleções por ano | `se_cgpac.tab_base_unica_gm` (painelgm) |
+| 01 Seleção | Carteira por modalidade (matrizes de quadrados OGU × FIN; migradas + novas) · Novas seleções por ano | `se_cgpac.tab_base_unica_gm` (painelgm) |
 | 02 Suspensivas | Cláusulas suspensivas OGU · Prazo das pendentes (PC 48/2026) · Alinhamento das suspensivas (DMP 08/2026) | consulta OGU do painelpac |
 | 03 Licitação | Etapa atual dos contratos OGU · Prazos do art. 36-A | consulta OGU do painelpac |
 | 04 Contratação | Selecionado × contratado · Situação dos contratos assinados · Da seleção à obra (gráfico de blocos) | base GM × `se_saci.view_mat_carteira_investimento` |
@@ -20,8 +20,10 @@ Abra **`index.html`** em qualquer navegador. Não precisa de servidor.
   **Status** (Selecionadas / Enquadradas) só para os slides de seleção. Nos slides do painelpac
   (suspensivas e licitação) a fonte é sempre OGU. Também pela URL:
   `index.html?uf=SP&fonte=ogu&status=sel&ano=25,26` (ano curto ou completo).
-- Slide 1.1: filtro **Origem** (Migradas / Novas, `?origem=mig|nov`) e, no rodapé, **Exibir
-  Valores / % do total** (participação da modalidade em cada coluna, `?pct=1`).
+- Slide 1.1: carteira por modalidade em **matrizes de quadrados** — faixa OGU × FIN do total, um cartão
+  por modalidade (da maior para a menor; 10 × 7 posições, 1 quadrado = 10 propostas, azul = OGU, verde =
+  FIN, o quadrado da transição e o último divididos na proporção exata) e a faixa dos valores (R$ mi).
+  Filtro **Origem** (Migradas / Novas, `?origem=mig|nov`).
 - Slide 2.3 (alinhamento): **Tamanho** Repasse / Contratos (com Repasse, a bolha mostra o valor somado) e
   **Mostrar** Todos / Só pendentes (`?aln=n&alnp=pend`).
 - Rodapé com a numeração **N/total**.
