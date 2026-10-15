@@ -5,7 +5,7 @@ Secretaria-Executiva, com o caminho da carteira em cinco etapas (slides numerado
 
 | Etapa | Slides | Fonte |
 |---|---|---|
-| 01 Seleção | Carteira de seleções (migradas + novas) · Novas seleções por ano | `se_cgpac.tab_base_unica_gm` (painelgm) |
+| 01 Seleção | Carteira de seleções (migradas + novas) · Painel de quadrados por modalidade e fonte | `se_cgpac.tab_base_unica_gm` (painelgm) |
 | 02 Suspensivas | Cláusulas suspensivas OGU · Prazo das pendentes (PC 48/2026) · Alinhamento das suspensivas (DMP 08/2026) | consulta OGU do painelpac |
 | 03 Licitação | Etapa atual dos contratos OGU · Prazos do art. 36-A | consulta OGU do painelpac |
 | 04 Contratação | Selecionado × contratado · Situação dos contratos assinados · Da seleção à obra (gráfico de blocos) | base GM × `se_saci.view_mat_carteira_investimento` |
