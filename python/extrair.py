@@ -72,14 +72,24 @@ SACI_COLUNAS = [
     'dsc_situacao_objeto_mcid', 'dte_inicio_obra_mcid', 'dte_fim_obra_mcid', 'vlr_investimento',
     'vlr_repasse', 'vlr_contrapartida', 'vlr_empenhado', 'vlr_desembolsado', 'vlr_pago',
     'prc_execucao_fisica', 'prc_execucao_financ', 'prc_desembolsado', 'txt_motivo_paralisacao_mcid',
-    'bln_carteira_ativa_mcid', 'dte_carga',
-]
+    'bln_carteira_ativa_mcid', 'id_governa', 'dte_carga',
+]  # id_governa: liga o contrato ao balanço do Governa
 SQL_SACI = f"""
 SELECT {", ".join(SACI_COLUNAS)}
 FROM se_saci.view_mat_carteira_investimento
 WHERE dsc_fase_pac IN ('NOVO PAC - Seleção', 'NOVO PAC - Migrado')
   AND coalesce(txt_sigla_secretaria, '') <> 'SNH'
 ORDER BY cod_tci
+"""
+
+# balanço do Governa (carregado por python/carregar_balanco.py) — 2ª fonte da situação das obras
+BALANCO_TABELA = os.getenv('BALANCO_TABELA', 'se_cgpac.balancojun2026_com_inativas')
+SQL_BALANCO = f"""
+SELECT id_governa, secretaria, modalidade, subeixo, uf, fonte, status_do_id, situacao, fase,
+       execucao_fisica, total_previsto_novo_pac, sistema_de_referencia, criterio_de_inclusao,
+       data_de_referencia
+FROM {BALANCO_TABELA}
+ORDER BY id_governa
 """
 
 # colunas da consulta do painelpac que a apresentação usa
@@ -169,6 +179,7 @@ def main():
         gm = pd.read_sql(text(SQL_GM), conn)
         saci = pd.read_sql(text(SQL_SACI), conn)
         ogu = pd.read_sql(pac.QUERY, conn)
+        bal = pd.read_sql(text(SQL_BALANCO), conn)
         frescor = {s['key']: s['updated_at'] for s in pac.fetch_source_freshness(conn)}
 
     faltam = set(PAC_COLUNAS) - set(ogu.columns)
@@ -179,7 +190,7 @@ def main():
     registro = json.load(open(REGISTRO, encoding='utf-8')) if os.path.exists(REGISTRO) else []
     anterior = registro[-1] if registro else {'arquivos': {}, 'hash': {}}
 
-    fotos = {'base_unica_gm': gm, 'carteira_saci': saci, 'painelpac_ogu': ogu}
+    fotos = {'base_unica_gm': gm, 'carteira_saci': saci, 'painelpac_ogu': ogu, 'balanco_governa': bal}
     arquivos, hashes, linhas = {}, {}, {}
     for nome, df in fotos.items():
         df = sem_fuso(df)
@@ -203,6 +214,7 @@ def main():
             'transferegov': frescor.get('transferegov'),
             'bdgestores': frescor.get('bdgestores'),
             'power_bi_caixa': frescor.get('power_bi_caixa'),
+            'balanco': data_iso(pd.to_datetime(bal.data_de_referencia).max()),
         },
     }
     if anterior.get('hash') == hashes:

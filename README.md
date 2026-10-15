@@ -22,6 +22,9 @@ Abra **`index.html`** em qualquer navegador. Não precisa de servidor.
   `index.html?uf=SP&fonte=ogu&status=sel&ano=25,26` (ano curto ou completo).
 - Slide 1.1: filtro **Origem** (Migradas / Novas, `?origem=mig|nov`) e, no rodapé, **Exibir
   Valores / % do total** (participação da modalidade em cada coluna, `?pct=1`).
+- Slide 2.3 (alinhamento): **Tamanho** Repasse / Contratos (com Repasse, a bolha mostra o valor somado) e
+  **Mostrar** Todos / Só pendentes (`?aln=n&alnp=pend`).
+- Rodapé com a numeração **N/total**.
 - Slide 4.3 (da seleção à obra): **Medida** Quantidade / Valor e **Exibir** Total / %
   (`?med=valor&modo=pct`). Seleções → contratos assinados → obras iniciadas → concluídas;
   valor das seleções pela portaria e dos contratos pelo repasse/financiamento do SACI.
@@ -48,6 +51,21 @@ Depois, se os números mudaram: suba a `VERSAO`, acrescente a linha em `HISTORIC
 rode o build de novo e faça o commit.
 
 > **Não edite o `index.html` à mão**: todo ajuste vai no `build.py`.
+
+## Balanço Governa como 2ª fonte da execução (4.3, 5.1, 5.2)
+
+O balanço de junho/2026 (`se_cgpac.balancojun2026_com_inativas`, carregado por `python/carregar_balanco.py`)
+entra na extração como a 4ª foto. Com **Situação da obra = SACI + balanço** (padrão; `?obra=saci` desliga):
+
+- o contrato liga ao balanço pelo `id_governa` do próprio SACI (1:1);
+- concluída se o SACI **ou** o balanço disser (Concluído, Concluído com redução de metas, Obra concluída,
+  Entregue); senão vale a situação do SACI se a obra já começou; senão a fase do balanço (em execução/paralisada);
+- itens do balanço **sem contrato no SACI** (sem SNH, só ativos, em obra ou concluídos — ex.: Substituição de
+  Frota do setor privado) entram à parte, como novas seleções sem ano, com o valor total previsto no Novo PAC;
+- as notas encadeiam a conta: concluídas = no SACI + só no balanço + itens só do balanço; e comparam com o
+  total do balanço sem SNH (a diferença são obras concluídas no SACI depois de junho).
+
+`python/conferir_balanco.py` grava a conciliação completa em `conferencia/balanco_conciliacao.txt`.
 
 ## Conferência: contratos sem modalidade
 

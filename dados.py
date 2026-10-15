@@ -15,7 +15,11 @@ Regras de recorte:
   é uma das 10 modalidades (Assessoria Técnica HIS, sem modalidade) vai para "Outras";
 - valor das migradas: o da base GM (vlr_portaria_ogu + vlr_portaria_fin da retomada com o mesmo
   cod_tci) — a parte pós-2023, repasse vigente menos o desembolsado até 31/12/2022 (regra do
-  painelgm). Sem correspondência, vlr_gm fica vazio e o build usa o valor do SACI.
+  painelgm). Sem correspondência, vlr_gm fica vazio e o build usa o valor do SACI;
+- balanço do Governa (2ª fonte da situação das obras): liga ao contrato pelo id_governa do SACI.
+  bal_g = 3 concluída (Concluído, Concluído com redução de metas, Obra concluída, Entregue),
+  1 em execução, 2 paralisada, 0 outra fase / sem balanço. Itens do balanço sem contrato na carteira
+  (sem a SNH, só ativos e em obra/concluídos) entram à parte, em `bx`.
 """
 import io
 import json
@@ -49,6 +53,26 @@ STATUS = {'retomada', 'selecionada', 'enquadrada', 'substituída'}
 SELECOES = ('selecionada', 'enquadrada')
 # ano_selecao -> rótulo de exibição (igual à novopac-apresentacao: a portaria de 2024 é "2023")
 ANO_LABEL = {2023: '2023', 2024: '2023', 2025: '2025', 2026: '2026'}
+
+
+BAL_CONC = ('Concluído', 'Concluído com redução de metas', 'Obra concluída', 'Entregue')
+BAL_EXEC = ('Obra em execução', 'Obra em andamento', 'Ordem de Serviço emitida', 'Projeto em execução',
+            'Equipamento em aquisição', 'Plano em execução')
+# modalidade do balanço -> modalidade da apresentação (por trecho do nome; o resto vai para Outras)
+BAL_MODS = [('rural', 'Abastecimento de Água - Rural'), ('abastecimento', 'Abastecimento de Água - Urbano'),
+            ('esgot', 'Esgotamento Sanitário'), ('drenagem', 'Drenagem Urbana'), ('encosta', 'Contenção de Encostas'),
+            ('frota', 'Renovação de Frota'), ('mobilidade', 'Mobilidade: Médias e Grandes Cidades'),
+            ('regulariza', 'Regularização Fundiária'), ('resíduo', 'Resíduos Sólidos'), ('residuo', 'Resíduos Sólidos'),
+            ('favela', 'Urbanização de Favelas')]
+
+
+def bal_grupo(fase):
+    return 3 if fase in BAL_CONC else 1 if fase in BAL_EXEC else 2 if fase == 'Obra paralisada' else 0
+
+
+def bal_mod(m):
+    t = str(m).lower()
+    return next((v for k, v in BAL_MODS if k in t), OUTRAS)
 
 
 def _chave(s):
@@ -177,4 +201,21 @@ def load():
     ogu['vlr_repasse_saci'] = pd.to_numeric(ogu.vlr_repasse_saci, errors='coerce').fillna(0)
     ogu['dt_alinhamento'] = pd.to_datetime(ogu.alinhamento_suspensivas_0826, errors='coerce')
 
-    return {'sel': sel, 'mig': mig, 'saci': saci, 'ogu': ogu, 'extracao': ext}
+    # balanço do Governa: fase e execução física por contrato (id_governa do SACI) + itens sem contrato
+    saci['bal_g'], saci['bal_exec'], bx = 0, float('nan'), pd.DataFrame()
+    if arq.get('balanco_governa') and 'id_governa' in saci.columns:
+        bal = abrir(arq['balanco_governa'])
+        bal['g'] = bal.fase.map(bal_grupo)
+        bal['exec'] = pd.to_numeric(bal.execucao_fisica, errors='coerce').clip(upper=100)
+        bi = bal.drop_duplicates('id_governa').set_index('id_governa')
+        idg = pd.to_numeric(saci.id_governa, errors='coerce')
+        saci['bal_g'] = idg.map(bi.g).fillna(0).astype(int)
+        saci['bal_exec'] = idg.map(bi['exec'])
+        bx = bal[~bal.id_governa.isin(idg) & (bal.secretaria != 'SNH') & (bal.status_do_id == 'Ativo')
+                 & (bal.g > 0)].copy()
+        bx['mod'] = bx.modalidade.map(bal_mod)
+        uf = bx.uf.fillna('').astype(str).str.strip().str.upper()
+        bx['uf'] = uf.where(uf.str.fullmatch(r'[A-Z]{2}'), '')
+        bx['vlr'] = pd.to_numeric(bx.total_previsto_novo_pac, errors='coerce').fillna(0)
+
+    return {'sel': sel, 'mig': mig, 'saci': saci, 'ogu': ogu, 'bx': bx, 'extracao': ext}
