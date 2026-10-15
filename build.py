@@ -24,12 +24,13 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.2'  # subir a cada commit que altere a apresentação
+VERSAO = '1.3'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
     ('1.1', 'Status só na seleção; filtro OGU/FIN; anos curtos; notas de conciliação; suspensivas reestruturadas.'),
     ('1.2', 'Numeração 1.1…5.2; slide 1.1 com % e filtro de origem; novo slide 4.3 — da seleção à obra.'),
+    ('1.3', 'Slide 4.3: filtro de origem (migradas / novas) e critério de conclusão ≥ 95% de execução física.'),
 ]
 
 D = dados.load()
@@ -100,7 +101,7 @@ for _, r in D['saci'].iterrows():
     CT.append([MODS.index(r['mod']), FONTE.get(r.txt_fonte, 2), r.uf, int(r.kind), r.ano,
                idx_sit_ct(r.dsc_situacao_contrato_mcid), SIT_OBRA.get(r.dsc_situacao_objeto_mcid, 0),
                num(r.vlr_investimento) or 0, num(r.vlr_repasse) or 0,
-               num(r.prc_execucao_fisica, 1), num(r.prc_execucao_financ, 1)])
+               num(r.prc_execucao_fisica), num(r.prc_execucao_financ)])
 
 # contratos OGU (painelpac): [mod, uf, kind, ano, repasse, cancelado, susp, pc48, tetoVencido,
 #                             fase, pubLicitação, homLicitação, casaCivil]
@@ -312,15 +313,17 @@ def radio(rotulo, chave, opcoes):
     return grupo(rotulo, [('rdbtn', f'data-k="{chave}" data-v="{v}"', tx, i == 0) for i, (v, tx) in enumerate(opcoes)])
 
 
-def cabeca(etapa, n, titulo, tid, dek='', status=False, so_ogu=False, origem=False, extra=''):
+def cabeca(etapa, n, titulo, tid, dek='', status=False, so_ogu=False, origem=None, extra='', ori_on=(True, True)):
     """abertura do slide: selo + título + controles (origem, UF, status, fonte, ano e uma linha extra).
 
     status: filtro selecionadas/enquadradas (só nos slides de seleção); so_ogu: base só de OGU
-    (painelpac) — o filtro de fonte vira etiqueta fixa; origem: filtro migradas/novas."""
+    (painelpac) — o filtro de fonte vira etiqueta fixa; origem: filtro migradas/novas — None desliga,
+    senão é o prefixo das chaves de estado (state.<prefixo>mig / state.<prefixo>nov), para cada slide ter
+    o seu; ori_on: estado inicial dos dois botões."""
     dek_html = f'\n          <p class="dek" style="max-width:66ch; font-style:italic; font-size:23px; margin:6px 0 0 126px;">{dek}</p>' if dek else ''
     ano_ctl = grupo('Ano', [('anobtn', f'data-ano="{a}" title="{a}"', a[2:], True) for a in ANOS])
-    ori_ctl = grupo('Origem', [('oribtn', 'data-ori="mig"', 'Migradas', True),
-                               ('oribtn', 'data-ori="nov"', 'Novas', True)]) if origem else ''
+    ori_ctl = grupo('Origem', [('oribtn', f'data-ori="{origem}mig"', 'Migradas', ori_on[0]),
+                               ('oribtn', f'data-ori="{origem}nov"', 'Novas', ori_on[1])]) if origem is not None else ''
     st_ctl = grupo('Status', [('', 'data-st="sel"', 'Selecionadas', True),
                               ('', 'data-st="enq"', 'Enquadradas', True)]) if status else ''
     fon_ctl = ('<div class="stctl"><label>Fonte</label><div class="stgrp"><span class="stbtn fixo">OGU</span></div></div>'
@@ -344,10 +347,10 @@ def cabeca(etapa, n, titulo, tid, dek='', status=False, so_ogu=False, origem=Fal
       <div class="col grow" style="justify-content:flex-start;">"""
 
 
-def tmeta(atualizado, legenda, status=False, so_ogu=False, origem=False):
+def tmeta(atualizado, legenda, status=False, so_ogu=False, origem=None, ori_txt='migradas + novas'):
     partes = [atualizado, legenda]
-    if origem:
-        partes.append('Origem: <b class="oriname">migradas + novas</b>')
+    if origem is not None:
+        partes.append(f'Origem: <b class="oriname{origem}">{ori_txt}</b>')
     if status:
         partes.append('Status: <b class="stname">selecionadas + enquadradas</b>')
     partes.append('Fonte: <b>OGU</b>' if so_ogu else 'Fonte: <b class="fonname">OGU + FIN</b>')
@@ -356,7 +359,7 @@ def tmeta(atualizado, legenda, status=False, so_ogu=False, origem=False):
 
 
 def slide(etapa, n, titulo, tabela_id, colunas, legenda, atualizado, fonte, dek='', kpis=None, nota='',
-          status=False, so_ogu=False, origem=False, rodape=''):
+          status=False, so_ogu=False, origem=None, rodape=''):
     """slide de tabela; rodape: controles exibidos à direita da nota (ex.: valores × %)."""
     kpi_html = ''
     if kpis:
@@ -380,13 +383,16 @@ def slide(etapa, n, titulo, tabela_id, colunas, legenda, atualizado, fonte, dek=
 
 
 def slide_transicao(etapa, n, titulo, legenda, atualizado, fonte, dek='', nota=''):
-    """gráfico de blocos (funil) da seleção à obra — montado no render() do JS."""
+    """gráfico de blocos (funil) da seleção à obra — montado no render() do JS.
+
+    Origem própria (prefixo 'g'): começa só com as novas seleções, como o slide 4.1."""
     extra = radio('Medida', 'med', [('qtd', 'Quantidade'), ('valor', 'Valor')]) + radio('Exibir', 'modo', [('tot', 'Total'), ('pct', '%')])
-    return (cabeca(etapa, n, titulo, 'g-funil', dek, extra=extra)
+    criterio = radio('Concluídas', 'c95', [('0', 'Situação no SACI'), ('1', '+ obras com ≥ 95% físico')])
+    return (cabeca(etapa, n, titulo, 'g-funil', dek, origem='g', extra=extra, ori_on=(False, True))
             + f"""
-        {tmeta(atualizado, legenda)}
+        {tmeta(atualizado, legenda, origem='g', ori_txt='somente novas')}
         <div class="funil" id="g-funil"></div>
-        <p class="nota">{nota}</p>
+        <div class="rodape-row"><p class="nota">{nota}</p><div class="rodape-ctl">{criterio}</div></div>
       </div>
     </div>
 {foot(fonte)}  </section>
@@ -451,7 +457,7 @@ SLIDES = f"""
 {slide(1, 1, 'Carteira de seleções', 't-sel1',
        ['Qtd. FIN', 'Qtd. OGU', 'Total', 'Valor OGU<br>(R$ mi)', 'Valor FIN<br>(R$ mi)', 'Valor total<br>(R$ mi)'],
        'Contagem: migradas + novas seleções', AT_GM, SRC_GM,
-       kpis=[('Propostas',), ('Valor total',), ('OGU',), ('Financiamento',)], status=True, origem=True,
+       kpis=[('Propostas',), ('Valor total',), ('OGU',), ('Financiamento',)], status=True, origem='',
        nota='<span data-ref="sel1"></span>',
        rodape=radio('Exibir', 'pct1', [('0', 'Valores'), ('1', '% do total')]))}
 {slide(1, 2, 'Novas seleções por ano', 't-sel2',
@@ -490,11 +496,10 @@ SLIDES = f"""
        kpis=[('Assinados',), ('Normal', '', 'ok'), ('Em suspensiva', '', 'alerta'), ('Repasse / financiamento',)],
        nota='* Outros: em TCE, liminar e em prestação de contas.')}
 {slide_transicao(4, 3, 'Da seleção à obra',
-       'Contagem: novas seleções (GM) × contratos do Novo PAC Seleção (SACI)', AT_CT, 'base única GM e ' + SRC_SACI,
-       dek='Quanto das novas seleções já virou contrato assinado, obra iniciada e obra concluída.',
-       nota='Sem as migradas (legado). Valor: seleções pelo valor de portaria (OGU + FIN); contratos e obras pelo '
-            'repasse/financiamento do SACI. Setas: conversão em relação ao bloco anterior. '
-            'Obras iniciadas = em execução, paralisadas, inacabadas e concluídas.')}
+       'Contagem: seleções (GM) × contratos do Novo PAC Seleção / Migrado (SACI)', AT_CT, 'base única GM e ' + SRC_SACI,
+       dek='Quanto das seleções já virou contrato assinado, obra iniciada e obra concluída.',
+       nota='<span data-ref="g43"></span> Valor: seleções pela portaria (OGU + FIN); contratos e obras pelo '
+            'repasse/financiamento do SACI. Setas: conversão em relação ao bloco anterior.')}
 {slide(5, 1, 'Situação das obras', 't-ex1',
        ['Não<br>iniciada', 'Em<br>execução', 'Paralisada', 'Concluída', 'Inacabada', 'Total', '% concluída'],
        'Contagem: contratos do Novo PAC Seleção + Migrado (SACI), sem cancelados', AT_SACI, SRC_SACI,
@@ -751,15 +756,22 @@ const REFS = {
   ct1: (T) => 'Seleções = as <b>' + I(T['t-ct1'].sel) + '</b> novas seleções do slide 1.2'
     + (state.sel && state.enq ? '' : ' (selecionadas + enquadradas)')
     + '; as <b>' + I(T['t-ct1'].mig) + '</b> migradas (legado) entram direto na execução (slides 5.1 e 5.2).',
+  g43: () => (state.gmig && state.gnov ? 'Migradas (legado) + novas seleções; migradas não têm ano: com recorte de ano, saem.'
+    : state.gmig ? 'Só as migradas (legado): sem ano de seleção — com recorte de ano, o gráfico fica vazio.'
+    : 'Só as novas seleções, como no slide 4.1 (ligue Migradas para incluir o legado).')
+    + (state.c95 === '1' ? ' Concluídas: situação no SACI + obras iniciadas com execução física ≥ 95%.' : ''),
   ex1: (T) => 'Total = <b>' + I(T['t-ex1'].sel) + '</b> contratos do Novo PAC Seleção (assinados ou em contratação) + <b>'
     + I(T['t-ex1'].mig) + '</b> migrados, sem contratos cancelados/distratados nem obras canceladas.'
     + (anoFiltrado() ? ' Com recorte de ano, os migrados ficam fora.' : ''),
 };
 
 // filtros (liga/desliga) e seletores exclusivos (pct1: tabela 1.1 em % · med/modo: gráfico 4.3)
-const state = { uf: '', sel: true, enq: true, ogu: true, fin: true, mig: true, nov: true, anos: {},
-                pct1: '0', med: 'qtd', modo: 'tot' };
-const PAR = { sel: 'enq', enq: 'sel', ogu: 'fin', fin: 'ogu', mig: 'nov', nov: 'mig' };
+// origem: mig/nov no slide 1.1 · gmig/gnov no gráfico 4.3 (começa só com as novas) · c95: no 4.3,
+// conta como concluída também a obra iniciada com ≥ 95% de execução física
+const state = { uf: '', sel: true, enq: true, ogu: true, fin: true, mig: true, nov: true,
+                gmig: false, gnov: true, anos: {}, pct1: '0', med: 'qtd', modo: 'tot', c95: '0' };
+const PAR = { sel: 'enq', enq: 'sel', ogu: 'fin', fin: 'ogu', mig: 'nov', nov: 'mig', gmig: 'gnov', gnov: 'gmig' };
+const ORIGENS = ['', 'g'];  // prefixos das chaves de origem
 ANOS.forEach((a) => { state.anos[a] = true; });
 const anoFiltrado = () => ANOS.some((a) => !state.anos[a]);
 const anoOn = (y) => !!state.anos[y];
@@ -779,7 +791,7 @@ function passa(s, r, t) {
   return true;
 }
 
-// ---- 4.3 · da seleção à obra: novas seleções (sem migradas) → assinados → obras iniciadas → concluídas
+// ---- 4.3 · da seleção à obra: seleções → assinados → obras iniciadas → concluídas (origem gmig / gnov)
 const SETA = '<svg viewBox="0 0 90 18" aria-hidden="true"><path d="M2 9h84"></path><path d="M78 2l8 7-8 7"></path></svg>';
 function renderFunil() {
   const el = document.getElementById('g-funil');
@@ -787,25 +799,32 @@ function renderFunil() {
   const t = {};  // sem status / origem: só UF, fonte e ano
   const b = { sel: [0, 0], ass: [0, 0], ini: [0, 0], con: [0, 0] };  // [quantidade, valor]
   const obra = [0, 0, 0, 0, 0];
+  let c95 = 0;  // obras somadas às concluídas pelo critério de ≥ 95% físico
+  const origem = (r) => (r[3] === 0 ? state.gmig : state.gnov);
   for (const r of SEL) {
-    if (r[3] < 1 || !passa(SRC.sel, r, t)) continue;
+    if (!origem(r) || !passa(SRC.sel, r, t)) continue;
     b.sel[0]++; b.sel[1] += r[4] + r[5];
   }
   for (const r of CT) {
-    if (r[3] < 1 || r[5] === 3 || r[5] === 4 || !passa(SRC.ct, r, t)) continue;
+    if (!origem(r) || r[5] === 3 || r[5] === 4 || !passa(SRC.ct, r, t)) continue;
     b.ass[0]++; b.ass[1] += r[8];
     const o = r[6];
     if (o >= 1 && o <= 4) { b.ini[0]++; b.ini[1] += r[8]; obra[o]++; }
-    if (o === 3) { b.con[0]++; b.con[1] += r[8]; }
+    const quase = state.c95 === '1' && o >= 1 && o <= 4 && o !== 3 && r[9] !== null && r[9] >= 95;
+    if (o === 3 || quase) { b.con[0]++; b.con[1] += r[8]; if (quase) c95++; }
   }
+  const anosSel = state.gmig && state.gnov ? 'migradas + portarias de 2023, 2025 e 2026'
+    : state.gmig ? 'migradas (legado)' : 'portarias de 2023, 2025 e 2026';
   const BLOCOS = [
-    ['sel', 'Seleções', 'portarias de 2023, 2025 e 2026'],
+    ['sel', 'Seleções', anosSel],
     ['ass', 'Contratos assinados', 'normal, suspensiva, concluído e outros'],
     ['ini', 'Obras iniciadas', 'em execução ' + I(obra[1]) + ' · paralisadas ' + I(obra[2]) + ' · inacabadas ' + I(obra[4])],
-    ['con', 'Obras concluídas', 'situação da obra no SACI'],
+    ['con', 'Obras concluídas', state.c95 === '1' ? 'situação no SACI + ' + I(c95) + ' com ≥ 95% físico' : 'situação da obra no SACI'],
   ];
   const k = state.med === 'valor' ? 1 : 0;
   const base = b.sel[k];
+  // altura pela maior barra: nas migradas o repasse contratado pode passar do valor da portaria na base GM
+  const teto = Math.max(...BLOCOS.map(([id]) => b[id][k]));
   const fmt = (v) => (k ? BM(v) : I(v));
   const out = [];
   BLOCOS.forEach(([id, nome, det], i) => {
@@ -814,7 +833,7 @@ function renderFunil() {
       const ant = b[BLOCOS[i - 1][0]][k];
       out.push('<div class="fseta"><div class="pc">' + P(v, ant) + '</div>' + SETA + '<div class="lb">do anterior</div></div>');
     }
-    const alt = base ? Math.max(v ? 3 : 0, Math.round(340 * v / base)) : 0;
+    const alt = teto ? Math.max(v ? 3 : 0, Math.round(340 * v / teto)) : 0;
     const principal = state.modo === 'pct' ? P(v, base) : fmt(v);
     const secundario = state.modo === 'pct' ? fmt(v) : (k ? I(b[id][0]) + (id === 'sel' ? ' seleções' : ' contratos') : BM(b[id][1]));
     out.push('<div class="fbloco" title="' + nome + ': ' + I(b[id][0]) + ' · ' + BM(b[id][1]) + '">'
@@ -867,8 +886,11 @@ function render() {
     });
   }
   renderFunil();
-  const oriname = state.mig && state.nov ? 'migradas + novas' : (state.mig ? 'somente migradas' : 'somente novas');
-  document.querySelectorAll('.oriname').forEach((el) => { el.textContent = oriname; });
+  ORIGENS.forEach((sf) => {
+    const m = state[sf + 'mig'], n = state[sf + 'nov'];
+    const txt = m && n ? 'migradas + novas' : (m ? 'somente migradas' : 'somente novas');
+    document.querySelectorAll('.oriname' + sf).forEach((el) => { el.textContent = txt; });
+  });
   document.querySelectorAll('.oribtn').forEach((el) => {
     el.setAttribute('aria-pressed', String(state[el.dataset.ori]));
   });
@@ -906,6 +928,9 @@ function render() {
   if (st === 'sel') state.enq = false; else if (st === 'enq') state.sel = false;
   const ori = (params.get('origem') || '').toLowerCase().trim();
   if (ori === 'mig') state.nov = false; else if (ori === 'nov') state.mig = false;
+  const ori43 = (params.get('origem43') || '').toLowerCase().trim();
+  if (ori43 === 'mig') { state.gmig = true; state.gnov = false; } else if (ori43 === 'ambas') state.gmig = true;
+  if (params.get('c95') === '1') state.c95 = '1';
   if (params.get('pct') === '1') state.pct1 = '1';
   if (params.get('med') === 'valor') state.med = 'valor';
   if (params.get('modo') === 'pct') state.modo = 'pct';
@@ -1037,6 +1062,7 @@ function render() {
     pdfLink.addEventListener('click', function (e) {
       const filtrado = state.uf !== '' || !state.sel || !state.enq || !state.ogu || !state.fin
         || !state.mig || !state.nov || state.pct1 !== '0' || state.med !== 'qtd' || state.modo !== 'tot'
+        || state.gmig || !state.gnov || state.c95 !== '0'
         || ANOS.some((a) => !state.anos[a]);
       if (!filtrado) return;
       e.preventDefault();

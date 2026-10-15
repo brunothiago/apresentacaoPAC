@@ -23,8 +23,10 @@ Abra **`index.html`** em qualquer navegador. Não precisa de servidor.
 - Slide 1.1: filtro **Origem** (Migradas / Novas, `?origem=mig|nov`) e, no rodapé, **Exibir
   Valores / % do total** (participação da modalidade em cada coluna, `?pct=1`).
 - Slide 4.3 (da seleção à obra): **Medida** Quantidade / Valor e **Exibir** Total / %
-  (`?med=valor&modo=pct`). Novas seleções → contratos assinados → obras iniciadas → concluídas;
+  (`?med=valor&modo=pct`). Seleções → contratos assinados → obras iniciadas → concluídas;
   valor das seleções pela portaria e dos contratos pelo repasse/financiamento do SACI.
+  **Origem** própria, que começa só com as novas (`?origem43=ambas|mig`), e **Concluídas**
+  Situação no SACI / + obras iniciadas com ≥ 95% de execução física (`?c95=1`).
 - As notas de rodapé conciliam os totais entre slides (ex.: novas seleções + migradas = carteira)
   e se recalculam com os filtros.
 - **Exportar PDF** (encerramento): sem filtro baixa o PDF pré-gerado; com filtro, gera no navegador.
