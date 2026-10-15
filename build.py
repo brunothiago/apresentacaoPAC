@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.13'  # subir a cada commit que altere a apresentação
+VERSAO = '1.14'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -41,6 +41,7 @@ HISTORICO = [
     ('1.11', 'Saem os contratos com fase Novo PAC mas bln_pac = NÃO no SACI (emendas e ações estratégicas); notas citam.'),
     ('1.12', 'Slide 1.2: animação de preenchimento mais lenta e visível.'),
     ('1.13', 'Trilha das etapas na linha de baixo de cada slide: a etapa atual em destaque, as demais como marca d\'água.'),
+    ('1.14', 'A mesma trilha das etapas também na linha de cima dos slides.'),
 ]
 
 D = dados.load()
@@ -203,6 +204,8 @@ EXTRA_CSS = """
   .tr-seg.on span{ color:var(--accent); }
   .tr-seg.on i{ height:3px; background:var(--accent); }
   .trilha + .bot{ border-top:0; padding-top:10px; }
+  .top.com-trilha{ padding-bottom:8px; }
+  .trilha + .body.tight{ padding-top:10px; }  /* devolve o espaço que a trilha de cima ocupa */
   .pagetot{ font-size:var(--t-foot); font-weight:700; letter-spacing:.08em; color:var(--ink-soft); opacity:.6; font-variant-numeric:tabular-nums; }
   /* gráfico de blocos (4.3): uma barra por etapa, altura proporcional ao 1º bloco */
   .funil{ position:relative; display:grid; grid-template-columns:1fr 150px 1fr 150px 1fr 150px 1fr; height:528px; margin-top:4px; }
@@ -380,8 +383,12 @@ CHROME_TOP = """    <div class="top">
       <div class="eyebrow">Novo PAC — MCid · Balanço da carteira</div>
       <div class="brand"><span class="govbr">gov<b>.br</b></span><span class="div"></span><span class="min">Ministério das Cidades - DMP/SE</span></div>
     </div>
-    <hr class="hr">
 """
+
+
+def chrome_top(etapa):
+    """cabeçalho dos slides de conteúdo: a linha de baixo do cabeçalho também é a trilha das etapas."""
+    return CHROME_TOP.replace('<div class="top">', '<div class="top com-trilha">') + f'    {trilha(etapa)}\n'
 
 
 def trilha(etapa):
@@ -450,7 +457,7 @@ def cabeca(etapa, n, titulo, tid, dek='', status=False, so_ogu=False, origem=Non
     extra_html = f'\n          <div class="ctrow">{extra}</div>' if extra else ''
     return f"""
   <section class="p2 content e{etapa}" data-label="{etapa}.{n} {ETAPAS[etapa]}">
-{CHROME_TOP}    <div class="body tight">
+{chrome_top(etapa)}    <div class="body tight">
       <div class="title-row">
         <div class="title-block tight">
           <h2 class="title"><span class="etapa"><span class="n">{etapa}.{n}</span><span class="t">{ETAPAS[etapa]}</span></span>{titulo}</h2>{dek_html}
@@ -1142,7 +1149,7 @@ function pararFunil() {
 function contar(B, de, ate, ms) {  // contador do número principal, com a mesma curva da barra
   const t0 = performance.now();
   const passo = (t) => {
-    const p = Math.min(1, (t - t0) / ms);
+    const p = Math.max(0, Math.min(1, (t - t0) / ms));  // o 1º quadro pode vir com horário anterior a t0
     const e = p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
     B.val.textContent = FUN.fmt(de + (ate - de) * e);
     if (p < 1) FUN.rafs.push(requestAnimationFrame(passo));
