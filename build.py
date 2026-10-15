@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.9'  # subir a cada commit que altere a apresentação
+VERSAO = '1.10'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -37,6 +37,7 @@ HISTORICO = [
     ('1.7', 'Notas do 2.1 e do 3.1: cadeia das seleções OGU até os contratos OGU do painelpac.'),
     ('1.8', 'Slide 1.2 vira o painel de quadrados (waffle) por modalidade e fonte, no lugar da tabela por ano.'),
     ('1.9', 'Sai o slide de prazos das suspensivas (PC 48); o alinhamento das suspensivas passa a ser o 2.2.'),
+    ('1.10', 'Slide 1.2: seletores Quantidade/Valor e Total/% e animação de preenchimento no painel de quadrados.'),
 ]
 
 D = dados.load()
@@ -237,12 +238,23 @@ EXTRA_CSS = """
   .waf-corpo{ display:flex; gap:12px; align-items:flex-start; margin-top:6px; }
   .waf-svg{ flex:none; display:block; }
   .waf-num{ flex:1; min-width:0; font-variant-numeric:tabular-nums; }
+  .waf-num.rs .q{ font-size:25px; white-space:nowrap; }
+  .waf-num.rs .f{ font-size:14px; }
+  .waf-num.rs .f span{ font-size:12.5px; }
+  .waf-tot.rs .n{ font-size:46px; }
   .waf-num .q{ font-size:32px; font-weight:800; color:var(--navy); line-height:1; letter-spacing:-.02em; }
   .waf-num .ql{ font-size:13px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); margin:3px 0 10px; }
   .waf-num .f{ font-size:15px; color:var(--ink-soft); line-height:1.5; white-space:nowrap; display:flex; align-items:center; }
   .waf-num .f b{ color:var(--navy); margin:0 4px; }
-  .waf-num .f span{ font-size:14px; margin-left:auto; }
+  .waf-num .f span{ font-size:14px; margin-left:auto; padding-left:6px; }
   .waf-cap{ font-size:12px; color:var(--ink-soft); }
+  .waf.anim .wq{ animation:wq .38s cubic-bezier(.2,.7,.3,1) both; transform-box:fill-box; transform-origin:center; }
+  .waf.anim .waf-seg{ animation:wseg 1s cubic-bezier(.65,0,.35,1) both; transform-origin:left center; }
+  .waf.anim .waf-seg.fin{ animation-delay:.25s; }
+  @keyframes wq{ from{ opacity:0; transform:scale(.25); } to{ opacity:1; transform:none; } }
+  @keyframes wseg{ from{ transform:scaleX(0); } to{ transform:none; } }
+  @media print{ .waf.anim *{ animation:none !important; } }
+  @media (prefers-reduced-motion: reduce){ .waf.anim *{ animation:none !important; } }
   .waf-fin{ display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; }
   .waf-fin div{ background:var(--paper-2); border-radius:8px; padding:8px 18px; display:flex; justify-content:space-between; align-items:baseline; }
   .waf-fin span{ font-size:15px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); }
@@ -495,7 +507,9 @@ def slide_transicao(etapa, n, titulo, legenda, atualizado, fonte, dek='', nota='
 
 def slide_waffle(etapa, n, titulo, legenda, atualizado, fonte, dek=''):
     """painel de quadrados (waffle) por modalidade × fonte — montado no render() do JS; mesmos filtros do 1.1."""
-    return (cabeca(etapa, n, titulo, 'g-waf', dek, status=True, origem='')
+    extra = (radio('Medida', 'wmed', [('qtd', 'Quantidade'), ('valor', 'Valor')])
+             + radio('Exibir', 'wmodo', [('tot', 'Total'), ('pct', '%')]))
+    return (cabeca(etapa, n, titulo, 'g-waf', dek, status=True, origem='', extra=extra)
             + f"""
         {tmeta(atualizado, legenda, status=True, origem='')}
         <div class="waf" id="g-waf"></div>
@@ -900,10 +914,14 @@ const REFS = {
   sel1: (T) => '<b>' + I(T['t-sel1'].n) + '</b> propostas = <b>' + I(T['t-sel1'].nov)
     + '</b> novas seleções + <b>' + I(T['t-sel1'].mig)
     + '</b> migradas (legado).' + (anoFiltrado() ? SEMANO : ''),
-  waf: (T) => 'Os mesmos <b>' + I(T['t-sel1'].n) + '</b> propostas do slide 1.1 (<b>' + I(T['t-sel1'].nov) + '</b> novas + <b>'
-    + I(T['t-sel1'].mig) + '</b> migradas), com os mesmos filtros. Cada quadrado = 10 propostas (o último, parcial); '
-    + 'cinza = posição não usada (capacidade de 700 por modalidade). O tamanho é pela quantidade, nunca pelo valor; '
-    + 'valores pela portaria.' + (anoFiltrado() ? SEMANO : ''),
+  waf: (T) => 'Mesmo recorte do 1.1: <b>' + I(T['t-sel1'].n) + '</b> propostas (<b>' + I(T['t-sel1'].nov) + '</b> novas + <b>'
+    + I(T['t-sel1'].mig) + '</b> migradas). '
+    + (state.wmed === 'valor'
+      ? 'Quadrado = R$ ' + I(WAF.un / 1e6) + ' mi da portaria (escala única, ajustada ao recorte); '
+      : 'Quadrado = 10 propostas; ')
+    + 'o último é parcial; cinza = posição livre (70 por modalidade).'
+    + (state.wmodo === 'pct' ? ' Em %: número grande = participação na carteira; OGU/FIN = % na modalidade.' : '')
+    + (anoFiltrado() ? SEMANO : ''),
   ct1: (T) => 'Seleções = as <b>' + I(T['t-ct1'].sel) + '</b> novas seleções do slide 1.1'
     + (state.sel && state.enq ? '' : ' (selecionadas + enquadradas)')
     + '; as <b>' + I(T['t-ct1'].mig) + '</b> migradas (legado) entram direto na execução (slides 5.1 e 5.2).',
@@ -951,7 +969,7 @@ const REFS = {
 // conta como concluída também a obra iniciada com ≥ 95% de execução física
 const state = { uf: '', sel: true, enq: true, ogu: true, fin: true, mig: true, nov: true,
                 gmig: false, gnov: true, anos: {}, pct1: '0', med: 'qtd', modo: 'tot', c95: '0', aln: 'vlr',
-                sitobra: 'bal', alnp: 'todos' };
+                sitobra: 'bal', alnp: 'todos', wmed: 'qtd', wmodo: 'tot' };
 const PAR = { sel: 'enq', enq: 'sel', ogu: 'fin', fin: 'ogu', mig: 'nov', nov: 'mig', gmig: 'gnov', gnov: 'gmig' };
 const ORIGENS = ['', 'g'];  // prefixos das chaves de origem
 ANOS.forEach((a) => { state.anos[a] = true; });
@@ -1136,66 +1154,93 @@ function animarFunil() {
 // ---- 1.2 · painel de quadrados (waffle): carteira → OGU/FIN → modalidades. 1 quadrado = 10 propostas,
 // o último parcial; 10 × 7 posições por modalidade, mesma escala em todas; primeiro OGU, depois FIN.
 const COR_OGU = '#2563EB', COR_FIN = '#16A34A', COR_VAZIO = '#E5E9F0';
-function waffleSvg(qo, qf, id) {
-  const S = 13, G = 3, COLS = 10, ROWS = 7, CAP = COLS * ROWS * 10, tot = qo + qf;
+function waffleSvg(qo, qf, un, id) {
+  // qo / qf na unidade da medida (propostas ou R$); `un` = quanto vale um quadrado completo
+  const S = 13, G = 3, COLS = 10, ROWS = 7, CAP = COLS * ROWS * un, tot = qo + qf;
   const W = COLS * S + (COLS - 1) * G, H = ROWS * S + (ROWS - 1) * G;
   const pos = (i) => [(i % COLS) * (S + G), Math.floor(i / COLS) * (S + G)];
   const clip = [], cor = [];
   for (let i = 0; i < COLS * ROWS; i++) {
-    const [x, y] = pos(i), ini = i * 10;
+    const [x, y] = pos(i), ini = i * un;
     clip.push('<rect x="' + x + '" y="' + y + '" width="' + S + '" height="' + S + '" rx="2.5"></rect>');
-    const b = Math.max(0, Math.min(10, qo - ini));               // fatia OGU deste quadrado (de 10)
-    const g = Math.max(0, Math.min(10, tot - ini) - b);          // fatia FIN
+    const b = Math.max(0, Math.min(un, qo - ini)) / un;          // fração OGU deste quadrado
+    const g = Math.max(0, Math.min(un, tot - ini) / un - b);     // fração FIN
     cor.push('<rect x="' + x + '" y="' + y + '" width="' + S + '" height="' + S + '" fill="' + COR_VAZIO + '"></rect>');
-    if (b) cor.push('<rect x="' + x + '" y="' + y + '" width="' + (S * b / 10) + '" height="' + S + '" fill="' + COR_OGU + '"></rect>');
-    if (g) cor.push('<rect x="' + (x + S * b / 10) + '" y="' + y + '" width="' + (S * g / 10) + '" height="' + S + '" fill="' + COR_FIN + '"></rect>');
+    const d = ' class="wq" style="animation-delay:' + (i * 16) + 'ms"';  // preenchimento em sequência (animação)
+    if (b > 0) cor.push('<rect' + d + ' x="' + x + '" y="' + y + '" width="' + (S * b) + '" height="' + S + '" fill="' + COR_OGU + '"></rect>');
+    if (g > 0) cor.push('<rect' + d + ' x="' + (x + S * b) + '" y="' + y + '" width="' + (S * g) + '" height="' + S + '" fill="' + COR_FIN + '"></rect>');
   }
-  return '<svg class="waf-svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="'
-    + I(qo) + ' OGU e ' + I(qf) + ' FIN"><defs><clipPath id="' + id + '">' + clip.join('') + '</clipPath></defs>'
-    + '<g clip-path="url(#' + id + ')">' + cor.join('') + '</g></svg>' + (tot > CAP ? '<div class="waf-cap">+ acima de 700</div>' : '');
+  return '<svg class="waf-svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img"><defs><clipPath id="'
+    + id + '">' + clip.join('') + '</clipPath></defs><g clip-path="url(#' + id + ')">' + cor.join('') + '</g></svg>'
+    + (tot > CAP + 1e-6 ? '<div class="waf-cap">acima da capacidade da matriz</div>' : '');
 }
+// escala "redonda" para que a maior modalidade caiba nas 70 posições (valor); quantidade fica em 10
+const ESCALA_RS = [50, 100, 200, 250, 500, 600, 750, 1000, 1500, 2000, 2500, 5000, 10000].map((x) => x * 1e6);
 function renderWaffle() {
   const el = document.getElementById('g-waf');
   if (!el) return;
   const t = { status: true, origem: true };  // mesmos filtros da tabela do 1.1
   const m = MODS.slice(0, -1).map((nome, i) => ({ i, nome, qo: 0, qf: 0, vo: 0, vf: 0 }));
-  let qo = 0, qf = 0, vo = 0, vf = 0, outros = 0;
+  let qo = 0, qf = 0, vo = 0, vf = 0;
   for (const r of SEL) {
     if (!passa(SRC.sel, r, t)) continue;
     const a = m[r[0]];
-    if (r[1] === 1) { qo++; if (a) a.qo++; } else if (r[1] === 0) { qf++; if (a) a.qf++; } else outros++;
+    if (r[1] === 1) { qo++; if (a) a.qo++; } else if (r[1] === 0) { qf++; if (a) a.qf++; }
     vo += r[4]; vf += r[5];
+    if (a) { a.vo += r[4]; a.vf += r[5]; }
   }
-  const tot = qo + qf;
+  const val = state.wmed === 'valor', pct = state.wmodo === 'pct';
+  // medida: nº de propostas ou valor da portaria, por fonte (OGU = vlr_portaria_ogu, FIN = vlr_portaria_fin)
+  const ogu = (a) => (val ? a.vo : a.qo), fin = (a) => (val ? a.vf : a.qf);
+  const TOT = { qo, qf, vo, vf };
+  const tot = ogu(TOT) + fin(TOT);
+  const maxMod = Math.max(0, ...m.map((a) => ogu(a) + fin(a)));
+  const un = val ? (ESCALA_RS.find((u) => u * 70 >= maxMod) || ESCALA_RS[ESCALA_RS.length - 1]) : 10;
+  WAF.un = un;
+  const fmt = (x) => (val ? BM(x) : I(x));
+  const curto = (x) => (val ? (x >= 1e9 ? fmtBi.format(x / 1e9) + ' bi' : I(Math.round(x / 1e6)) + ' mi') : I(x));  // linhas OGU/FIN
   const pc = (a, b) => (b ? fmtPct.format(100 * a / b) + '%' : '—');
-  m.sort((a, b) => (b.qo + b.qf) - (a.qo + a.qf) || a.i - b.i);
-  const po = tot ? 100 * qo / tot : 0;
+  const unid = val ? '' : (pct ? '' : ' propostas');
+  m.sort((a, b) => (ogu(b) + fin(b)) - (ogu(a) + fin(a)) || a.i - b.i);
+  const po = tot ? 100 * ogu(TOT) / tot : 0;
   const seg = (cls, rot, q, w) => '<div class="waf-seg ' + cls + '" style="width:' + w + '%">'
-    + (w >= 14 ? '<b>' + rot + '</b> ' + I(q) + ' · ' + pc(q, tot) : '') + '</div>';
+    + (w >= 14 ? '<b>' + rot + '</b> ' + (pct ? '' : fmt(q) + ' · ') + pc(q, tot) : '') + '</div>';
+  const escala = val ? 'R$ ' + I(un / 1e6) + ' mi' : '10 propostas';
   const o = [];
-  o.push('<div class="waf-top"><div class="waf-tot"><div class="n">' + I(tot) + '</div><div class="l">propostas na carteira</div></div>'
-    + '<div class="waf-faixa"><div class="waf-bar">' + seg('ogu', 'OGU', qo, po) + seg('fin', 'FIN', qf, 100 - po) + '</div>'
-    // abaixo da faixa só quando algum segmento é estreito demais para o rótulo
-    + '<div class="waf-bar-leg"' + (po >= 14 && po <= 86 ? ' hidden' : '') + '><span><i style="background:' + COR_OGU + '"></i>OGU <b>' + I(qo) + '</b> · ' + pc(qo, tot)
-    + '</span><span><i style="background:' + COR_FIN + '"></i>FIN <b>' + I(qf) + '</b> · ' + pc(qf, tot) + '</span></div></div>'
+  o.push('<div class="waf-top"><div class="waf-tot' + (val ? ' rs' : '') + '"><div class="n">' + (val ? BM(tot) : I(tot)) + '</div><div class="l">'
+    + (val ? 'valor da carteira' : 'propostas na carteira') + '</div></div>'
+    + '<div class="waf-faixa"><div class="waf-bar">' + seg('ogu', 'OGU', ogu(TOT), po) + seg('fin', 'FIN', fin(TOT), 100 - po) + '</div>'
+    + '<div class="waf-bar-leg"' + (po >= 14 && po <= 86 ? ' hidden' : '') + '><span><i style="background:' + COR_OGU + '"></i>OGU <b>'
+    + fmt(ogu(TOT)) + '</b> · ' + pc(ogu(TOT), tot) + '</span><span><i style="background:' + COR_FIN + '"></i>FIN <b>' + fmt(fin(TOT))
+    + '</b> · ' + pc(fin(TOT), tot) + '</span></div></div>'
     + '<div class="waf-leg"><span><i style="background:' + COR_OGU + '"></i>OGU</span><span><i style="background:' + COR_FIN + '"></i>FIN</span>'
-    + '<span><i style="background:' + COR_VAZIO + '"></i>posição não utilizada</span><div class="esc">Cada quadrado completo = 10 propostas.</div></div></div>');
+    + '<span><i style="background:' + COR_VAZIO + '"></i>posição não utilizada</span><div class="esc">Cada quadrado completo = ' + escala + '.</div></div></div>');
   o.push('<div class="waf-grid">');
   for (const a of m) {
-    const n = a.qo + a.qf;
-    o.push('<div class="waf-card"><div class="waf-nome">' + a.nome + '</div><div class="waf-corpo">' + waffleSvg(a.qo, a.qf, 'wc' + a.i)
-      + '<div class="waf-num"><div class="q">' + I(n) + '</div><div class="ql">propostas</div>'
-      + '<div class="f"><i style="background:' + COR_OGU + '"></i>OGU <b>' + I(a.qo) + '</b><span>' + pc(a.qo, n) + '</span></div>'
-      + '<div class="f"><i style="background:' + COR_FIN + '"></i>FIN <b>' + I(a.qf) + '</b><span>' + pc(a.qf, n) + '</span></div>'
-      + '</div></div></div>');
+    const n = ogu(a) + fin(a);
+    const grande = pct ? pc(n, tot) : fmt(n);
+    const rotulo = pct ? 'da carteira' : (val ? 'valor' : 'propostas');
+    const linha = (rot, cor, x) => '<div class="f"><i style="background:' + cor + '"></i>' + rot
+      + (pct ? '' : ' <b>' + curto(x) + '</b>') + '<span>' + pc(x, n) + '</span></div>';
+    o.push('<div class="waf-card"><div class="waf-nome">' + a.nome + '</div><div class="waf-corpo">' + waffleSvg(ogu(a), fin(a), un, 'wc' + a.i)
+      + '<div class="waf-num' + (val && !pct ? ' rs' : '') + '"><div class="q">' + grande + '</div><div class="ql">' + rotulo + '</div>'
+      + linha('OGU', COR_OGU, ogu(a)) + linha('FIN', COR_FIN, fin(a)) + '</div></div></div>');
   }
   o.push('</div>');
   o.push('<div class="waf-fin"><div><span>Valor OGU</span><b>R$ ' + M(vo) + ' mi</b></div><div><span>Valor FIN</span><b>R$ ' + M(vf)
     + ' mi</b></div><div class="t"><span>Valor total</span><b>R$ ' + M(vo + vf) + ' mi</b></div></div>');
   el.innerHTML = o.join('');
-  WAF.tot = tot; WAF.outros = outros;
+  if (el.closest('[data-deck-active]')) animarWaffle();  // no slide visível, cada render anima
 }
-const WAF = { tot: 0, outros: 0 };
+const WAF = { un: 10, timer: 0 };
+// animação do 1.2: os quadrados se preenchem em sequência e a faixa OGU/FIN cresce (só CSS)
+function animarWaffle() {
+  const el = document.getElementById('g-waf');
+  if (!el || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+  el.classList.remove('anim'); void el.offsetWidth; el.classList.add('anim');
+  clearTimeout(WAF.timer);
+  WAF.timer = setTimeout(() => el.classList.remove('anim'), 2600);
+}
 
 // ---- 2.2 · alinhamento das suspensivas (DMP, 08/2026) — porte do alinhamento-timeline.js do painelpac:
 // uma linha por modalidade, um círculo por data alinhada (área ∝ repasse ou nº de contratos) e o anel
@@ -1413,6 +1458,8 @@ function render() {
   if (params.get('c95') === '1') state.c95 = '1';
   if (params.get('aln') === 'n') state.aln = 'n';
   if (params.get('alnp') === 'pend') state.alnp = 'pend';
+  if (params.get('wmed') === 'valor') state.wmed = 'valor';
+  if (params.get('wmodo') === 'pct') state.wmodo = 'pct';
   if (params.get('obra') === 'saci') state.sitobra = 'saci';
   if (params.get('pct') === '1') state.pct1 = '1';
   if (params.get('med') === 'valor') state.med = 'valor';
@@ -1456,8 +1503,12 @@ function render() {
   const deck = document.querySelector('deck-stage');
   if (deck) deck.addEventListener('slidechange', (e) => {
     if (e.detail && e.detail.slide && e.detail.slide.querySelector('#g-funil')) animarFunil();
+    if (e.detail && e.detail.slide && e.detail.slide.querySelector('#g-waf')) animarWaffle();
   });
-  setTimeout(() => { if (document.querySelector('[data-deck-active] #g-funil')) animarFunil(); }, 120);
+  setTimeout(() => {
+    if (document.querySelector('[data-deck-active] #g-funil')) animarFunil();
+    if (document.querySelector('[data-deck-active] #g-waf')) animarWaffle();
+  }, 120);
 
   // ---- Exportar PDF: com filtros aplicados, gera e baixa o PDF refletindo os filtros ----
   // Sem filtros, baixa o PDF pré-gerado (vetorial, leve). Com recorte ativo, cada slide é
@@ -1520,6 +1571,7 @@ function render() {
     if (gerandoPdf) return;
     gerandoPdf = true;
     pararFunil(); if (FUN.blocos) aplicarFunil();  // gráfico 4.3 no estado final
+    const waf = document.getElementById('g-waf'); if (waf) waf.classList.remove('anim');  // 1.2 completo
     const txt = link.querySelector('.pdftxt');
     const antes = txt ? txt.textContent : '';
     try {
@@ -1554,6 +1606,7 @@ function render() {
       const filtrado = state.uf !== '' || !state.sel || !state.enq || !state.ogu || !state.fin
         || !state.mig || !state.nov || state.pct1 !== '0' || state.med !== 'qtd' || state.modo !== 'tot'
         || state.gmig || !state.gnov || state.c95 !== '0' || state.aln !== 'vlr' || state.alnp !== 'todos' || state.sitobra !== 'bal'
+        || state.wmed !== 'qtd' || state.wmodo !== 'tot'
         || ANOS.some((a) => !state.anos[a]);
       if (!filtrado) return;
       e.preventDefault();
