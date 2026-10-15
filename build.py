@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.12'  # subir a cada commit que altere a apresentação
+VERSAO = '1.13'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -40,6 +40,7 @@ HISTORICO = [
     ('1.10', 'Slide 1.2: seletores Quantidade/Valor e Total/% e animação de preenchimento no painel de quadrados.'),
     ('1.11', 'Saem os contratos com fase Novo PAC mas bln_pac = NÃO no SACI (emendas e ações estratégicas); notas citam.'),
     ('1.12', 'Slide 1.2: animação de preenchimento mais lenta e visível.'),
+    ('1.13', 'Trilha das etapas na linha de baixo de cada slide: a etapa atual em destaque, as demais como marca d\'água.'),
 ]
 
 D = dados.load()
@@ -193,6 +194,15 @@ EXTRA_CSS = """
   .rodape-row .nota{ margin:0; padding-top:4px; }
   .rodape-ctl{ flex:none; }
   .rodape-ctl.col{ display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+  /* trilha das etapas (linha de baixo): a etapa do slide na cor dela, as demais como marca d'água */
+  .trilha{ display:flex; gap:18px; align-items:center; height:16px; }
+  .tr-seg{ flex:1; display:flex; align-items:center; gap:10px; opacity:.2; }
+  .tr-seg span{ font-size:12.5px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); white-space:nowrap; }
+  .tr-seg i{ flex:1; height:2px; background:var(--line-strong); border-radius:2px; }
+  .tr-seg.on{ opacity:1; }
+  .tr-seg.on span{ color:var(--accent); }
+  .tr-seg.on i{ height:3px; background:var(--accent); }
+  .trilha + .bot{ border-top:0; padding-top:10px; }
   .pagetot{ font-size:var(--t-foot); font-weight:700; letter-spacing:.08em; color:var(--ink-soft); opacity:.6; font-variant-numeric:tabular-nums; }
   /* gráfico de blocos (4.3): uma barra por etapa, altura proporcional ao 1º bloco */
   .funil{ position:relative; display:grid; grid-template-columns:1fr 150px 1fr 150px 1fr 150px 1fr; height:528px; margin-top:4px; }
@@ -374,8 +384,16 @@ CHROME_TOP = """    <div class="top">
 """
 
 
-def foot(fonte):
-    return f"""    <hr class="hr">
+def trilha(etapa):
+    """linha de baixo como trilha das 5 etapas (como o roteiro da capa): a do slide em destaque, as outras apagadas."""
+    segs = ''.join(f'<div class="tr-seg{" on" if i == etapa else ""}"><span>0{i} {nome}</span><i></i></div>'
+                   for i, nome in ETAPAS.items())
+    return f'<div class="trilha" aria-label="Etapa {etapa} de 5">{segs}</div>'
+
+
+def foot(fonte, etapa=None):
+    linha = trilha(etapa) if etapa else '<hr class="hr">'
+    return f"""    {linha}
     <div class="bot">
       <span class="org">Fonte: {fonte} · extração de {EXTRAIDO:%d/%m/%Y %H:%M}</span>
       <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/__NSLIDES__</span><span class="ver">versão {VERSAO}</span></span>
@@ -483,7 +501,7 @@ def slide(etapa, n, titulo, tabela_id, colunas, legenda, atualizado, fonte, dek=
         </table>{nota_html}
       </div>
     </div>
-{foot(fonte)}  </section>
+{foot(fonte, etapa)}  </section>
 """)
 
 
@@ -504,7 +522,7 @@ def slide_transicao(etapa, n, titulo, legenda, atualizado, fonte, dek='', nota='
         <div class="rodape-row"><p class="nota">{nota}</p><div class="rodape-ctl col">{SIT_OBRA()}{criterio}</div></div>
       </div>
     </div>
-{foot(fonte)}  </section>
+{foot(fonte, etapa)}  </section>
 """)
 
 
@@ -519,7 +537,7 @@ def slide_waffle(etapa, n, titulo, legenda, atualizado, fonte, dek=''):
         <p class="nota"><span data-ref="waf"></span></p>
       </div>
     </div>
-{foot(fonte)}  </section>
+{foot(fonte, etapa)}  </section>
 """)
 
 
@@ -534,7 +552,7 @@ def slide_alinhamento(etapa, n, titulo, legenda, atualizado, fonte, dek='', kpis
         <p class="nota"><span data-ref="aln"></span></p>
       </div>
     </div>
-{foot(fonte)}  </section>
+{foot(fonte, etapa)}  </section>
 """)
 
 

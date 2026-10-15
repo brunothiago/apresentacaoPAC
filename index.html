@@ -829,6 +829,15 @@
   .rodape-row .nota{ margin:0; padding-top:4px; }
   .rodape-ctl{ flex:none; }
   .rodape-ctl.col{ display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+  /* trilha das etapas (linha de baixo): a etapa do slide na cor dela, as demais como marca d'água */
+  .trilha{ display:flex; gap:18px; align-items:center; height:16px; }
+  .tr-seg{ flex:1; display:flex; align-items:center; gap:10px; opacity:.2; }
+  .tr-seg span{ font-size:12.5px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); white-space:nowrap; }
+  .tr-seg i{ flex:1; height:2px; background:var(--line-strong); border-radius:2px; }
+  .tr-seg.on{ opacity:1; }
+  .tr-seg.on span{ color:var(--accent); }
+  .tr-seg.on i{ height:3px; background:var(--accent); }
+  .trilha + .bot{ border-top:0; padding-top:10px; }
   .pagetot{ font-size:var(--t-foot); font-weight:700; letter-spacing:.08em; color:var(--ink-soft); opacity:.6; font-variant-numeric:tabular-nums; }
   /* gráfico de blocos (4.3): uma barra por etapa, altura proporcional ao 1º bloco */
   .funil{ position:relative; display:grid; grid-template-columns:1fr 150px 1fr 150px 1fr 150px 1fr; height:528px; margin-top:4px; }
@@ -1030,7 +1039,7 @@
     <div class="bot" style="border-top:0; padding-top:18px;">
       <span class="org" style="color:var(--paper);">Ministério das Cidades - DMP/SE</span>
       <div style="flex: 1;"></div>
-      <span class="org" style="color:var(--paper);">Extração de 15/10/2026 20:02<span class="ver">versão 1.12</span></span>
+      <span class="org" style="color:var(--paper);">Extração de 15/10/2026 20:02<span class="ver">versão 1.13</span></span>
     </div>
   </section>
 
@@ -1063,10 +1072,10 @@
         <div class="rodape-row"><p class="nota"><span data-ref="sel1"></span></p><div class="rodape-ctl"><div class="stctl"><label>Exibir</label><div class="stgrp"><button type="button" class="stbtn rdbtn" data-k="pct1" data-v="0" aria-pressed="true">Valores</button><button type="button" class="stbtn rdbtn" data-k="pct1" data-v="1" aria-pressed="false">% do total</button></div></div></div></div>
       </div>
     </div>
-    <hr class="hr">
+    <div class="trilha" aria-label="Etapa 1 de 5"><div class="tr-seg on"><span>01 Seleção</span><i></i></div><div class="tr-seg"><span>02 Suspensivas</span><i></i></div><div class="tr-seg"><span>03 Licitação</span><i></i></div><div class="tr-seg"><span>04 Contratação</span><i></i></div><div class="tr-seg"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: MCid · Portarias de seleção do Novo PAC (base única GM) · extração de 15/10/2026 20:02</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.12</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.13</span></span>
     </div>
   </section>
 
@@ -1097,10 +1106,10 @@
         <p class="nota"><span data-ref="waf"></span></p>
       </div>
     </div>
-    <hr class="hr">
+    <div class="trilha" aria-label="Etapa 1 de 5"><div class="tr-seg on"><span>01 Seleção</span><i></i></div><div class="tr-seg"><span>02 Suspensivas</span><i></i></div><div class="tr-seg"><span>03 Licitação</span><i></i></div><div class="tr-seg"><span>04 Contratação</span><i></i></div><div class="tr-seg"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: MCid · Portarias de seleção do Novo PAC (base única GM) · extração de 15/10/2026 20:02</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.12</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.13</span></span>
     </div>
   </section>
 
@@ -1134,10 +1143,10 @@
         <p class="nota">% retirada = retiradas ÷ contratos com cláusula suspensiva. <span data-ref="susp1"></span></p>
       </div>
     </div>
-    <hr class="hr">
+    <div class="trilha" aria-label="Etapa 2 de 5"><div class="tr-seg"><span>01 Seleção</span><i></i></div><div class="tr-seg on"><span>02 Suspensivas</span><i></i></div><div class="tr-seg"><span>03 Licitação</span><i></i></div><div class="tr-seg"><span>04 Contratação</span><i></i></div><div class="tr-seg"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: painelpac (SACI 15/10 · Transferegov 15/10 · Caixa 13/10 · BDGestores 15/10) · extração de 15/10/2026 20:02</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.12</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.13</span></span>
     </div>
   </section>
 
@@ -1168,10 +1177,10 @@
         <p class="nota"><span data-ref="aln"></span></p>
       </div>
     </div>
-    <hr class="hr">
+    <div class="trilha" aria-label="Etapa 2 de 5"><div class="tr-seg"><span>01 Seleção</span><i></i></div><div class="tr-seg on"><span>02 Suspensivas</span><i></i></div><div class="tr-seg"><span>03 Licitação</span><i></i></div><div class="tr-seg"><span>04 Contratação</span><i></i></div><div class="tr-seg"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: painelpac (SACI 15/10 · Transferegov 15/10 · Caixa 13/10 · BDGestores 15/10) · extração de 15/10/2026 20:02</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.12</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.13</span></span>
     </div>
   </section>
 
@@ -1204,10 +1213,10 @@
         <p class="nota"><span data-ref="lic1"></span></p>
       </div>
     </div>
-    <hr class="hr">
+    <div class="trilha" aria-label="Etapa 3 de 5"><div class="tr-seg"><span>01 Seleção</span><i></i></div><div class="tr-seg"><span>02 Suspensivas</span><i></i></div><div class="tr-seg on"><span>03 Licitação</span><i></i></div><div class="tr-seg"><span>04 Contratação</span><i></i></div><div class="tr-seg"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: painelpac (SACI 15/10 · Transferegov 15/10 · Caixa 13/10 · BDGestores 15/10) · extração de 15/10/2026 20:02</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.12</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.13</span></span>
     </div>
   </section>
 
@@ -1240,10 +1249,10 @@
         <p class="nota">Prazos vencidos ou vencendo antes de 30/10/2026 passam para 30/10/2026 (regra do painelpac). Situação em 15/10/2026.</p>
       </div>
     </div>
-    <hr class="hr">
+    <div class="trilha" aria-label="Etapa 3 de 5"><div class="tr-seg"><span>01 Seleção</span><i></i></div><div class="tr-seg"><span>02 Suspensivas</span><i></i></div><div class="tr-seg on"><span>03 Licitação</span><i></i></div><div class="tr-seg"><span>04 Contratação</span><i></i></div><div class="tr-seg"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: painelpac (SACI 15/10 · Transferegov 15/10 · Caixa 13/10 · BDGestores 15/10) · extração de 15/10/2026 20:02</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.12</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.13</span></span>
     </div>
   </section>
 
@@ -1276,10 +1285,10 @@
         <p class="nota"><span data-ref="ct1"></span> Proposta com OGU e FIN conta uma vez em cada fonte.</p>
       </div>
     </div>
-    <hr class="hr">
+    <div class="trilha" aria-label="Etapa 4 de 5"><div class="tr-seg"><span>01 Seleção</span><i></i></div><div class="tr-seg"><span>02 Suspensivas</span><i></i></div><div class="tr-seg"><span>03 Licitação</span><i></i></div><div class="tr-seg on"><span>04 Contratação</span><i></i></div><div class="tr-seg"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: base única GM e SACI (view_mat_carteira_investimento) · extração de 15/10/2026 20:02</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.12</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.13</span></span>
     </div>
   </section>
 
@@ -1312,10 +1321,10 @@
         <p class="nota">* Outros: em TCE, liminar e em prestação de contas.</p>
       </div>
     </div>
-    <hr class="hr">
+    <div class="trilha" aria-label="Etapa 4 de 5"><div class="tr-seg"><span>01 Seleção</span><i></i></div><div class="tr-seg"><span>02 Suspensivas</span><i></i></div><div class="tr-seg"><span>03 Licitação</span><i></i></div><div class="tr-seg on"><span>04 Contratação</span><i></i></div><div class="tr-seg"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: SACI (view_mat_carteira_investimento) · extração de 15/10/2026 20:02</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.12</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.13</span></span>
     </div>
   </section>
 
@@ -1346,10 +1355,10 @@
         <div class="rodape-row"><p class="nota"><span data-ref="g43"></span> Valor: seleções pela portaria; contratos pelo repasse do SACI. Setas: conversão sobre o bloco anterior.</p><div class="rodape-ctl col"><div class="stctl"><label>Situação da obra</label><div class="stgrp"><button type="button" class="stbtn rdbtn" data-k="sitobra" data-v="bal" aria-pressed="true">SACI + balanço</button><button type="button" class="stbtn rdbtn" data-k="sitobra" data-v="saci" aria-pressed="false">Só SACI</button></div></div><div class="stctl"><label>Concluídas</label><div class="stgrp"><button type="button" class="stbtn rdbtn" data-k="c95" data-v="0" aria-pressed="true">Pela situação</button><button type="button" class="stbtn rdbtn" data-k="c95" data-v="1" aria-pressed="false">+ obras com ≥ 95% físico</button></div></div></div></div>
       </div>
     </div>
-    <hr class="hr">
+    <div class="trilha" aria-label="Etapa 4 de 5"><div class="tr-seg"><span>01 Seleção</span><i></i></div><div class="tr-seg"><span>02 Suspensivas</span><i></i></div><div class="tr-seg"><span>03 Licitação</span><i></i></div><div class="tr-seg on"><span>04 Contratação</span><i></i></div><div class="tr-seg"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: base GM, SACI e Balanço Governa (30/06/2026) · extração de 15/10/2026 20:02</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.12</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.13</span></span>
     </div>
   </section>
 
@@ -1383,10 +1392,10 @@
         <p class="nota"><span data-ref="ex1"></span></p>
       </div>
     </div>
-    <hr class="hr">
+    <div class="trilha" aria-label="Etapa 5 de 5"><div class="tr-seg"><span>01 Seleção</span><i></i></div><div class="tr-seg"><span>02 Suspensivas</span><i></i></div><div class="tr-seg"><span>03 Licitação</span><i></i></div><div class="tr-seg"><span>04 Contratação</span><i></i></div><div class="tr-seg on"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: SACI (view_mat_carteira_investimento) e Balanço Governa (30/06/2026) · extração de 15/10/2026 20:02</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.12</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.13</span></span>
     </div>
   </section>
 
@@ -1420,10 +1429,10 @@
         <p class="nota"><span data-ref="ex2"></span></p>
       </div>
     </div>
-    <hr class="hr">
+    <div class="trilha" aria-label="Etapa 5 de 5"><div class="tr-seg"><span>01 Seleção</span><i></i></div><div class="tr-seg"><span>02 Suspensivas</span><i></i></div><div class="tr-seg"><span>03 Licitação</span><i></i></div><div class="tr-seg"><span>04 Contratação</span><i></i></div><div class="tr-seg on"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: SACI (view_mat_carteira_investimento) e Balanço Governa (30/06/2026) · extração de 15/10/2026 20:02</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.12</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.13</span></span>
     </div>
   </section>
 
@@ -1450,7 +1459,7 @@
     <div class="bot" style="border-top:0; padding-top:18px;">
       <span class="org" style="color:var(--paper);">Ministério das Cidades - DMP/SE</span>
       <div style="flex: 1;"></div>
-      <span class="org" style="color:var(--paper);">Extração de 15/10/2026<span class="verwrap"><button type="button" class="ver verlink" id="verBtn" aria-haspopup="dialog" aria-expanded="false" title="Ver histórico de atualizações">versão 1.12</button>
+      <span class="org" style="color:var(--paper);">Extração de 15/10/2026<span class="verwrap"><button type="button" class="ver verlink" id="verBtn" aria-haspopup="dialog" aria-expanded="false" title="Ver histórico de atualizações">versão 1.13</button>
         <div class="verlog" id="verLog" role="dialog" aria-label="Histórico de atualizações" hidden>
           <h3>Atualizações da apresentação</h3>
           <ul>
@@ -1467,6 +1476,7 @@
             <li><b>1.10</b>Slide 1.2: seletores Quantidade/Valor e Total/% e animação de preenchimento no painel de quadrados.</li>
             <li><b>1.11</b>Saem os contratos com fase Novo PAC mas bln_pac = NÃO no SACI (emendas e ações estratégicas); notas citam.</li>
             <li><b>1.12</b>Slide 1.2: animação de preenchimento mais lenta e visível.</li>
+            <li><b>1.13</b>Trilha das etapas na linha de baixo de cada slide: a etapa atual em destaque, as demais como marca d'água.</li>
           </ul>
         </div></span></span>
       <a class="xlsxlink" href="novopac-balanco-carteira.pdf" download title="Baixar o PDF da apresentação (um slide por página) — com filtros aplicados, o PDF é gerado refletindo os filtros">
