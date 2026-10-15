@@ -825,6 +825,22 @@
   .tmeta b{ color:var(--navy); font-weight:700; }
   .tmeta .sep{ margin:0 10px; opacity:.5; }
   .nota b{ font-style:normal; color:var(--navy); }
+  .rodape-row{ display:flex; justify-content:space-between; align-items:flex-start; gap:40px; margin-top:8px; }
+  .rodape-row .nota{ margin:0; padding-top:4px; }
+  .rodape-ctl{ flex:none; }
+  /* gráfico de blocos (4.3): uma barra por etapa, altura proporcional ao 1º bloco */
+  .funil{ display:grid; grid-template-columns:1fr 150px 1fr 150px 1fr 150px 1fr; height:540px; margin-top:6px; }
+  .fbloco{ display:flex; flex-direction:column; justify-content:flex-end; min-width:0; }
+  .fval{ font-size:46px; font-weight:800; color:var(--navy); text-align:center; letter-spacing:-.02em; font-variant-numeric:tabular-nums; line-height:1.05; }
+  .fsec{ font-size:19px; color:var(--ink-soft); text-align:center; margin:2px 0 10px; font-variant-numeric:tabular-nums; }
+  .fbar{ background:var(--accent); border-radius:4px 4px 0 0; margin:0 22px; min-height:0; }
+  .fbase{ border-top:2px solid var(--line-strong); padding-top:10px; text-align:center; height:96px; box-sizing:border-box; }
+  .fnome{ font-size:24px; font-weight:700; color:var(--navy); }
+  .fdet{ font-size:16px; color:var(--ink-soft); margin-top:4px; line-height:1.3; font-variant-numeric:tabular-nums; }
+  .fseta{ align-self:end; margin-bottom:120px; text-align:center; color:var(--ink-soft); }
+  .fseta .pc{ font-size:28px; font-weight:800; color:var(--accent-deep); font-variant-numeric:tabular-nums; }
+  .fseta svg{ display:block; margin:4px auto; width:90px; height:18px; stroke:var(--ink-soft); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .fseta .lb{ font-size:14px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
   .nota{ font-size:17px; color:var(--ink-soft); margin:8px 0 0; font-style:italic; line-height:1.35; }
   /* destaques (KPIs) */
   .kpis{ display:grid; grid-template-columns:repeat(4, 1fr); gap:22px; margin:0 0 14px; }
@@ -948,12 +964,12 @@
     <div class="bot" style="border-top:0; padding-top:18px;">
       <span class="org" style="color:var(--paper);">Ministério das Cidades - DMP/SE</span>
       <div style="flex: 1;"></div>
-      <span class="org" style="color:var(--paper);">Extração de 15/10/2026 11:37<span class="ver">versão 1.1</span></span>
+      <span class="org" style="color:var(--paper);">Extração de 15/10/2026 11:37<span class="ver">versão 1.2</span></span>
     </div>
   </section>
 
 
-  <section class="p2 content e1" data-label="Seleção 1">
+  <section class="p2 content e1" data-label="1.1 Seleção">
     <div class="top">
       <div class="eyebrow">Novo PAC — MCid · Balanço da carteira</div>
       <div class="brand"><span class="govbr">gov<b>.br</b></span><span class="div"></span><span class="min">Ministério das Cidades - DMP/SE</span></div>
@@ -962,35 +978,34 @@
     <div class="body tight">
       <div class="title-row">
         <div class="title-block tight">
-          <h2 class="title"><span class="etapa"><span class="n">01</span><span class="t">Seleção</span></span>Carteira de seleções</h2>
+          <h2 class="title"><span class="etapa"><span class="n">1.1</span><span class="t">Seleção</span></span>Carteira de seleções</h2>
         </div>
         <div class="ctrls">
-          <div class="ufctl"><label for="t-sel1-uf">Recorte</label><select id="t-sel1-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div>
+          <div class="ctrow"><div class="stctl"><label>Origem</label><div class="stgrp"><button type="button" class="stbtn oribtn" data-ori="mig" aria-pressed="true">Migradas</button><button type="button" class="stbtn oribtn" data-ori="nov" aria-pressed="true">Novas</button></div></div><div class="ufctl"><label for="t-sel1-uf">Recorte</label><select id="t-sel1-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div></div>
           <div class="ctrow">
-            <div class="stctl"><label>Status</label><div class="stgrp"><button type="button" class="stbtn" data-st="sel" aria-pressed="true">Selecionadas</button><button type="button" class="stbtn" data-st="enq" aria-pressed="true">Enquadradas</button></div></div><div class="stctl"><label>Fonte</label><div class="stgrp"><button type="button" class="stbtn fonbtn" data-fon="ogu" aria-pressed="true">OGU</button><button type="button" class="stbtn fonbtn" data-fon="fin" aria-pressed="true">FIN</button></div></div>
-            <div class="stctl anoctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" aria-pressed="true" title="2023">23</button><button type="button" class="stbtn anobtn" data-ano="2025" aria-pressed="true" title="2025">25</button><button type="button" class="stbtn anobtn" data-ano="2026" aria-pressed="true" title="2026">26</button></div></div>
+            <div class="stctl"><label>Status</label><div class="stgrp"><button type="button" class="stbtn" data-st="sel" aria-pressed="true">Selecionadas</button><button type="button" class="stbtn" data-st="enq" aria-pressed="true">Enquadradas</button></div></div><div class="stctl"><label>Fonte</label><div class="stgrp"><button type="button" class="stbtn fonbtn" data-fon="ogu" aria-pressed="true">OGU</button><button type="button" class="stbtn fonbtn" data-fon="fin" aria-pressed="true">FIN</button></div></div><div class="stctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" title="2023" aria-pressed="true">23</button><button type="button" class="stbtn anobtn" data-ano="2025" title="2025" aria-pressed="true">25</button><button type="button" class="stbtn anobtn" data-ano="2026" title="2026" aria-pressed="true">26</button></div></div>
           </div>
         </div>
       </div>
       <div class="col grow" style="justify-content:flex-start;">
         <div class="kpis"><div class="kpi"><div class="kv" data-kpi="t-sel1:0">—</div><div class="kl">Propostas</div></div><div class="kpi"><div class="kv" data-kpi="t-sel1:1">—</div><div class="kl">Valor total</div></div><div class="kpi"><div class="kv" data-kpi="t-sel1:2">—</div><div class="kl">OGU</div></div><div class="kpi"><div class="kv" data-kpi="t-sel1:3">—</div><div class="kl">Financiamento</div></div></div>
-        <p class="tmeta">Atualizado em <b>09/10/2026</b><span class="sep">·</span>Contagem: migradas + novas seleções<span class="sep">·</span>Status: <b class="stname">selecionadas + enquadradas</b><span class="sep">·</span>Fonte: <b class="fonname">OGU + FIN</b><span class="sep">·</span>Anos: <b class="anoname">todos</b><span class="sep">·</span>Recorte: <b class="ufname">Brasil</b></p>
+        <p class="tmeta">Atualizado em <b>09/10/2026</b><span class="sep">·</span>Contagem: migradas + novas seleções<span class="sep">·</span>Origem: <b class="oriname">migradas + novas</b><span class="sep">·</span>Status: <b class="stname">selecionadas + enquadradas</b><span class="sep">·</span>Fonte: <b class="fonname">OGU + FIN</b><span class="sep">·</span>Anos: <b class="anoname">todos</b><span class="sep">·</span>Recorte: <b class="ufname">Brasil</b></p>
         <table class="data dense" id="t-sel1">
           <thead><tr><th>Modalidade</th><th>Qtd. FIN</th><th>Qtd. OGU</th><th>Total</th><th>Valor OGU<br>(R$ mi)</th><th>Valor FIN<br>(R$ mi)</th><th>Valor total<br>(R$ mi)</th></tr></thead>
           <tbody></tbody>
         </table>
-        <p class="nota"><span data-ref="sel1"></span></p>
+        <div class="rodape-row"><p class="nota"><span data-ref="sel1"></span></p><div class="rodape-ctl"><div class="stctl"><label>Exibir</label><div class="stgrp"><button type="button" class="stbtn rdbtn" data-k="pct1" data-v="0" aria-pressed="true">Valores</button><button type="button" class="stbtn rdbtn" data-k="pct1" data-v="1" aria-pressed="false">% do total</button></div></div></div></div>
       </div>
     </div>
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: MCid · Portarias de seleção do Novo PAC (base única GM) · extração de 15/10/2026 11:37</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.1</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.2</span></span>
     </div>
   </section>
 
 
-  <section class="p2 content e1" data-label="Seleção 2">
+  <section class="p2 content e1" data-label="1.2 Seleção">
     <div class="top">
       <div class="eyebrow">Novo PAC — MCid · Balanço da carteira</div>
       <div class="brand"><span class="govbr">gov<b>.br</b></span><span class="div"></span><span class="min">Ministério das Cidades - DMP/SE</span></div>
@@ -999,14 +1014,13 @@
     <div class="body tight">
       <div class="title-row">
         <div class="title-block tight">
-          <h2 class="title"><span class="etapa"><span class="n">01</span><span class="t">Seleção</span></span>Novas seleções por ano</h2>
+          <h2 class="title"><span class="etapa"><span class="n">1.2</span><span class="t">Seleção</span></span>Novas seleções por ano</h2>
           <p class="dek" style="max-width:66ch; font-style:italic; font-size:23px; margin:6px 0 0 126px;">Portarias de 2023, 2025 e 2026 — selecionadas e enquadradas/habilitadas.</p>
         </div>
         <div class="ctrls">
-          <div class="ufctl"><label for="t-sel2-uf">Recorte</label><select id="t-sel2-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div>
+          <div class="ctrow"><div class="ufctl"><label for="t-sel2-uf">Recorte</label><select id="t-sel2-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div></div>
           <div class="ctrow">
-            <div class="stctl"><label>Status</label><div class="stgrp"><button type="button" class="stbtn" data-st="sel" aria-pressed="true">Selecionadas</button><button type="button" class="stbtn" data-st="enq" aria-pressed="true">Enquadradas</button></div></div><div class="stctl"><label>Fonte</label><div class="stgrp"><button type="button" class="stbtn fonbtn" data-fon="ogu" aria-pressed="true">OGU</button><button type="button" class="stbtn fonbtn" data-fon="fin" aria-pressed="true">FIN</button></div></div>
-            <div class="stctl anoctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" aria-pressed="true" title="2023">23</button><button type="button" class="stbtn anobtn" data-ano="2025" aria-pressed="true" title="2025">25</button><button type="button" class="stbtn anobtn" data-ano="2026" aria-pressed="true" title="2026">26</button></div></div>
+            <div class="stctl"><label>Status</label><div class="stgrp"><button type="button" class="stbtn" data-st="sel" aria-pressed="true">Selecionadas</button><button type="button" class="stbtn" data-st="enq" aria-pressed="true">Enquadradas</button></div></div><div class="stctl"><label>Fonte</label><div class="stgrp"><button type="button" class="stbtn fonbtn" data-fon="ogu" aria-pressed="true">OGU</button><button type="button" class="stbtn fonbtn" data-fon="fin" aria-pressed="true">FIN</button></div></div><div class="stctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" title="2023" aria-pressed="true">23</button><button type="button" class="stbtn anobtn" data-ano="2025" title="2025" aria-pressed="true">25</button><button type="button" class="stbtn anobtn" data-ano="2026" title="2026" aria-pressed="true">26</button></div></div>
           </div>
         </div>
       </div>
@@ -1022,12 +1036,12 @@
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: MCid · Portarias de seleção do Novo PAC (base única GM) · extração de 15/10/2026 11:37</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.1</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.2</span></span>
     </div>
   </section>
 
 
-  <section class="p2 content e2" data-label="Suspensivas 1">
+  <section class="p2 content e2" data-label="2.1 Suspensivas">
     <div class="top">
       <div class="eyebrow">Novo PAC — MCid · Balanço da carteira</div>
       <div class="brand"><span class="govbr">gov<b>.br</b></span><span class="div"></span><span class="min">Ministério das Cidades - DMP/SE</span></div>
@@ -1036,14 +1050,13 @@
     <div class="body tight">
       <div class="title-row">
         <div class="title-block tight">
-          <h2 class="title"><span class="etapa"><span class="n">02</span><span class="t">Suspensivas</span></span>Cláusulas suspensivas — OGU</h2>
+          <h2 class="title"><span class="etapa"><span class="n">2.1</span><span class="t">Suspensivas</span></span>Cláusulas suspensivas — OGU</h2>
           <p class="dek" style="max-width:66ch; font-style:italic; font-size:23px; margin:6px 0 0 126px;">Contratos OGU = sem suspensiva + suspensiva retirada + suspensiva pendente.</p>
         </div>
         <div class="ctrls">
-          <div class="ufctl"><label for="t-susp1-uf">Recorte</label><select id="t-susp1-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div>
+          <div class="ctrow"><div class="ufctl"><label for="t-susp1-uf">Recorte</label><select id="t-susp1-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div></div>
           <div class="ctrow">
-            <div class="stctl"><label>Fonte</label><div class="stgrp"><span class="stbtn fixo">OGU</span></div></div>
-            <div class="stctl anoctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" aria-pressed="true" title="2023">23</button><button type="button" class="stbtn anobtn" data-ano="2025" aria-pressed="true" title="2025">25</button><button type="button" class="stbtn anobtn" data-ano="2026" aria-pressed="true" title="2026">26</button></div></div>
+            <div class="stctl"><label>Fonte</label><div class="stgrp"><span class="stbtn fixo">OGU</span></div></div><div class="stctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" title="2023" aria-pressed="true">23</button><button type="button" class="stbtn anobtn" data-ano="2025" title="2025" aria-pressed="true">25</button><button type="button" class="stbtn anobtn" data-ano="2026" title="2026" aria-pressed="true">26</button></div></div>
           </div>
         </div>
       </div>
@@ -1060,12 +1073,12 @@
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: painelpac (SACI 14/10 · Transferegov 15/10 · Caixa 13/10 · BDGestores 14/10) · extração de 15/10/2026 11:37</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.1</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.2</span></span>
     </div>
   </section>
 
 
-  <section class="p2 content e2" data-label="Suspensivas 2">
+  <section class="p2 content e2" data-label="2.2 Suspensivas">
     <div class="top">
       <div class="eyebrow">Novo PAC — MCid · Balanço da carteira</div>
       <div class="brand"><span class="govbr">gov<b>.br</b></span><span class="div"></span><span class="min">Ministério das Cidades - DMP/SE</span></div>
@@ -1074,13 +1087,12 @@
     <div class="body tight">
       <div class="title-row">
         <div class="title-block tight">
-          <h2 class="title"><span class="etapa"><span class="n">02</span><span class="t">Suspensivas</span></span>Prazo das suspensivas pendentes</h2>
+          <h2 class="title"><span class="etapa"><span class="n">2.2</span><span class="t">Suspensivas</span></span>Prazo das suspensivas pendentes</h2>
         </div>
         <div class="ctrls">
-          <div class="ufctl"><label for="t-susp2-uf">Recorte</label><select id="t-susp2-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div>
+          <div class="ctrow"><div class="ufctl"><label for="t-susp2-uf">Recorte</label><select id="t-susp2-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div></div>
           <div class="ctrow">
-            <div class="stctl"><label>Fonte</label><div class="stgrp"><span class="stbtn fixo">OGU</span></div></div>
-            <div class="stctl anoctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" aria-pressed="true" title="2023">23</button><button type="button" class="stbtn anobtn" data-ano="2025" aria-pressed="true" title="2025">25</button><button type="button" class="stbtn anobtn" data-ano="2026" aria-pressed="true" title="2026">26</button></div></div>
+            <div class="stctl"><label>Fonte</label><div class="stgrp"><span class="stbtn fixo">OGU</span></div></div><div class="stctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" title="2023" aria-pressed="true">23</button><button type="button" class="stbtn anobtn" data-ano="2025" title="2025" aria-pressed="true">25</button><button type="button" class="stbtn anobtn" data-ano="2026" title="2026" aria-pressed="true">26</button></div></div>
           </div>
         </div>
       </div>
@@ -1097,12 +1109,12 @@
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: painelpac (SACI 14/10 · Transferegov 15/10 · Caixa 13/10 · BDGestores 14/10) · extração de 15/10/2026 11:37</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.1</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.2</span></span>
     </div>
   </section>
 
 
-  <section class="p2 content e3" data-label="Licitação 1">
+  <section class="p2 content e3" data-label="3.1 Licitação">
     <div class="top">
       <div class="eyebrow">Novo PAC — MCid · Balanço da carteira</div>
       <div class="brand"><span class="govbr">gov<b>.br</b></span><span class="div"></span><span class="min">Ministério das Cidades - DMP/SE</span></div>
@@ -1111,13 +1123,12 @@
     <div class="body tight">
       <div class="title-row">
         <div class="title-block tight">
-          <h2 class="title"><span class="etapa"><span class="n">03</span><span class="t">Licitação</span></span>Etapa atual dos contratos OGU</h2>
+          <h2 class="title"><span class="etapa"><span class="n">3.1</span><span class="t">Licitação</span></span>Etapa atual dos contratos OGU</h2>
         </div>
         <div class="ctrls">
-          <div class="ufctl"><label for="t-lic1-uf">Recorte</label><select id="t-lic1-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div>
+          <div class="ctrow"><div class="ufctl"><label for="t-lic1-uf">Recorte</label><select id="t-lic1-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div></div>
           <div class="ctrow">
-            <div class="stctl"><label>Fonte</label><div class="stgrp"><span class="stbtn fixo">OGU</span></div></div>
-            <div class="stctl anoctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" aria-pressed="true" title="2023">23</button><button type="button" class="stbtn anobtn" data-ano="2025" aria-pressed="true" title="2025">25</button><button type="button" class="stbtn anobtn" data-ano="2026" aria-pressed="true" title="2026">26</button></div></div>
+            <div class="stctl"><label>Fonte</label><div class="stgrp"><span class="stbtn fixo">OGU</span></div></div><div class="stctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" title="2023" aria-pressed="true">23</button><button type="button" class="stbtn anobtn" data-ano="2025" title="2025" aria-pressed="true">25</button><button type="button" class="stbtn anobtn" data-ano="2026" title="2026" aria-pressed="true">26</button></div></div>
           </div>
         </div>
       </div>
@@ -1133,12 +1144,12 @@
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: painelpac (SACI 14/10 · Transferegov 15/10 · Caixa 13/10 · BDGestores 14/10) · extração de 15/10/2026 11:37</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.1</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.2</span></span>
     </div>
   </section>
 
 
-  <section class="p2 content e3" data-label="Licitação 2">
+  <section class="p2 content e3" data-label="3.2 Licitação">
     <div class="top">
       <div class="eyebrow">Novo PAC — MCid · Balanço da carteira</div>
       <div class="brand"><span class="govbr">gov<b>.br</b></span><span class="div"></span><span class="min">Ministério das Cidades - DMP/SE</span></div>
@@ -1147,14 +1158,13 @@
     <div class="body tight">
       <div class="title-row">
         <div class="title-block tight">
-          <h2 class="title"><span class="etapa"><span class="n">03</span><span class="t">Licitação</span></span>Prazos da licitação — art. 36-A</h2>
+          <h2 class="title"><span class="etapa"><span class="n">3.2</span><span class="t">Licitação</span></span>Prazos da licitação — art. 36-A</h2>
           <p class="dek" style="max-width:66ch; font-style:italic; font-size:23px; margin:6px 0 0 126px;">Publicação em até 60 dias da LAE e homologação em até 120 dias da publicação — data-limite de 30/10/2026.</p>
         </div>
         <div class="ctrls">
-          <div class="ufctl"><label for="t-lic2-uf">Recorte</label><select id="t-lic2-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div>
+          <div class="ctrow"><div class="ufctl"><label for="t-lic2-uf">Recorte</label><select id="t-lic2-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div></div>
           <div class="ctrow">
-            <div class="stctl"><label>Fonte</label><div class="stgrp"><span class="stbtn fixo">OGU</span></div></div>
-            <div class="stctl anoctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" aria-pressed="true" title="2023">23</button><button type="button" class="stbtn anobtn" data-ano="2025" aria-pressed="true" title="2025">25</button><button type="button" class="stbtn anobtn" data-ano="2026" aria-pressed="true" title="2026">26</button></div></div>
+            <div class="stctl"><label>Fonte</label><div class="stgrp"><span class="stbtn fixo">OGU</span></div></div><div class="stctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" title="2023" aria-pressed="true">23</button><button type="button" class="stbtn anobtn" data-ano="2025" title="2025" aria-pressed="true">25</button><button type="button" class="stbtn anobtn" data-ano="2026" title="2026" aria-pressed="true">26</button></div></div>
           </div>
         </div>
       </div>
@@ -1170,12 +1180,12 @@
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: painelpac (SACI 14/10 · Transferegov 15/10 · Caixa 13/10 · BDGestores 14/10) · extração de 15/10/2026 11:37</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.1</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.2</span></span>
     </div>
   </section>
 
 
-  <section class="p2 content e4" data-label="Contratação 1">
+  <section class="p2 content e4" data-label="4.1 Contratação">
     <div class="top">
       <div class="eyebrow">Novo PAC — MCid · Balanço da carteira</div>
       <div class="brand"><span class="govbr">gov<b>.br</b></span><span class="div"></span><span class="min">Ministério das Cidades - DMP/SE</span></div>
@@ -1184,13 +1194,12 @@
     <div class="body tight">
       <div class="title-row">
         <div class="title-block tight">
-          <h2 class="title"><span class="etapa"><span class="n">04</span><span class="t">Contratação</span></span>Selecionado × contratado</h2>
+          <h2 class="title"><span class="etapa"><span class="n">4.1</span><span class="t">Contratação</span></span>Selecionado × contratado</h2>
         </div>
         <div class="ctrls">
-          <div class="ufctl"><label for="t-ct1-uf">Recorte</label><select id="t-ct1-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div>
+          <div class="ctrow"><div class="ufctl"><label for="t-ct1-uf">Recorte</label><select id="t-ct1-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div></div>
           <div class="ctrow">
-            <div class="stctl"><label>Fonte</label><div class="stgrp"><button type="button" class="stbtn fonbtn" data-fon="ogu" aria-pressed="true">OGU</button><button type="button" class="stbtn fonbtn" data-fon="fin" aria-pressed="true">FIN</button></div></div>
-            <div class="stctl anoctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" aria-pressed="true" title="2023">23</button><button type="button" class="stbtn anobtn" data-ano="2025" aria-pressed="true" title="2025">25</button><button type="button" class="stbtn anobtn" data-ano="2026" aria-pressed="true" title="2026">26</button></div></div>
+            <div class="stctl"><label>Fonte</label><div class="stgrp"><button type="button" class="stbtn fonbtn" data-fon="ogu" aria-pressed="true">OGU</button><button type="button" class="stbtn fonbtn" data-fon="fin" aria-pressed="true">FIN</button></div></div><div class="stctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" title="2023" aria-pressed="true">23</button><button type="button" class="stbtn anobtn" data-ano="2025" title="2025" aria-pressed="true">25</button><button type="button" class="stbtn anobtn" data-ano="2026" title="2026" aria-pressed="true">26</button></div></div>
           </div>
         </div>
       </div>
@@ -1207,12 +1216,12 @@
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: base única GM e SACI (view_mat_carteira_investimento) · extração de 15/10/2026 11:37</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.1</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.2</span></span>
     </div>
   </section>
 
 
-  <section class="p2 content e4" data-label="Contratação 2">
+  <section class="p2 content e4" data-label="4.2 Contratação">
     <div class="top">
       <div class="eyebrow">Novo PAC — MCid · Balanço da carteira</div>
       <div class="brand"><span class="govbr">gov<b>.br</b></span><span class="div"></span><span class="min">Ministério das Cidades - DMP/SE</span></div>
@@ -1221,13 +1230,12 @@
     <div class="body tight">
       <div class="title-row">
         <div class="title-block tight">
-          <h2 class="title"><span class="etapa"><span class="n">04</span><span class="t">Contratação</span></span>Situação dos contratos assinados</h2>
+          <h2 class="title"><span class="etapa"><span class="n">4.2</span><span class="t">Contratação</span></span>Situação dos contratos assinados</h2>
         </div>
         <div class="ctrls">
-          <div class="ufctl"><label for="t-ct2-uf">Recorte</label><select id="t-ct2-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div>
+          <div class="ctrow"><div class="ufctl"><label for="t-ct2-uf">Recorte</label><select id="t-ct2-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div></div>
           <div class="ctrow">
-            <div class="stctl"><label>Fonte</label><div class="stgrp"><button type="button" class="stbtn fonbtn" data-fon="ogu" aria-pressed="true">OGU</button><button type="button" class="stbtn fonbtn" data-fon="fin" aria-pressed="true">FIN</button></div></div>
-            <div class="stctl anoctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" aria-pressed="true" title="2023">23</button><button type="button" class="stbtn anobtn" data-ano="2025" aria-pressed="true" title="2025">25</button><button type="button" class="stbtn anobtn" data-ano="2026" aria-pressed="true" title="2026">26</button></div></div>
+            <div class="stctl"><label>Fonte</label><div class="stgrp"><button type="button" class="stbtn fonbtn" data-fon="ogu" aria-pressed="true">OGU</button><button type="button" class="stbtn fonbtn" data-fon="fin" aria-pressed="true">FIN</button></div></div><div class="stctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" title="2023" aria-pressed="true">23</button><button type="button" class="stbtn anobtn" data-ano="2025" title="2025" aria-pressed="true">25</button><button type="button" class="stbtn anobtn" data-ano="2026" title="2026" aria-pressed="true">26</button></div></div>
           </div>
         </div>
       </div>
@@ -1244,12 +1252,12 @@
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: SACI (view_mat_carteira_investimento) · extração de 15/10/2026 11:37</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.1</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.2</span></span>
     </div>
   </section>
 
 
-  <section class="p2 content e5" data-label="Execução 1">
+  <section class="p2 content e4" data-label="4.3 Contratação">
     <div class="top">
       <div class="eyebrow">Novo PAC — MCid · Balanço da carteira</div>
       <div class="brand"><span class="govbr">gov<b>.br</b></span><span class="div"></span><span class="min">Ministério das Cidades - DMP/SE</span></div>
@@ -1258,13 +1266,46 @@
     <div class="body tight">
       <div class="title-row">
         <div class="title-block tight">
-          <h2 class="title"><span class="etapa"><span class="n">05</span><span class="t">Execução</span></span>Situação das obras</h2>
+          <h2 class="title"><span class="etapa"><span class="n">4.3</span><span class="t">Contratação</span></span>Da seleção à obra</h2>
+          <p class="dek" style="max-width:66ch; font-style:italic; font-size:23px; margin:6px 0 0 126px;">Quanto das novas seleções já virou contrato assinado, obra iniciada e obra concluída.</p>
         </div>
         <div class="ctrls">
-          <div class="ufctl"><label for="t-ex1-uf">Recorte</label><select id="t-ex1-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div>
+          <div class="ctrow"><div class="ufctl"><label for="g-funil-uf">Recorte</label><select id="g-funil-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div></div>
           <div class="ctrow">
-            <div class="stctl"><label>Fonte</label><div class="stgrp"><button type="button" class="stbtn fonbtn" data-fon="ogu" aria-pressed="true">OGU</button><button type="button" class="stbtn fonbtn" data-fon="fin" aria-pressed="true">FIN</button></div></div>
-            <div class="stctl anoctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" aria-pressed="true" title="2023">23</button><button type="button" class="stbtn anobtn" data-ano="2025" aria-pressed="true" title="2025">25</button><button type="button" class="stbtn anobtn" data-ano="2026" aria-pressed="true" title="2026">26</button></div></div>
+            <div class="stctl"><label>Fonte</label><div class="stgrp"><button type="button" class="stbtn fonbtn" data-fon="ogu" aria-pressed="true">OGU</button><button type="button" class="stbtn fonbtn" data-fon="fin" aria-pressed="true">FIN</button></div></div><div class="stctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" title="2023" aria-pressed="true">23</button><button type="button" class="stbtn anobtn" data-ano="2025" title="2025" aria-pressed="true">25</button><button type="button" class="stbtn anobtn" data-ano="2026" title="2026" aria-pressed="true">26</button></div></div>
+          </div>
+          <div class="ctrow"><div class="stctl"><label>Medida</label><div class="stgrp"><button type="button" class="stbtn rdbtn" data-k="med" data-v="qtd" aria-pressed="true">Quantidade</button><button type="button" class="stbtn rdbtn" data-k="med" data-v="valor" aria-pressed="false">Valor</button></div></div><div class="stctl"><label>Exibir</label><div class="stgrp"><button type="button" class="stbtn rdbtn" data-k="modo" data-v="tot" aria-pressed="true">Total</button><button type="button" class="stbtn rdbtn" data-k="modo" data-v="pct" aria-pressed="false">%</button></div></div></div>
+        </div>
+      </div>
+      <div class="col grow" style="justify-content:flex-start;">
+        <p class="tmeta">Atualizado em <b>09/10</b> (GM) e <b>14/10</b> (SACI)<span class="sep">·</span>Contagem: novas seleções (GM) × contratos do Novo PAC Seleção (SACI)<span class="sep">·</span>Fonte: <b class="fonname">OGU + FIN</b><span class="sep">·</span>Anos: <b class="anoname">todos</b><span class="sep">·</span>Recorte: <b class="ufname">Brasil</b></p>
+        <div class="funil" id="g-funil"></div>
+        <p class="nota">Sem as migradas (legado). Valor: seleções pelo valor de portaria (OGU + FIN); contratos e obras pelo repasse/financiamento do SACI. Setas: conversão em relação ao bloco anterior. Obras iniciadas = em execução, paralisadas, inacabadas e concluídas.</p>
+      </div>
+    </div>
+    <hr class="hr">
+    <div class="bot">
+      <span class="org">Fonte: base única GM e SACI (view_mat_carteira_investimento) · extração de 15/10/2026 11:37</span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.2</span></span>
+    </div>
+  </section>
+
+
+  <section class="p2 content e5" data-label="5.1 Execução">
+    <div class="top">
+      <div class="eyebrow">Novo PAC — MCid · Balanço da carteira</div>
+      <div class="brand"><span class="govbr">gov<b>.br</b></span><span class="div"></span><span class="min">Ministério das Cidades - DMP/SE</span></div>
+    </div>
+    <hr class="hr">
+    <div class="body tight">
+      <div class="title-row">
+        <div class="title-block tight">
+          <h2 class="title"><span class="etapa"><span class="n">5.1</span><span class="t">Execução</span></span>Situação das obras</h2>
+        </div>
+        <div class="ctrls">
+          <div class="ctrow"><div class="ufctl"><label for="t-ex1-uf">Recorte</label><select id="t-ex1-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div></div>
+          <div class="ctrow">
+            <div class="stctl"><label>Fonte</label><div class="stgrp"><button type="button" class="stbtn fonbtn" data-fon="ogu" aria-pressed="true">OGU</button><button type="button" class="stbtn fonbtn" data-fon="fin" aria-pressed="true">FIN</button></div></div><div class="stctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" title="2023" aria-pressed="true">23</button><button type="button" class="stbtn anobtn" data-ano="2025" title="2025" aria-pressed="true">25</button><button type="button" class="stbtn anobtn" data-ano="2026" title="2026" aria-pressed="true">26</button></div></div>
           </div>
         </div>
       </div>
@@ -1281,12 +1322,12 @@
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: SACI (view_mat_carteira_investimento) · extração de 15/10/2026 11:37</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.1</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.2</span></span>
     </div>
   </section>
 
 
-  <section class="p2 content e5" data-label="Execução 2">
+  <section class="p2 content e5" data-label="5.2 Execução">
     <div class="top">
       <div class="eyebrow">Novo PAC — MCid · Balanço da carteira</div>
       <div class="brand"><span class="govbr">gov<b>.br</b></span><span class="div"></span><span class="min">Ministério das Cidades - DMP/SE</span></div>
@@ -1295,13 +1336,12 @@
     <div class="body tight">
       <div class="title-row">
         <div class="title-block tight">
-          <h2 class="title"><span class="etapa"><span class="n">05</span><span class="t">Execução</span></span>Execução média e paralisações</h2>
+          <h2 class="title"><span class="etapa"><span class="n">5.2</span><span class="t">Execução</span></span>Execução média e paralisações</h2>
         </div>
         <div class="ctrls">
-          <div class="ufctl"><label for="t-ex2-uf">Recorte</label><select id="t-ex2-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div>
+          <div class="ctrow"><div class="ufctl"><label for="t-ex2-uf">Recorte</label><select id="t-ex2-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div></div>
           <div class="ctrow">
-            <div class="stctl"><label>Fonte</label><div class="stgrp"><button type="button" class="stbtn fonbtn" data-fon="ogu" aria-pressed="true">OGU</button><button type="button" class="stbtn fonbtn" data-fon="fin" aria-pressed="true">FIN</button></div></div>
-            <div class="stctl anoctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" aria-pressed="true" title="2023">23</button><button type="button" class="stbtn anobtn" data-ano="2025" aria-pressed="true" title="2025">25</button><button type="button" class="stbtn anobtn" data-ano="2026" aria-pressed="true" title="2026">26</button></div></div>
+            <div class="stctl"><label>Fonte</label><div class="stgrp"><button type="button" class="stbtn fonbtn" data-fon="ogu" aria-pressed="true">OGU</button><button type="button" class="stbtn fonbtn" data-fon="fin" aria-pressed="true">FIN</button></div></div><div class="stctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" title="2023" aria-pressed="true">23</button><button type="button" class="stbtn anobtn" data-ano="2025" title="2025" aria-pressed="true">25</button><button type="button" class="stbtn anobtn" data-ano="2026" title="2026" aria-pressed="true">26</button></div></div>
           </div>
         </div>
       </div>
@@ -1317,7 +1357,7 @@
     <hr class="hr">
     <div class="bot">
       <span class="org">Fonte: SACI (view_mat_carteira_investimento) · extração de 15/10/2026 11:37</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.1</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="ver">versão 1.2</span></span>
     </div>
   </section>
 
@@ -1343,12 +1383,13 @@
     <div class="bot" style="border-top:0; padding-top:18px;">
       <span class="org" style="color:var(--paper);">Ministério das Cidades - DMP/SE</span>
       <div style="flex: 1;"></div>
-      <span class="org" style="color:var(--paper);">Extração de 15/10/2026<span class="verwrap"><button type="button" class="ver verlink" id="verBtn" aria-haspopup="dialog" aria-expanded="false" title="Ver histórico de atualizações">versão 1.1</button>
+      <span class="org" style="color:var(--paper);">Extração de 15/10/2026<span class="verwrap"><button type="button" class="ver verlink" id="verBtn" aria-haspopup="dialog" aria-expanded="false" title="Ver histórico de atualizações">versão 1.2</button>
         <div class="verlog" id="verLog" role="dialog" aria-label="Histórico de atualizações" hidden>
           <h3>Atualizações da apresentação</h3>
           <ul>
             <li><b>1.0</b>Primeira versão: seleção, suspensivas, licitação, contratação e execução.</li>
             <li><b>1.1</b>Status só na seleção; filtro OGU/FIN; anos curtos; notas de conciliação; suspensivas reestruturadas.</li>
+            <li><b>1.2</b>Numeração 1.1…5.2; slide 1.1 com % e filtro de origem; novo slide 4.3 — da seleção à obra.</li>
           </ul>
         </div></span></span>
       <a class="xlsxlink" href="novopac-balanco-carteira.pdf" download title="Baixar o PDF da apresentação (um slide por página) — com filtros aplicados, o PDF é gerado refletindo os filtros">
@@ -3226,20 +3267,27 @@ const P = (a, b) => (b ? fmtPct.format(100 * a / b) + '%' : '—');
 const H = (v) => [I(v), v ? 'hl' : 'zero'];      // destaque
 const A = (v) => [I(v), v ? 'alerta' : 'zero'];  // alerta
 const media = (s, n) => (n ? fmtPct.format(s / n) + '%' : '—');
+const BM = (v) => (Math.abs(v) >= 1e9 ? B(v) : 'R$ ' + fmtBi.format(v / 1e6) + ' mi');  // bi ou mi
 
 // célula: string ou [string, classe]
 const TABLES = [
-  { id: 't-sel1', status: true, parts: [{ src: 'sel', add: (a, r) => {
+  { id: 't-sel1', status: true, origem: true, pctHead: true, parts: [{ src: 'sel', add: (a, r) => {
       a.n++; if (r[1] === 0) a.qf++; else if (r[1] === 1) a.qo++;
       if (r[3] === 0) a.mig++; else a.nov++;
       a.ogu += r[4]; a.fin += r[5]; } }],
     init: () => ({ n: 0, qf: 0, qo: 0, mig: 0, nov: 0, ogu: 0, fin: 0 }),
-    cols: (a) => [I(a.qf), I(a.qo), H(a.n), M(a.ogu), M(a.fin), [M(a.ogu + a.fin), 'hl']],
+    // "% do total": participação da modalidade no total de cada coluna
+    cols: (a, t) => state.pct1 === '1'
+      ? [P(a.qf, t.qf), P(a.qo, t.qo), [P(a.n, t.n), 'hl'], P(a.ogu, t.ogu), P(a.fin, t.fin),
+         [P(a.ogu + a.fin, t.ogu + t.fin), 'hl']]
+      : [I(a.qf), I(a.qo), H(a.n), M(a.ogu), M(a.fin), [M(a.ogu + a.fin), 'hl']],
     kpis: (t) => [I(t.n), B(t.ogu + t.fin), B(t.ogu), B(t.fin)] },
 
   { id: 't-sel2', status: true, parts: [{ src: 'sel', keep: (r) => r[3] >= 1, add: (a, r) => {
-      a.n++; a.q[r[6]] = (a.q[r[6]] || 0) + 1; a.v[r[6]] = (a.v[r[6]] || 0) + r[4] + r[5]; a.vt += r[4] + r[5]; } }],
-    init: () => ({ n: 0, q: {}, v: {}, vt: 0 }),
+      a.n++; a.q[r[6]] = (a.q[r[6]] || 0) + 1; a.v[r[6]] = (a.v[r[6]] || 0) + r[4] + r[5]; a.vt += r[4] + r[5]; } },
+      // migradas: só para a nota de conciliação (não entram na tabela)
+      { src: 'sel', keep: (r) => r[3] === 0, add: (a) => { a.mig++; } }],
+    init: () => ({ n: 0, mig: 0, q: {}, v: {}, vt: 0 }),
     cols: (a) => ANOS.map((y) => anoOn(y) ? I(a.q[y] || 0) : ['—', 'zero']).concat([H(a.n)])
       .concat(ANOS.map((y) => anoOn(y) ? M(a.v[y] || 0) : ['—', 'zero'])).concat([[M(a.vt), 'hl']]) },
 
@@ -3318,29 +3366,32 @@ const TABLES = [
 const SEMANO = ' Com recorte de ano, as migradas (legado, sem ano de seleção) ficam fora.';
 const REFS = {
   sel1: (T) => '<b>' + I(T['t-sel1'].n) + '</b> propostas = <b>' + I(T['t-sel1'].nov)
-    + '</b> novas seleções (detalhadas por ano no slide 3) + <b>' + I(T['t-sel1'].mig)
+    + '</b> novas seleções (detalhadas por ano no slide 1.2) + <b>' + I(T['t-sel1'].mig)
     + '</b> migradas (legado).' + (anoFiltrado() ? SEMANO : ''),
   sel2: (T) => anoFiltrado()
-    ? 'Com recorte de ano, as migradas (legado, sem ano de seleção) ficam fora: o total é o mesmo do slide 2.'
-    : !T['t-sel1'].mig ? 'Sem migradas (legado) neste recorte: o total é o mesmo do slide 2.'
-    : 'Somadas as <b>' + I(T['t-sel1'].mig) + '</b> migradas (legado), são <b>' + I(T['t-sel1'].n)
-      + '</b> propostas — o total do slide 2.',
-  ct1: (T) => 'Seleções = as <b>' + I(T['t-ct1'].sel) + '</b> novas seleções do slide 3'
+    ? 'Com recorte de ano, as migradas (legado, sem ano de seleção) ficam fora: o total é o mesmo do slide 1.1.'
+    : !T['t-sel2'].mig ? 'Sem migradas (legado) neste recorte: o total é o mesmo do slide 1.1.'
+    : 'Somadas as <b>' + I(T['t-sel2'].mig) + '</b> migradas (legado), são <b>' + I(T['t-sel2'].n + T['t-sel2'].mig)
+      + '</b> propostas — o total do slide 1.1.',
+  ct1: (T) => 'Seleções = as <b>' + I(T['t-ct1'].sel) + '</b> novas seleções do slide 1.2'
     + (state.sel && state.enq ? '' : ' (selecionadas + enquadradas)')
-    + '; as <b>' + I(T['t-ct1'].mig) + '</b> migradas (legado) entram direto na execução (slides 10 e 11).',
+    + '; as <b>' + I(T['t-ct1'].mig) + '</b> migradas (legado) entram direto na execução (slides 5.1 e 5.2).',
   ex1: (T) => 'Total = <b>' + I(T['t-ex1'].sel) + '</b> contratos do Novo PAC Seleção (assinados ou em contratação) + <b>'
     + I(T['t-ex1'].mig) + '</b> migrados, sem contratos cancelados/distratados nem obras canceladas.'
     + (anoFiltrado() ? ' Com recorte de ano, os migrados ficam fora.' : ''),
 };
 
-const state = { uf: '', sel: true, enq: true, ogu: true, fin: true, anos: {} };
+// filtros (liga/desliga) e seletores exclusivos (pct1: tabela 1.1 em % · med/modo: gráfico 4.3)
+const state = { uf: '', sel: true, enq: true, ogu: true, fin: true, mig: true, nov: true, anos: {},
+                pct1: '0', med: 'qtd', modo: 'tot' };
+const PAR = { sel: 'enq', enq: 'sel', ogu: 'fin', fin: 'ogu', mig: 'nov', nov: 'mig' };
 ANOS.forEach((a) => { state.anos[a] = true; });
 const anoFiltrado = () => ANOS.some((a) => !state.anos[a]);
 const anoOn = (y) => !!state.anos[y];
 
 // filtros comuns: UF, fonte (fonte desconhecida só com as duas ligadas), ano (com recorte de
 // ano, migradas e linhas sem ano saem da conta) e, só nas tabelas de seleção, status
-// (migradas contam como selecionadas)
+// (migradas contam como selecionadas); origem (migradas / novas) só onde a tabela pede
 function passa(s, r, t) {
   if (state.uf && r[s.uf] !== state.uf) return false;
   if (s.fon !== undefined) {
@@ -3348,8 +3399,55 @@ function passa(s, r, t) {
     if (!(f === 1 ? state.ogu : f === 0 ? state.fin : state.ogu && state.fin)) return false;
   }
   if (t.status && !(r[s.kind] <= 1 ? state.sel : state.enq)) return false;
+  if (t.origem && !(r[s.kind] === 0 ? state.mig : state.nov)) return false;
   if (anoFiltrado() && !state.anos[r[s.ano]]) return false;
   return true;
+}
+
+// ---- 4.3 · da seleção à obra: novas seleções (sem migradas) → assinados → obras iniciadas → concluídas
+const SETA = '<svg viewBox="0 0 90 18" aria-hidden="true"><path d="M2 9h84"></path><path d="M78 2l8 7-8 7"></path></svg>';
+function renderFunil() {
+  const el = document.getElementById('g-funil');
+  if (!el) return;
+  const t = {};  // sem status / origem: só UF, fonte e ano
+  const b = { sel: [0, 0], ass: [0, 0], ini: [0, 0], con: [0, 0] };  // [quantidade, valor]
+  const obra = [0, 0, 0, 0, 0];
+  for (const r of SEL) {
+    if (r[3] < 1 || !passa(SRC.sel, r, t)) continue;
+    b.sel[0]++; b.sel[1] += r[4] + r[5];
+  }
+  for (const r of CT) {
+    if (r[3] < 1 || r[5] === 3 || r[5] === 4 || !passa(SRC.ct, r, t)) continue;
+    b.ass[0]++; b.ass[1] += r[8];
+    const o = r[6];
+    if (o >= 1 && o <= 4) { b.ini[0]++; b.ini[1] += r[8]; obra[o]++; }
+    if (o === 3) { b.con[0]++; b.con[1] += r[8]; }
+  }
+  const BLOCOS = [
+    ['sel', 'Seleções', 'portarias de 2023, 2025 e 2026'],
+    ['ass', 'Contratos assinados', 'normal, suspensiva, concluído e outros'],
+    ['ini', 'Obras iniciadas', 'em execução ' + I(obra[1]) + ' · paralisadas ' + I(obra[2]) + ' · inacabadas ' + I(obra[4])],
+    ['con', 'Obras concluídas', 'situação da obra no SACI'],
+  ];
+  const k = state.med === 'valor' ? 1 : 0;
+  const base = b.sel[k];
+  const fmt = (v) => (k ? BM(v) : I(v));
+  const out = [];
+  BLOCOS.forEach(([id, nome, det], i) => {
+    const v = b[id][k];
+    if (i) {
+      const ant = b[BLOCOS[i - 1][0]][k];
+      out.push('<div class="fseta"><div class="pc">' + P(v, ant) + '</div>' + SETA + '<div class="lb">do anterior</div></div>');
+    }
+    const alt = base ? Math.max(v ? 3 : 0, Math.round(340 * v / base)) : 0;
+    const principal = state.modo === 'pct' ? P(v, base) : fmt(v);
+    const secundario = state.modo === 'pct' ? fmt(v) : (k ? I(b[id][0]) + (id === 'sel' ? ' seleções' : ' contratos') : BM(b[id][1]));
+    out.push('<div class="fbloco" title="' + nome + ': ' + I(b[id][0]) + ' · ' + BM(b[id][1]) + '">'
+      + '<div class="fval">' + principal + '</div><div class="fsec">' + secundario + '</div>'
+      + '<div class="fbar" style="height:' + alt + 'px"></div>'
+      + '<div class="fbase"><div class="fnome">' + nome + '</div><div class="fdet">' + det + '</div></div></div>');
+  });
+  el.innerHTML = out.join('');
 }
 
 function td(c) {
@@ -3372,20 +3470,36 @@ function render() {
     }
     T[t.id] = tot;
     const body = [];
-    acc.forEach((a, i) => { if (a.n) body.push('<tr><td>' + MODS[i] + '</td>' + t.cols(a).map(td).join('') + '</tr>'); });
+    acc.forEach((a, i) => { if (a.n) body.push('<tr><td>' + MODS[i] + '</td>' + t.cols(a, tot).map(td).join('') + '</tr>'); });
     const tb = document.querySelector('#' + t.id + ' tbody');
     const ncols = document.querySelectorAll('#' + t.id + ' thead tr:last-child th').length;
     if (!body.length) {
       tb.innerHTML = '<tr><td class="empty" colspan="' + ncols + '">Sem registros neste recorte.</td></tr>';
     } else {
-      body.push('<tr class="tot"><td>TOTAL</td>' + t.cols(tot).map((c) => td(Array.isArray(c) ? c[0] : c)).join('') + '</tr>');
+      body.push('<tr class="tot"><td>TOTAL</td>' + t.cols(tot, tot).map((c) => td(Array.isArray(c) ? c[0] : c)).join('') + '</tr>');
       tb.innerHTML = body.join('');
+    }
+    if (t.pctHead) {  // cabeçalhos em % quando a tabela está em "% do total"
+      document.querySelectorAll('#' + t.id + ' thead th').forEach((th, i) => {
+        if (th.dataset.orig === undefined) th.dataset.orig = th.innerHTML;
+        const o = th.dataset.orig;
+        th.innerHTML = state.pct1 !== '1' || !i ? o : (o.includes('R$ mi') ? o.replace('R$ mi', '%') : o + ' (%)');
+      });
     }
     if (t.kpis) t.kpis(tot).forEach((v, i) => {
       const el = document.querySelector('[data-kpi="' + t.id + ':' + i + '"]');
       if (el) el.textContent = tot.n ? v : '—';
     });
   }
+  renderFunil();
+  const oriname = state.mig && state.nov ? 'migradas + novas' : (state.mig ? 'somente migradas' : 'somente novas');
+  document.querySelectorAll('.oriname').forEach((el) => { el.textContent = oriname; });
+  document.querySelectorAll('.oribtn').forEach((el) => {
+    el.setAttribute('aria-pressed', String(state[el.dataset.ori]));
+  });
+  document.querySelectorAll('.rdbtn').forEach((el) => {
+    el.setAttribute('aria-pressed', String(state[el.dataset.k] === el.dataset.v));
+  });
   document.querySelectorAll('[data-ref]').forEach((el) => { el.innerHTML = REFS[el.dataset.ref](T); });
   const fonname = state.ogu && state.fin ? 'OGU + FIN' : (state.ogu ? 'somente OGU' : 'somente FIN');
   document.querySelectorAll('.fonname').forEach((el) => { el.textContent = fonname; });
@@ -3415,6 +3529,11 @@ function render() {
   state.uf = uf;
   const st = (params.get('status') || '').toLowerCase().trim();
   if (st === 'sel') state.enq = false; else if (st === 'enq') state.sel = false;
+  const ori = (params.get('origem') || '').toLowerCase().trim();
+  if (ori === 'mig') state.nov = false; else if (ori === 'nov') state.mig = false;
+  if (params.get('pct') === '1') state.pct1 = '1';
+  if (params.get('med') === 'valor') state.med = 'valor';
+  if (params.get('modo') === 'pct') state.modo = 'pct';
   const fon = (params.get('fonte') || '').toLowerCase().trim();
   if (fon === 'ogu') state.fin = false; else if (fon === 'fin') state.ogu = false;
   const anoParam = (params.get('ano') || '').trim();
@@ -3428,14 +3547,17 @@ function render() {
   document.querySelectorAll('select.ufsel').forEach((el) => {
     el.addEventListener('change', function () { state.uf = this.value; render(); });
   });
-  document.querySelectorAll('.stbtn[data-st], .fonbtn').forEach((el) => {
+  document.querySelectorAll('.stbtn[data-st], .fonbtn, .oribtn').forEach((el) => {
     el.addEventListener('click', function () {
-      const k = this.dataset.st || this.dataset.fon;
-      const other = { sel: 'enq', enq: 'sel', ogu: 'fin', fin: 'ogu' }[k];
+      const k = this.dataset.st || this.dataset.fon || this.dataset.ori;
+      const other = PAR[k];
       if (state[k] && !state[other]) return; // pelo menos um ativo em cada grupo
       state[k] = !state[k];
       render();
     });
+  });
+  document.querySelectorAll('.rdbtn').forEach((el) => {
+    el.addEventListener('click', function () { state[this.dataset.k] = this.dataset.v; render(); });
   });
   document.querySelectorAll('.anobtn').forEach((el) => {
     el.addEventListener('click', function () {
@@ -3524,6 +3646,7 @@ function render() {
       const partes = ['novopac-balanco-carteira', (state.uf || 'brasil').toLowerCase()];
       if (!(state.sel && state.enq)) partes.push(state.sel ? 'selecionadas' : 'enquadradas');
       if (!(state.ogu && state.fin)) partes.push(state.ogu ? 'ogu' : 'fin');
+      if (!(state.mig && state.nov)) partes.push(state.mig ? 'migradas' : 'novas');
       const anosOn = ANOS.filter((a) => state.anos[a]);
       if (anosOn.length !== ANOS.length) partes.push(anosOn.join('-'));
       pdf.save(partes.join('_') + '.pdf');
@@ -3538,6 +3661,7 @@ function render() {
   if (pdfLink) {
     pdfLink.addEventListener('click', function (e) {
       const filtrado = state.uf !== '' || !state.sel || !state.enq || !state.ogu || !state.fin
+        || !state.mig || !state.nov || state.pct1 !== '0' || state.med !== 'qtd' || state.modo !== 'tot'
         || ANOS.some((a) => !state.anos[a]);
       if (!filtrado) return;
       e.preventDefault();

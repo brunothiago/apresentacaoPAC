@@ -1,14 +1,14 @@
 # Novo PAC — MCid · Balanço da carteira
 
 Apresentação em HTML (deck 16:9, mesmo layout gov.br da `novopac-apresentacao`) para a
-Secretaria-Executiva, com o caminho da carteira em cinco etapas, dois slides cada:
+Secretaria-Executiva, com o caminho da carteira em cinco etapas (slides numerados 1.1 … 5.2):
 
 | Etapa | Slides | Fonte |
 |---|---|---|
 | 01 Seleção | Carteira de seleções (migradas + novas) · Novas seleções por ano | `se_cgpac.tab_base_unica_gm` (painelgm) |
 | 02 Suspensivas | Cláusulas suspensivas OGU · Prazo das pendentes (PC 48/2026) | consulta OGU do painelpac |
 | 03 Licitação | Etapa atual dos contratos OGU · Prazos do art. 36-A | consulta OGU do painelpac |
-| 04 Contratação | Selecionado × contratado · Situação dos contratos assinados | base GM × `se_saci.view_mat_carteira_investimento` |
+| 04 Contratação | Selecionado × contratado · Situação dos contratos assinados · Da seleção à obra (gráfico de blocos) | base GM × `se_saci.view_mat_carteira_investimento` |
 | 05 Execução | Situação das obras · Execução média e paralisações | `se_saci.view_mat_carteira_investimento` |
 
 ## Como usar
@@ -20,6 +20,11 @@ Abra **`index.html`** em qualquer navegador. Não precisa de servidor.
   **Status** (Selecionadas / Enquadradas) só para os slides de seleção. Nos slides do painelpac
   (suspensivas e licitação) a fonte é sempre OGU. Também pela URL:
   `index.html?uf=SP&fonte=ogu&status=sel&ano=25,26` (ano curto ou completo).
+- Slide 1.1: filtro **Origem** (Migradas / Novas, `?origem=mig|nov`) e, no rodapé, **Exibir
+  Valores / % do total** (participação da modalidade em cada coluna, `?pct=1`).
+- Slide 4.3 (da seleção à obra): **Medida** Quantidade / Valor e **Exibir** Total / %
+  (`?med=valor&modo=pct`). Novas seleções → contratos assinados → obras iniciadas → concluídas;
+  valor das seleções pela portaria e dos contratos pelo repasse/financiamento do SACI.
 - As notas de rodapé conciliam os totais entre slides (ex.: novas seleções + migradas = carteira)
   e se recalculam com os filtros.
 - **Exportar PDF** (encerramento): sem filtro baixa o PDF pré-gerado; com filtro, gera no navegador.
