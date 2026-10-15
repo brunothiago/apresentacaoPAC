@@ -93,6 +93,9 @@ painelpac). A pasta `conferencia/` fica fora do git (dados por contrato).
 
 - **Seleção**: as mesmas da `novopac-apresentacao` — migradas = `retomada`; seleções = `selecionada`
   e `enquadrada`; `substituída` e as 2 propostas MCMV FNHIS ficam de fora; uma linha por fonte.
+- **Fora do PAC pelo próprio SACI**: contratos com fase Novo PAC mas `bln_pac = NÃO` (emendas e ações
+  estratégicas, sem proposta de seleção, fora da base GM e do balanço) saem de todas as contas, também na
+  base do painelpac; as notas do 2.1, 3.1, 4.1 e 5.1 dizem quantos saíram.
 - **Carteira SACI**: fases `NOVO PAC - Seleção` e `NOVO PAC - Migrado`, **sem a SNH** (o
   `NOVO PAC - MCMV` fica de fora). Contratação usa só a Seleção; Execução usa Seleção + Migrado,
   sem contratos cancelados/distratados nem obras canceladas.

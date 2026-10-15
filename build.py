@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.10'  # subir a cada commit que altere a apresentação
+VERSAO = '1.11'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -38,6 +38,7 @@ HISTORICO = [
     ('1.8', 'Slide 1.2 vira o painel de quadrados (waffle) por modalidade e fonte, no lugar da tabela por ano.'),
     ('1.9', 'Sai o slide de prazos das suspensivas (PC 48); o alinhamento das suspensivas passa a ser o 2.2.'),
     ('1.10', 'Slide 1.2: seletores Quantidade/Valor e Total/% e animação de preenchimento no painel de quadrados.'),
+    ('1.11', 'Saem os contratos com fase Novo PAC mas bln_pac = NÃO no SACI (emendas e ações estratégicas); notas citam.'),
 ]
 
 D = dados.load()
@@ -113,7 +114,8 @@ for _, r in D['sel'].iterrows():
                 1 if r.fonte == 'OGU' and str(r.num_proposta_selecao).strip() in PROP_CT_OGU else 0])
 
 # contratos SACI: [mod, fonte, uf, kind, ano, sitContrato, sitObra, investimento, repasse, %fís, %fin,
-#                  valor GM da migrada (pós-2023) ou None, grupo no balanço, % físico no balanço]
+#                  valor GM da migrada (pós-2023) ou None, grupo no balanço, % físico no balanço,
+#                  fora do PAC (bln_pac = NÃO)]
 # grupo no balanço: 0 outra fase / sem balanço · 1 em execução · 2 paralisada · 3 concluída
 CT = []
 for _, r in D['saci'].iterrows():
@@ -121,18 +123,18 @@ for _, r in D['saci'].iterrows():
                idx_sit_ct(r.dsc_situacao_contrato_mcid), SIT_OBRA.get(r.dsc_situacao_objeto_mcid, 0),
                num(r.vlr_investimento) or 0, num(r.vlr_repasse) or 0,
                num(r.prc_execucao_fisica), num(r.prc_execucao_financ), num(r.vlr_gm),
-               int(r.bal_g), num(r.bal_exec)])
+               int(r.bal_g), num(r.bal_exec), 1 if r.excl else 0])
 
 # itens do balanço sem contrato na carteira (sem SNH, ativos, em obra ou concluídos): mesmo formato do CT,
 # como novas seleções sem ano, situação da obra pelo balanço e valor pelo total previsto no Novo PAC
 BX = []
 for _, r in D['bx'].iterrows():
     BX.append([MODS.index(r['mod']), FONTE.get(r.fonte, 2), r.uf, 1, '', 0, {1: 1, 2: 2, 3: 3}[int(r.g)],
-               num(r.vlr) or 0, num(r.vlr) or 0, num(r['exec']), None, None, int(r.g), num(r['exec'])])
+               num(r.vlr) or 0, num(r.vlr) or 0, num(r['exec']), None, None, int(r.g), num(r['exec']), 0])
 
 # contratos OGU (painelpac): [mod, uf, kind, ano, repasse, cancelado, susp, pc48, tetoVencido,
 #                             fase, pubLicitação, homLicitação, casaCivil, data alinhada DMP 08/26,
-#                             ligado a seleção OGU nova, em contratação]
+#                             ligado a seleção OGU nova, em contratação, fora do PAC (bln_pac = NÃO)]
 OG = []
 for _, r in D['ogu'].iterrows():
     teto = pd.to_datetime(r.prazo_suspensiva_pc48_prorrogado_calc, errors='coerce')
@@ -145,7 +147,7 @@ for _, r in D['ogu'].iterrows():
                1 if r.status_regra_casa_civil_calc == 'Cumpriu o prazo' else 0,
                '' if pd.isna(r.dt_alinhamento) else f'{r.dt_alinhamento:%Y-%m-%d}',
                1 if str(r.num_proposta_selecao_pac_saci).strip() in PROP_SEL_OGU else 0,
-               1 if r.dsc_situacao_contrato_mcid_saci == 'Em Contratação' else 0])
+               1 if r.dsc_situacao_contrato_mcid_saci == 'Em Contratação' else 0, 1 if r.excl else 0])
 
 ANOS = sorted({r[6] for r in SEL if r[6]})
 ufs = sorted(({r[2] for r in SEL} | {r[2] for r in CT} | {r[1] for r in OG}) - {'BR', ''})
@@ -769,9 +771,9 @@ const BX = __BX__;
 // posição de uf / kind / ano / fonte em cada base (OG é todo OGU: sem filtro de fonte)
 const SRC = {
   sel: { rows: SEL, uf: 2, kind: 3, ano: 6, fon: 1 },
-  ct:  { rows: CT,  uf: 2, kind: 3, ano: 4, fon: 1 },
+  ct:  { rows: CT,  uf: 2, kind: 3, ano: 4, fon: 1, ex: 14 },
   bx:  { rows: BX,  uf: 2, kind: 3, ano: 4, fon: 1 },
-  og:  { rows: OG,  uf: 1, kind: 2, ano: 3 },
+  og:  { rows: OG,  uf: 1, kind: 2, ano: 3, ex: 16 },
 };
 
 const fmtInt = new Intl.NumberFormat('pt-BR');
@@ -893,17 +895,24 @@ const TABLES = [
 ];
 
 // cadeia seleções OGU (GM) → contratos OGU do painelpac, com os filtros de UF e ano
+// contratos do SACI fora do PAC pelo próprio SACI (bln_pac = NÃO), no recorte — para as notas
+function exclCt(keep) {
+  let n = 0;
+  for (const r of CT) if (r[14] && keep(r) && passa(SRC.ct, r, { excl: true })) n++;
+  return n;
+}
+
 function cadeiaOgu() {
-  const t = {}, c = { sel: 0, mig: 0, nov: 0, comCt: 0, semCt: 0, ct: 0, lig: 0, semProp: 0, canc: 0, emc: 0, ativos: 0 };
+  const t = {}, c = { sel: 0, mig: 0, nov: 0, comCt: 0, semCt: 0, ct: 0, lig: 0, semProp: 0, canc: 0, emc: 0, ativos: 0, excl: 0 };
   for (const r of SEL) {
     if (r[1] !== 1 || r[3] === 2 || !passa(SRC.sel, r, t)) continue;  // seleções OGU (selecionadas + migradas)
     c.sel++;
     if (r[3] === 0) c.mig++; else { c.nov++; if (r[7]) c.comCt++; else c.semCt++; }
   }
   for (const r of OG) {
-    if (!passa(SRC.og, r, t)) continue;
+    if (!passa(SRC.og, r, { excl: true })) continue;
     c.ct++; if (r[14]) c.lig++; else c.semProp++;
-    if (r[5]) c.canc++; else { c.ativos++; if (r[15]) c.emc++; }
+    if (r[16]) c.excl++; else if (r[5]) c.canc++; else { c.ativos++; if (r[15]) c.emc++; }
   }
   return c;
 }
@@ -924,7 +933,8 @@ const REFS = {
     + (anoFiltrado() ? SEMANO : ''),
   ct1: (T) => 'Seleções = as <b>' + I(T['t-ct1'].sel) + '</b> novas seleções do slide 1.1'
     + (state.sel && state.enq ? '' : ' (selecionadas + enquadradas)')
-    + '; as <b>' + I(T['t-ct1'].mig) + '</b> migradas (legado) entram direto na execução (slides 5.1 e 5.2).',
+    + '; as <b>' + I(T['t-ct1'].mig) + '</b> migradas (legado) entram direto na execução (slides 5.1 e 5.2).'
+    + (exclCt((r) => r[3] >= 1) ? ' Sem os <b>' + I(exclCt((r) => r[3] >= 1)) + '</b> contratos com bln_pac = NÃO no SACI.' : ''),
   g43: () => (state.gmig && state.gnov ? 'Migradas + novas seleções (migradas sem ano: saem com recorte de ano).'
     : state.gmig ? 'Só as migradas (sem ano: com recorte de ano o gráfico fica vazio).'
     : 'Só as novas seleções, como no 4.1.')
@@ -941,7 +951,8 @@ const REFS = {
     const t = T['t-ex1'];
     let s = 'Total = <b>' + I(t.sel) + '</b> Novo PAC Seleção + <b>' + I(t.mig) + '</b> migrados'
       + (comBal() && t.bx ? ' + <b>' + I(t.bx) + '</b> itens só no balanço' : '') + ', sem cancelados'
-      + (anoFiltrado() ? ' (com recorte de ano, migrados e itens do balanço saem)' : '') + '.';
+      + (anoFiltrado() ? ' (com recorte de ano, migrados e itens do balanço saem)' : '')
+      + (exclCt((r) => r[5] !== 4) ? ' e sem os <b>' + I(exclCt((r) => r[5] !== 4)) + '</b> com bln_pac = NÃO' : '') + '.';
     if (comBal()) s += ' Concluídas <b>' + I(t.o[3]) + '</b> = <b>' + I(t.cs) + '</b> no SACI + <b>' + I(t.cb)
       + '</b> só no balanço jun/26 + <b>' + I(t.cx) + '</b> do balanço sem contrato no SACI (frota privada e outros); '
       + 'o balanço sem SNH tem <b>' + I(t.balc) + '</b> — a diferença são obras concluídas no SACI após junho.';
@@ -954,11 +965,12 @@ const REFS = {
       + '</b> migradas ficam fora (o painelpac é só o Novo PAC Seleção) e <b>' + I(c.semCt) + '</b> das <b>' + I(c.nov)
       + '</b> novas ainda não têm contrato. As <b>' + I(c.comCt) + '</b> com contrato somam <b>' + I(c.lig)
       + '</b> contratos (há propostas com mais de um) + <b>' + I(c.semProp) + '</b> sem proposta de seleção ligada = <b>'
-      + I(c.ct) + '</b> contratos OGU; menos <b>' + I(c.canc) + '</b> cancelados/distratados = <b>' + I(c.ativos)
-      + '</b> (inclui <b>' + I(c.emc) + '</b> em contratação).';
+      + I(c.ct) + '</b> contratos OGU no painelpac; menos <b>' + I(c.excl) + '</b> com fase Novo PAC mas bln_pac = NÃO no SACI '
+      + '(emendas e ações estratégicas, fora da base GM e do balanço) e <b>' + I(c.canc) + '</b> cancelados/distratados = <b>'
+      + I(c.ativos) + '</b> (inclui <b>' + I(c.emc) + '</b> em contratação).';
   },
-  susp1: () => { const c = cadeiaOgu(); return 'Base: os <b>' + I(c.ativos) + '</b> contratos OGU do painelpac sem cancelados — de onde vêm, a partir das <b>'
-    + I(c.sel) + '</b> seleções OGU, está na nota do slide 3.1.'; },
+  susp1: () => { const c = cadeiaOgu(); return 'Base: <b>' + I(c.ativos) + '</b> contratos OGU do painelpac, sem cancelados e sem os <b>'
+    + I(c.excl) + '</b> com bln_pac = NÃO; a cadeia desde as <b>' + I(c.sel) + '</b> seleções OGU está no slide 3.1.'; },
   ex2: (T) => 'Investimento paralisado: migradas pelo valor da base GM (pós-2023); demais pelo investimento do SACI'
     + (comBal() ? '. Situação da obra pelo SACI + balanço jun/26 (+ <b>' + I(T['t-ex2'].bx) + '</b> itens do balanço sem contrato no SACI, '
       + 'com o % físico do balanço).' : '.'),
@@ -980,6 +992,8 @@ const anoOn = (y) => !!state.anos[y];
 // ano, migradas e linhas sem ano saem da conta) e, só nas tabelas de seleção, status
 // (migradas contam como selecionadas); origem (migradas / novas) só onde a tabela pede
 function passa(s, r, t) {
+  // fora do PAC pelo próprio SACI (fase Novo PAC mas bln_pac = NÃO): só entra quando a nota pede (t.excl)
+  if (s.ex !== undefined && r[s.ex] && !t.excl) return false;
   if (state.uf && r[s.uf] !== state.uf) return false;
   if (s.fon !== undefined) {
     const f = r[s.fon];

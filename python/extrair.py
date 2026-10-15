@@ -72,7 +72,7 @@ SACI_COLUNAS = [
     'dsc_situacao_objeto_mcid', 'dte_inicio_obra_mcid', 'dte_fim_obra_mcid', 'vlr_investimento',
     'vlr_repasse', 'vlr_contrapartida', 'vlr_empenhado', 'vlr_desembolsado', 'vlr_pago',
     'prc_execucao_fisica', 'prc_execucao_financ', 'prc_desembolsado', 'txt_motivo_paralisacao_mcid',
-    'bln_carteira_ativa_mcid', 'id_governa', 'dte_carga',
+    'bln_carteira_ativa_mcid', 'bln_pac', 'bln_emenda', 'id_governa', 'dte_carga',
 ]  # id_governa: liga o contrato ao balanço do Governa
 SQL_SACI = f"""
 SELECT {", ".join(SACI_COLUNAS)}

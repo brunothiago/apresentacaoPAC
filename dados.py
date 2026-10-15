@@ -16,6 +16,9 @@ Regras de recorte:
 - valor das migradas: o da base GM (vlr_portaria_ogu + vlr_portaria_fin da retomada com o mesmo
   cod_tci) — a parte pós-2023, repasse vigente menos o desembolsado até 31/12/2022 (regra do
   painelgm). Sem correspondência, vlr_gm fica vazio e o build usa o valor do SACI;
+- bln_pac: contratos com fase "NOVO PAC - Seleção" mas bln_pac = NÃO no próprio SACI (emendas e ações
+  estratégicas sem proposta de seleção — não estão na base GM nem no balanço) ficam marcados em `excl` e
+  saem de todas as contas (SACI e painelpac); o build os conta só para as notas;
 - balanço do Governa (2ª fonte da situação das obras): liga ao contrato pelo id_governa do SACI.
   bal_g = 3 concluída (Concluído, Concluído com redução de metas, Obra concluída, Entregue),
   1 em execução, 2 paralisada, 0 outra fase / sem balanço. Itens do balanço sem contrato na carteira
@@ -180,6 +183,7 @@ def load():
                                            'num_ano_instrumento', 'dte_assinatura_contrato', migr, gm)
     saci['kind'], saci['ano'], saci['casou_gm'] = kind, ano, casou
     saci['mod'] = mod_gm.fillna(saci.txt_modalidade.map(modalidade))
+    saci['excl'] = saci.bln_pac.fillna('').astype(str).str.upper().ne('SIM') if 'bln_pac' in saci.columns else False
     # valor das migradas pela base GM (pós-2023), casando a retomada pelo cod_tci
     tci = lambda c: c.astype(str).str.strip()
     vgm = (mig.assign(t=tci(mig.cod_tci), v=mig.vlr_portaria_ogu + mig.vlr_portaria_fin)
@@ -200,6 +204,7 @@ def load():
     ogu['mod'] = mod_gm.fillna(ogu.txt_modalidade_saci.map(modalidade))
     ogu['vlr_repasse_saci'] = pd.to_numeric(ogu.vlr_repasse_saci, errors='coerce').fillna(0)
     ogu['dt_alinhamento'] = pd.to_datetime(ogu.alinhamento_suspensivas_0826, errors='coerce')
+    ogu['excl'] = ogu.cod_tci_saci.isin(set(saci.loc[saci.excl, 'cod_tci']))
 
     # balanço do Governa: fase e execução física por contrato (id_governa do SACI) + itens sem contrato
     saci['bal_g'], saci['bal_exec'], bx = 0, float('nan'), pd.DataFrame()
