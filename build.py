@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.6'  # subir a cada commit que altere a apresentação
+VERSAO = '1.7'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -34,6 +34,7 @@ HISTORICO = [
     ('1.4', 'Migradas pelo valor da base GM (pós-2023) no 4.3 e no 5.2; novo slide 2.3 — alinhamento das suspensivas (DMP 08/2026).'),
     ('1.5', 'Slide 4.3 animado: o todo das seleções se quebra em contratos, obras iniciadas e concluídas.'),
     ('1.6', 'Balanço Governa jun/2026 como 2ª fonte da situação das obras (4.3, 5.1, 5.2); numeração N/total.'),
+    ('1.7', 'Notas do 2.1 e do 3.1: cadeia das seleções OGU até os contratos OGU do painelpac.'),
 ]
 
 D = dados.load()
@@ -91,14 +92,22 @@ def idx_sit_ct(s):
     return SIT_CT.index(s) if s in SIT_CT else 5
 
 
-# seleção: [mod, fonte, uf, kind, ogu, fin, ano]  · kind 0 migrada · 1 selecionada · 2 enquadrada
+# propostas: seleções OGU novas × contratos OGU do painelpac (a relação é N:N — a base GM repete propostas
+# e há propostas com mais de um contrato, por recontratação ou divisão)
+_prop = lambda x: x.astype(str).str.strip()
+PROP_SEL_OGU = set(_prop(D['sel'].loc[D['sel'].fonte == 'OGU', 'num_proposta_selecao']))
+PROP_CT_OGU = set(_prop(D['ogu'].num_proposta_selecao_pac_saci.dropna()))
+
+# seleção: [mod, fonte, uf, kind, ogu, fin, ano, tem contrato OGU (só nas novas OGU)]
+#           kind 0 migrada · 1 selecionada · 2 enquadrada
 SEL = []
 for _, r in D['mig'].iterrows():
     SEL.append([MODS.index(r['mod']), FONTE.get(r.fonte, 2), r.uf, 0,
-                num(r.vlr_portaria_ogu), num(r.vlr_portaria_fin), ''])
+                num(r.vlr_portaria_ogu), num(r.vlr_portaria_fin), '', 0])
 for _, r in D['sel'].iterrows():
     SEL.append([MODS.index(r['mod']), FONTE.get(r.fonte, 2), r.uf, 2 if r.status_selecao == 'enquadrada' else 1,
-                num(r.vlr_portaria_ogu), num(r.vlr_portaria_fin), dados.ANO_LABEL[int(r.ano_selecao)]])
+                num(r.vlr_portaria_ogu), num(r.vlr_portaria_fin), dados.ANO_LABEL[int(r.ano_selecao)],
+                1 if r.fonte == 'OGU' and str(r.num_proposta_selecao).strip() in PROP_CT_OGU else 0])
 
 # contratos SACI: [mod, fonte, uf, kind, ano, sitContrato, sitObra, investimento, repasse, %fís, %fin,
 #                  valor GM da migrada (pós-2023) ou None, grupo no balanço, % físico no balanço]
@@ -119,7 +128,8 @@ for _, r in D['bx'].iterrows():
                num(r.vlr) or 0, num(r.vlr) or 0, num(r['exec']), None, None, int(r.g), num(r['exec'])])
 
 # contratos OGU (painelpac): [mod, uf, kind, ano, repasse, cancelado, susp, pc48, tetoVencido,
-#                             fase, pubLicitação, homLicitação, casaCivil, data alinhada DMP 08/26]
+#                             fase, pubLicitação, homLicitação, casaCivil, data alinhada DMP 08/26,
+#                             ligado a seleção OGU nova, em contratação]
 OG = []
 for _, r in D['ogu'].iterrows():
     teto = pd.to_datetime(r.prazo_suspensiva_pc48_prorrogado_calc, errors='coerce')
@@ -130,7 +140,9 @@ for _, r in D['ogu'].iterrows():
                FASES.index(r.fase_atual_calc) if r.fase_atual_calc in FASES else 0,
                PRAZO.get(r.status_pub_licitacao_calc, 0), PRAZO.get(r.status_homolog_licitacao_calc, 0),
                1 if r.status_regra_casa_civil_calc == 'Cumpriu o prazo' else 0,
-               '' if pd.isna(r.dt_alinhamento) else f'{r.dt_alinhamento:%Y-%m-%d}'])
+               '' if pd.isna(r.dt_alinhamento) else f'{r.dt_alinhamento:%Y-%m-%d}',
+               1 if str(r.num_proposta_selecao_pac_saci).strip() in PROP_SEL_OGU else 0,
+               1 if r.dsc_situacao_contrato_mcid_saci == 'Em Contratação' else 0])
 
 ANOS = sorted({r[6] for r in SEL if r[6]})
 ufs = sorted(({r[2] for r in SEL} | {r[2] for r in CT} | {r[1] for r in OG}) - {'BR', ''})
@@ -534,7 +546,7 @@ SLIDES = f"""
        'Contagem: contratos OGU do Novo PAC Seleção (sem SNH), sem cancelados', AT_PAC, SRC_PAC,
        dek='Contratos OGU = sem suspensiva + suspensiva retirada + suspensiva pendente.',
        kpis=[('Contratos OGU',), ('Com suspensiva',), ('Retiradas', '', 'ok'), ('Pendentes', '', 'alerta')],
-       nota='% retirada = retiradas ÷ contratos com cláusula suspensiva.', so_ogu=True)}
+       nota='% retirada = retiradas ÷ contratos com cláusula suspensiva. <span data-ref="susp1"></span>', so_ogu=True)}
 {slide(2, 2, 'Prazo das suspensivas pendentes', 't-susp2',
        ['Pendentes', ('Prazo inicial (PC 48/2026)', ['No prazo', 'Vence em<br>30 dias', 'Vencido']), 'Teto da<br>prorrogação<br>vencido', 'Sem prazo<br>calculado'],
        'Contagem: suspensivas pendentes (OGU)', AT_PAC, SRC_PAC, so_ogu=True,
@@ -546,7 +558,8 @@ SLIDES = f"""
 {slide(3, 1, 'Etapa atual dos contratos OGU', 't-lic1',
        ['Sem<br>registro', 'Em<br>suspensiva', 'Suspensiva<br>retirada/LAE', 'Edital<br>publicado', 'Licitação<br>homologada', 'VRPL /<br>AIO', 'Obra<br>iniciada', 'Total'],
        'Contagem: contratos OGU do Novo PAC Seleção, sem cancelados — etapa mais avançada', AT_PAC, SRC_PAC,
-       kpis=[('Aguardando licitação',), ('Edital publicado',), ('Homologada até AIO',), ('Obra iniciada', '', 'ok')], so_ogu=True)}
+       kpis=[('Aguardando licitação',), ('Edital publicado',), ('Homologada até AIO',), ('Obra iniciada', '', 'ok')], so_ogu=True,
+       nota='<span data-ref="lic1"></span>')}
 {slide(3, 2, 'Prazos da licitação — art. 36-A', 't-lic2',
        [('Publicação do edital', ['Publicado', 'No prazo', 'Vence em<br>30 dias', 'Vencido']), ('Homologação', ['Homologada', 'No prazo', 'Vence em<br>30 dias', 'Vencido'])],
        'Contagem: contratos OGU assinados após a PC 72/2025, com LAE', AT_PAC, SRC_PAC, so_ogu=True,
@@ -841,6 +854,22 @@ const TABLES = [
     kpis: (t) => [media(t.fs.s + t.fs.m, t.fn.s + t.fn.m), media(t.fis, t.fin_n), I(t.par), B(t.vpar)] },
 ];
 
+// cadeia seleções OGU (GM) → contratos OGU do painelpac, com os filtros de UF e ano
+function cadeiaOgu() {
+  const t = {}, c = { sel: 0, mig: 0, nov: 0, comCt: 0, semCt: 0, ct: 0, lig: 0, semProp: 0, canc: 0, emc: 0, ativos: 0 };
+  for (const r of SEL) {
+    if (r[1] !== 1 || r[3] === 2 || !passa(SRC.sel, r, t)) continue;  // seleções OGU (selecionadas + migradas)
+    c.sel++;
+    if (r[3] === 0) c.mig++; else { c.nov++; if (r[7]) c.comCt++; else c.semCt++; }
+  }
+  for (const r of OG) {
+    if (!passa(SRC.og, r, t)) continue;
+    c.ct++; if (r[14]) c.lig++; else c.semProp++;
+    if (r[5]) c.canc++; else { c.ativos++; if (r[15]) c.emc++; }
+  }
+  return c;
+}
+
 // notas de conciliação entre slides: [data-ref] ← html calculado com os totais de cada tabela
 const SEMANO = ' Com recorte de ano, as migradas (legado, sem ano de seleção) ficam fora.';
 const REFS = {
@@ -877,6 +906,18 @@ const REFS = {
       + 'o balanço sem SNH tem <b>' + I(t.balc) + '</b> — a diferença são obras concluídas no SACI após junho.';
     return s;
   },
+  // 2.1 / 3.1: das seleções OGU (1.1) aos contratos OGU do painelpac, em cadeia
+  lic1: () => {
+    const c = cadeiaOgu();
+    return 'De <b>' + I(c.sel) + '</b> seleções OGU (slide 1.1) a <b>' + I(c.ativos) + '</b> contratos: <b>' + I(c.mig)
+      + '</b> migradas ficam fora (o painelpac é só o Novo PAC Seleção) e <b>' + I(c.semCt) + '</b> das <b>' + I(c.nov)
+      + '</b> novas ainda não têm contrato. As <b>' + I(c.comCt) + '</b> com contrato somam <b>' + I(c.lig)
+      + '</b> contratos (há propostas com mais de um) + <b>' + I(c.semProp) + '</b> sem proposta de seleção ligada = <b>'
+      + I(c.ct) + '</b> contratos OGU; menos <b>' + I(c.canc) + '</b> cancelados/distratados = <b>' + I(c.ativos)
+      + '</b> (inclui <b>' + I(c.emc) + '</b> em contratação).';
+  },
+  susp1: () => { const c = cadeiaOgu(); return 'Base: os <b>' + I(c.ativos) + '</b> contratos OGU do painelpac sem cancelados — de onde vêm, a partir das <b>'
+    + I(c.sel) + '</b> seleções OGU, está na nota do slide 3.1.'; },
   ex2: (T) => 'Investimento paralisado: migradas pelo valor da base GM (pós-2023); demais pelo investimento do SACI'
     + (comBal() ? '. Situação da obra pelo SACI + balanço jun/26 (+ <b>' + I(T['t-ex2'].bx) + '</b> itens do balanço sem contrato no SACI, '
       + 'com o % físico do balanço).' : '.'),
