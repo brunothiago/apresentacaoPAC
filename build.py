@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.18'  # subir a cada commit que altere a apresentação
+VERSAO = '1.19'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -46,6 +46,7 @@ HISTORICO = [
     ('1.16', 'Slide 3.2 vira a régua do prazo da licitação (antes × agora, 1 ponto = 1 contrato), com Quantidade/Valor.'),
     ('1.17', 'Exceção provisória: contratos e itens sem modalidade saem das contas; notas citam quantos.'),
     ('1.18', 'Slide 1.2: ícones das modalidades nos cartões do painel de quadrados.'),
+    ('1.19', 'Slide 1.2: ícone no canto superior direito do cartão, maior.'),
 ]
 
 D = dados.load()
@@ -301,10 +302,10 @@ EXTRA_CSS = """
   .waf-leg .esc{ width:100%; text-align:right; font-weight:700; color:var(--navy); }
   .waf-grid{ display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:14px; }
   .waf-card{ background:#fff; border:1px solid var(--line); border-radius:8px; box-shadow:0 1px 4px rgba(7,29,65,.06); padding:10px 14px 12px; }
-  .waf-nome{ font-size:16px; font-weight:800; color:var(--navy); line-height:1.2; min-height:39px; letter-spacing:.01em; display:flex; align-items:center; gap:8px; }
+  .waf-nome{ font-size:16px; font-weight:800; color:var(--navy); line-height:1.2; min-height:39px; letter-spacing:.01em; display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
   /* os PNG têm ~25% de margem transparente: a imagem é maior que o círculo e o excesso fica cortado */
-  .waf-ico{ flex:none; width:32px; height:32px; border-radius:50%; background:var(--accent); display:inline-flex; align-items:center; justify-content:center; overflow:hidden; }
-  .waf-ico img{ width:38px; height:38px; display:block; flex:none; }
+  .waf-ico{ flex:none; width:42px; height:42px; margin:-2px -4px 0 0; border-radius:50%; background:var(--accent); display:inline-flex; align-items:center; justify-content:center; overflow:hidden; }
+  .waf-ico img{ width:50px; height:50px; display:block; flex:none; }
   .waf-corpo{ display:flex; gap:12px; align-items:flex-start; margin-top:6px; }
   .waf-svg{ flex:none; display:block; }
   .waf-num{ flex:1; min-width:0; font-variant-numeric:tabular-nums; }
@@ -1388,8 +1389,8 @@ function renderWaffle() {
     const rotulo = pct ? 'da carteira' : (val ? 'valor' : 'propostas');
     const linha = (rot, cor, x) => '<div class="f"><i style="background:' + cor + '"></i>' + rot
       + (pct ? '' : ' <b>' + curto(x) + '</b>') + '<span>' + pc(x, n) + '</span></div>';
-    o.push('<div class="waf-card"><div class="waf-nome">' + (ICONES[a.i] ? '<span class="waf-ico"><img src="' + ICONES[a.i] + '" alt=""></span>' : '')
-      + '<span>' + a.nome + '</span></div><div class="waf-corpo">' + waffleSvg(ogu(a), fin(a), un, 'wc' + a.i)
+    o.push('<div class="waf-card"><div class="waf-nome"><span>' + a.nome + '</span>'
+      + (ICONES[a.i] ? '<span class="waf-ico"><img src="' + ICONES[a.i] + '" alt=""></span>' : '') + '</div><div class="waf-corpo">' + waffleSvg(ogu(a), fin(a), un, 'wc' + a.i)
       + '<div class="waf-num' + (val && !pct ? ' rs' : '') + '"><div class="q">' + grande + '</div><div class="ql">' + rotulo + '</div>'
       + linha('OGU', COR_OGU, ogu(a)) + linha('FIN', COR_FIN, fin(a)) + '</div></div></div>');
   }
