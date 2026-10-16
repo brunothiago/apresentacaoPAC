@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 225 225" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+  <!-- documento com casa (título de propriedade), traço branco no padrão dos demais ícones -->
+  <rect x="64" y="46" width="97" height="133" rx="10"/>
+  <path d="M80 92l32.5-28 32.5 28"/>
+  <path d="M89 85v29h47v-29"/>
+  <path d="M106 114v-17h13v17"/>
+  <path d="M82 133h61"/>
+  <path d="M82 148h61"/>
+  <path d="M82 163h40"/>
+</svg>

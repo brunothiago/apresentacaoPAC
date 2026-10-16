@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 225 225" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+  <!-- ônibus de frente, traço branco no padrão dos demais ícones (área útil ~50–175) -->
+  <rect x="62" y="50" width="101" height="110" rx="16"/>
+  <path d="M90 63h45"/>
+  <rect x="74" y="76" width="77" height="38" rx="5"/>
+  <path d="M74 128h77"/>
+  <circle cx="86" cy="143" r="5"/>
+  <circle cx="139" cy="143" r="5"/>
+  <path d="M104 143h17"/>
+  <path d="M74 160v14h16v-14"/>
+  <path d="M135 160v14h16v-14"/>
+  <path d="M62 84h-10v18"/>
+  <path d="M163 84h10v18"/>
+</svg>

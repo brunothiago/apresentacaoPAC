@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.22'  # subir a cada commit que altere a apresentação
+VERSAO = '1.23'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -50,6 +50,7 @@ HISTORICO = [
     ('1.20', 'Slide 1.2: ícone das modalidades ainda maior.'),
     ('1.21', 'Slide 2.2: clicar numa bolinha abre a lista dos contratos do grupo, com link para o SACI.'),
     ('1.22', 'Extração de 16/10: 55 contratos da SNP saíram da fase Novo PAC no SACI (já estavam fora das contas).'),
+    ('1.23', 'Slide 1.2: ícones de Renovação de Frota (ônibus) e Regularização Fundiária; ícones em cinza, azul só OGU, verde só FIN.'),
 ]
 
 D = dados.load()
@@ -66,15 +67,17 @@ ICONES_ARQ = {
     'Drenagem Urbana': 'drenagem-urbana',
     'Esgotamento Sanitário': 'esgotamento-sanitario',
     'Mobilidade: Médias e Grandes Cidades': 'mobilidade-medias-e-grandes-cidades',
-    'Regularização Fundiária': 'regularizacao-de-favelas',
+    'Regularização Fundiária': 'regularizacao-fundiaria',
     'Renovação de Frota': 'renovacao-de-frota',
     'Resíduos Sólidos': 'residuos-solidos',
     'Urbanização de Favelas': 'urbanizacao-de-favelas',
 }
 ICONES = []
-for m in MODS:
-    arq = f'{HERE}/data/Icones/{ICONES_ARQ.get(m, "")}.png'
-    ICONES.append('data:image/png;base64,' + base64.b64encode(open(arq, 'rb').read()).decode() if os.path.exists(arq) else '')
+for m in MODS:  # SVG (desenhados no padrão de traço branco) tem preferência sobre PNG
+    base = f'{HERE}/data/Icones/{ICONES_ARQ.get(m, "-")}'
+    tipo = next((t for t in ('svg', 'png') if os.path.exists(f'{base}.{t}')), None)
+    mime = {'svg': 'image/svg+xml', 'png': 'image/png'}.get(tipo)
+    ICONES.append(f'data:{mime};base64,' + base64.b64encode(open(f'{base}.{tipo}', 'rb').read()).decode() if tipo else '')
 
 
 def br(iso):
@@ -309,7 +312,9 @@ EXTRA_CSS = """
   .waf-card{ background:#fff; border:1px solid var(--line); border-radius:8px; box-shadow:0 1px 4px rgba(7,29,65,.06); padding:10px 14px 12px; }
   .waf-nome{ font-size:16px; font-weight:800; color:var(--navy); line-height:1.2; min-height:39px; letter-spacing:.01em; display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
   /* os PNG têm ~25% de margem transparente: a imagem é maior que o círculo e o excesso fica cortado */
-  .waf-ico{ flex:none; width:54px; height:54px; margin:-4px -6px -14px 0;  /* margem negativa: não empurra os quadrados */ border-radius:50%; background:var(--accent); display:inline-flex; align-items:center; justify-content:center; overflow:hidden; }
+  .waf-ico{ flex:none; width:54px; height:54px; margin:-4px -6px -14px 0;  /* margem negativa: não empurra os quadrados */ border-radius:50%; background:#344054; display:inline-flex; align-items:center; justify-content:center; overflow:hidden; transition:background .3s; }
+  .waf.so-ogu .waf-ico{ background:#2563EB; }  /* fonte só OGU: a cor do OGU */
+  .waf.so-fin .waf-ico{ background:#16A34A; }  /* fonte só FIN: a cor do FIN */
   .waf-ico img{ width:64px; height:64px; display:block; flex:none; }
   .waf-corpo{ display:flex; gap:12px; align-items:flex-start; margin-top:6px; }
   .waf-svg{ flex:none; display:block; }
@@ -1424,6 +1429,8 @@ function renderWaffle() {
   o.push('<div class="waf-fin"><div><span>Valor OGU</span><b>R$ ' + M(vo) + ' mi</b></div><div><span>Valor FIN</span><b>R$ ' + M(vf)
     + ' mi</b></div><div class="t"><span>Valor total</span><b>R$ ' + M(vo + vf) + ' mi</b></div></div>');
   el.innerHTML = o.join('');
+  el.classList.toggle('so-ogu', state.ogu && !state.fin);
+  el.classList.toggle('so-fin', state.fin && !state.ogu);
   if (el.closest('[data-deck-active]')) animarWaffle();  // no slide visível, cada render anima
 }
 const WAF = { un: 10, timer: 0 };
