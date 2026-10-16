@@ -19,6 +19,9 @@ Regras de recorte:
 - bln_pac: contratos com fase "NOVO PAC - Seleção" mas bln_pac = NÃO no próprio SACI (emendas e ações
   estratégicas sem proposta de seleção — não estão na base GM nem no balanço) ficam marcados em `excl` e
   saem de todas as contas (SACI e painelpac); o build os conta só para as notas;
+- sem modalidade (EXCEÇÃO PROVISÓRIA, a revisar): contratos e itens do balanço que caem em "Outras / sem
+  modalidade" ficam marcados em `semmod` e saem de todas as contas; o build os conta só para as notas e
+  python/conferir_sem_modalidade.py lista todos para a verificação manual;
 - balanço do Governa (2ª fonte da situação das obras): liga ao contrato pelo id_governa do SACI.
   bal_g = 3 concluída (Concluído, Concluído com redução de metas, Obra concluída, Entregue),
   1 em execução, 2 paralisada, 0 outra fase / sem balanço. Itens do balanço sem contrato na carteira
@@ -205,6 +208,8 @@ def load():
     ogu['vlr_repasse_saci'] = pd.to_numeric(ogu.vlr_repasse_saci, errors='coerce').fillna(0)
     ogu['dt_alinhamento'] = pd.to_datetime(ogu.alinhamento_suspensivas_0826, errors='coerce')
     ogu['excl'] = ogu.cod_tci_saci.isin(set(saci.loc[saci.excl, 'cod_tci']))
+    saci['semmod'] = saci['mod'].eq(OUTRAS) & ~saci.excl
+    ogu['semmod'] = ogu['mod'].eq(OUTRAS) & ~ogu.excl
 
     # balanço do Governa: fase e execução física por contrato (id_governa do SACI) + itens sem contrato
     saci['bal_g'], saci['bal_exec'], bx = 0, float('nan'), pd.DataFrame()
