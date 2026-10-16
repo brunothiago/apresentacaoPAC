@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.38'
+VERSAO = '1.39'
 # "Situação das obras" (antigo 5.1) fora da apresentação até a revisão das inconsistências; False traz de volta
 # (renumerar: "Execução média" é o 5.1 e o funil "Da seleção à obra" o 5.2 — o slide volta como 5.1 e os outros sobem)
 OCULTAR_SITUACAO_OBRAS = True  # subir a cada commit que altere a apresentação
@@ -69,6 +69,7 @@ HISTORICO = [
     ('1.36', '"Da seleção à obra" passa a ser o último slide da Execução (5.2); "Situação das obras" fica oculto até a revisão.'),
     ('1.37', 'Slide 5.2: filtro de status (selecionadas / enquadradas) e conta dos contratos assinados (1.708 do 4.1 + itens do balanço).'),
     ('1.38', 'Slide 5.2: seletor de modalidade, no formato do recorte.'),
+    ('1.39', 'Slide 5.1: faixa de totais e nota dos critérios das médias; 5.2 abre com migradas + novas e concluídas ≥ 95% físico; 3.1 destaca LAE e edital.'),
 ]
 
 D = dados.load()
@@ -353,7 +354,7 @@ EXTRA_CSS = """
   .fseta{ align-self:end; margin-bottom:120px; text-align:center; color:var(--ink-soft); }
   .fseta .pc{ font-size:28px; font-weight:800; color:var(--accent-deep); font-variant-numeric:tabular-nums; }
   .fseta svg{ display:block; margin:4px auto; width:90px; height:18px; stroke:var(--ink-soft); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-  #t-ex1 td, #t-ex2 td{ padding-top:2px; padding-bottom:2px; }  /* 12 linhas + nota no 5.1 e 5.2 */
+  #t-ex1 td, #t-ex2 td{ padding-top:1px; padding-bottom:1px; }  /* 12 linhas + nota no 5.1 e 5.2 */
   /* 1.2 · painel de quadrados (waffle) */
   .waf{ display:flex; flex-direction:column; gap:14px; }
   .waf-top{ display:grid; grid-template-columns:250px 1fr 380px; gap:30px; align-items:center; }
@@ -436,7 +437,13 @@ EXTRA_CSS = """
   .rg-seg{ display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:800; min-width:0; overflow:hidden; white-space:nowrap; }
   .alin{ margin-top:4px; position:relative; }
   /* faixa do 3.1: o total fechado (a concluir a licitação + homologadas + obras) */
+  #t-lic1 th:nth-child(4), #t-lic1 th:nth-child(5){ color:#8A6800; }
+  #t-lic1 td:nth-child(4), #t-lic1 td:nth-child(5){ background:#FBF3D9; }
+  #t-lic1 td.dest{ font-weight:700; color:#8A6800; }
+  #t-lic1 tr.tot td:nth-child(4), #t-lic1 tr.tot td:nth-child(5){ font-size:28px; color:#8A6800; background:#F5E4A8; }
   .lic-ponte{ display:flex; align-items:stretch; gap:8px; margin:0 0 10px; }
+  .lp-b.alerta{ border-left-color:#BC4749; } .lp-b.alerta b{ color:#9A383A; }
+  .ex-ponte .lp-b b{ font-size:30px; }
   .lp-b{ flex:1 1 0; min-width:0; display:flex; flex-direction:column; justify-content:center; background:var(--paper-2); border-left:5px solid var(--accent); padding:6px 14px; }
   .lp-b b{ font-size:34px; font-weight:800; color:var(--navy); line-height:1; font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
   .lp-b span{ font-size:14px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); margin-top:3px; }
@@ -738,10 +745,10 @@ def slide_transicao(etapa, n, titulo, legenda, atualizado, fonte, dek='', nota='
 
     Origem própria (prefixo 'g'): começa só com as novas seleções, como o slide 4.1."""
     extra = radio('Medida', 'med', [('qtd', 'Quantidade'), ('valor', 'Valor')]) + radio('Exibir', 'modo', [('tot', 'Total'), ('pct', '%')])
-    criterio = radio('Concluídas', 'c95', [('0', 'Pela situação'), ('1', '+ obras com ≥ 95% físico')])
-    return (cabeca(etapa, n, titulo, 'g-funil', dek, status=True, origem='g', extra=extra, ori_on=(False, True), modsel='modg')
+    criterio = radio('Concluídas', 'c95', [('1', '+ obras com ≥ 95% físico'), ('0', 'Pela situação')])
+    return (cabeca(etapa, n, titulo, 'g-funil', dek, status=True, origem='g', extra=extra, ori_on=(True, True), modsel='modg')
             + f"""
-        {tmeta(atualizado, legenda, status=True, origem='g', ori_txt='somente novas')}
+        {tmeta(atualizado, legenda, status=True, origem='g', ori_txt='migradas + novas')}
         <div class="funil" id="g-funil"></div>
         <div class="rodape-row"><p class="nota">{nota}</p><div class="rodape-ctl col">{SIT_OBRA()}{criterio}</div></div>
       </div>
@@ -903,13 +910,12 @@ SLIDES = f"""
 {slide(5, 1, 'Execução média e paralisações', 't-ex2',
        [('% físico médio', ['Novas<br>seleções', 'Migradas', 'Total']), '% financeiro<br>médio', 'Paralisadas', 'Investimento<br>paralisado (R$ mi)', 'Concluídas'],
        'Médias: obras em execução ou paralisadas (média simples por contrato)', AT_SACI, SRC_EXEC, extra=SIT_OBRA(),
-       kpis=[('% físico médio',), ('% financeiro médio',), ('Paralisadas', '', 'alerta'), ('Investimento paralisado', '', 'alerta')],
+       topo='<div class="lic-ponte ex-ponte" id="ex-ponte"></div>',
        nota='<span data-ref="ex2"></span>')}
 {slide_transicao(5, 2, 'Da seleção à obra',
        'Seleções (GM) × contratos (SACI)', AT_CT, f'base GM, SACI e Balanço Governa ({DT_BAL})',
        dek='Quanto das seleções já virou contrato, obra iniciada e obra concluída.',
-       nota='<span data-ref="g43"></span> Valor: seleções pela portaria; contratos pelo repasse do SACI. '
-            'Setas: conversão sobre o bloco anterior.')}
+       nota='<span data-ref="g43"></span> Valor: portaria nas seleções, repasse nos contratos.')}
 
   <!-- ============ ENCERRAMENTO ============ -->
   <section class="p2 dark" data-label="Encerramento">
@@ -1077,13 +1083,14 @@ const BM = (v) => (Math.abs(v) >= 1e9 ? B(v) : 'R$ ' + fmtBi.format(v / 1e6) + '
 // nos itens só do balanço, o do balanço
 function exAdd(a, r) {
   const o = sitObra(r);
-  a.n++;
+  a.n++; a.o[o] = (a.o[o] || 0) + 1;
+  if (r[3] === 0) a.nm++;
   if (o === 2) { a.par++; a.vpar += vMig(r, 7); }
   if (o === 3) a.conc++;
   if (o === 1 || o === 2) {
     const f = r[9] !== null ? r[9] : (comBal() ? r[13] : null);
-    if (f !== null) { const k = r[3] === 0 ? 'm' : 's'; a.fs[k] += f; a.fn[k]++; }
-    if (r[10] !== null) { a.fis += r[10]; a.fin_n++; }
+    if (f !== null) { const k = r[3] === 0 ? 'm' : 's'; a.fs[k] += f; a.fn[k]++; } else a.semfis++;
+    if (r[10] !== null) { a.fis += r[10]; a.fin_n++; } else a.semfin++;
   }
 }
 
@@ -1116,7 +1123,8 @@ const TABLES = [
       //        5 homologação · 6 VRPL · 7 AIO · 8 obra iniciada
       const c = [0, 1, 2, 2, 3, 4, 5, 5, 6][f]; a.f[c]++; } }],
     init: () => ({ n: 0, f: [0, 0, 0, 0, 0, 0, 0] }),
-    cols: (a) => a.f.map((v, i) => i === 6 ? H(v) : I(v)).concat([H(a.n)]),
+    // destaque: "Suspensiva retirada/LAE" e "Edital publicado" — os que ainda vão licitar (régua do 3.2)
+    cols: (a) => a.f.map((v, i) => i === 6 ? H(v) : i === 2 || i === 3 ? [I(v), 'dest'] : I(v)).concat([H(a.n)]),
     // faixa do topo: o total fechado em grupos (a concluir a licitação = aguardando + edital publicado)
     after: (t) => {
       const el = document.getElementById('lic-ponte');
@@ -1165,10 +1173,26 @@ const TABLES = [
 
   { id: 't-ex2', parts: [{ src: 'ct', keep: (r) => r[5] !== 4 && sitObra(r) !== 5, add: (a, r) => exAdd(a, r) },
       { src: 'bx', keep: () => comBal(), add: (a, r) => { exAdd(a, r); a.bx++; } }],
-    init: () => ({ n: 0, par: 0, vpar: 0, conc: 0, fs: { s: 0, m: 0 }, fn: { s: 0, m: 0 }, fis: 0, fin_n: 0, bx: 0 }),
+    init: () => ({ n: 0, par: 0, vpar: 0, conc: 0, fs: { s: 0, m: 0 }, fn: { s: 0, m: 0 }, fis: 0, fin_n: 0, bx: 0,
+                   o: [0, 0, 0, 0, 0], nm: 0, semfis: 0, semfin: 0 }),
     cols: (a) => [media(a.fs.s, a.fn.s), media(a.fs.m, a.fn.m), [media(a.fs.s + a.fs.m, a.fn.s + a.fn.m), 'hl'],
                   media(a.fis, a.fin_n), A(a.par), M(a.vpar), I(a.conc)],
-    kpis: (t) => [media(t.fs.s + t.fs.m, t.fn.s + t.fn.m), media(t.fis, t.fin_n), I(t.par), B(t.vpar)] },
+    // faixa do topo: contratos considerados = não iniciadas + [em execução + paralisadas: base das médias] + concluídas + inacabadas
+    after: (t) => {
+      const el = document.getElementById('ex-ponte');
+      if (!el) return;
+      const b = (n, rot, det, cls) => '<div class="lp-b' + (cls ? ' ' + cls : '') + '"><b>' + n + '</b><span>' + rot + '</span>'
+        + (det ? '<em>' + det + '</em>' : '') + '</div>';
+      const base = t.o[1] + t.o[2];
+      el.innerHTML = b(I(t.n), 'contratos considerados', I(t.n - t.nm - t.bx) + ' novas · ' + I(t.nm) + ' migr.' + (t.bx ? ' · ' + I(t.bx) + ' bal.' : ''))
+        + '<i class="lp-op">=</i>' + b(I(t.o[0]), 'não iniciadas', P(t.o[0], t.n)) + '<i class="lp-op">+</i>'
+        + '<div class="lp-grupo"><div class="lp-g-t">' + I(base) + ' base das médias · físico ' + media(t.fs.s + t.fs.m, t.fn.s + t.fn.m)
+        + ' · financeiro ' + media(t.fis, t.fin_n) + '</div><div class="lp-g-c">'
+        + b(I(t.o[1]), 'em execução', P(t.o[1], t.n)) + '<i class="lp-op">+</i>'
+        + b(I(t.o[2]), 'paralisadas', BM(t.vpar) + ' investimento', 'alerta') + '</div></div><i class="lp-op">+</i>'
+        + b(I(t.o[3]), 'concluídas', P(t.o[3], t.n), 'ok') + '<i class="lp-op">+</i>'
+        + b(I(t.o[4]), 'inacabadas', P(t.o[4], t.n));
+    } },
 ];
 
 // cadeia seleções OGU (GM) → contratos OGU do painelpac, com os filtros de UF e ano
@@ -1397,13 +1421,11 @@ const REFS = {
     + '; as <b>' + I(T['t-ct1'].mig) + '</b> migradas (legado) entram direto na execução (slides 5.1 e 5.2).'
     + (exclCt((r) => r[3] >= 1) ? ' Sem os <b>' + I(exclCt((r) => r[3] >= 1)) + '</b> contratos com bln_pac = NÃO no SACI' : '')
     + (exclCt((r) => r[3] >= 1, 2) ? ' e os <b>' + I(exclCt((r) => r[3] >= 1, 2)) + '</b> sem modalidade' + SEMMOD : '') + '.',
-  g43: () => (state.gmig && state.gnov ? 'Migradas + novas seleções (migradas sem ano: saem com recorte de ano).'
-    : state.gmig ? 'Só as migradas (sem ano: com recorte de ano o gráfico fica vazio).'
-    : 'Só as novas seleções, como no 4.1.')
-    + (comBal() ? ' Obra: SACI + balanço jun/26, com <b>' + I(FUN.bx) + '</b> itens só no balanço (valor: total previsto Novo PAC).' : '')
-    + (state.c95 === '1' ? ' Concluídas: + iniciadas com ≥ 95% físico' + (comBal() ? ' (SACI ou balanço)' : '') + '.' : '')
-    + (state.gmig ? ' Migradas pelo valor da base GM (pós-2023).' : '')
-    + ' Sem itens sem modalidade' + SEMMOD + '.'
+  g43: () => (state.gmig && state.gnov ? 'Migradas + novas (migradas saem com recorte de ano).'
+    : state.gmig ? 'Só as migradas.' : 'Só as novas seleções, como no 4.1.')
+    + (comBal() ? ' Obra: SACI + balanço jun/26.' : '')
+    + (state.c95 === '1' ? ' Concluídas: + iniciadas com ≥ 95% físico.' : '')
+    + (state.gmig ? ' Migradas pelo valor GM (pós-2023).' : '')
     + (FUN.bx ? ' Assinados <b>' + I(FUN.ass[0]) + '</b> = <b>' + I(FUN.sn) + '</b> do SACI (slide 4.1)'
       + (FUN.sm ? ' + <b>' + I(FUN.sm) + '</b> migrados' : '') + ' + <b>' + I(FUN.bx) + '</b> itens do balanço sem contrato no SACI.' : '')
     + ' ' + quadroConta('Contratos assinados: slide 4.1 → bloco deste slide', [
@@ -1471,16 +1493,32 @@ const REFS = {
     + '. ' + quadroOgu(c)
     + ' · ' + quadroEmSusp('2.1');
   },
-  ex2: (T) => 'Investimento paralisado: migradas pelo valor da base GM (pós-2023); demais pelo investimento do SACI'
-    + (comBal() ? '. Situação da obra pelo SACI + balanço jun/26 (+ <b>' + I(T['t-ex2'].bx) + '</b> itens do balanço sem contrato no SACI, '
-      + 'com o % físico do balanço).' : '.'),
+  ex2: (T) => {
+    const t = T['t-ex2'], base = t.o[1] + t.o[2], nf = t.fn.s + t.fn.m;
+    return 'Médias simples só das <b>' + I(base) + '</b> em execução ou paralisadas com % informado: físico <b>' + I(nf)
+      + '</b>' + (t.semfis ? ' (−' + I(t.semfis) + ')' : '') + ', financeiro <b>' + I(t.fin_n) + '</b>' + (t.semfin ? ' (' + I(t.semfin) + ' sem informação)' : '')
+      + '; não iniciadas, concluídas e inacabadas ficam fora. '
+      + quadroConta('Critérios do slide 5.1', [
+        ['Contratos considerados', I(t.n), 'tot'],
+        ['Novo PAC Seleção (assinados ou em contratação) do SACI', I(t.n - t.nm - t.bx)],
+        ['+ migrados (Novo PAC Migrado)', '+ ' + I(t.nm)],
+        ...(t.bx ? [['+ itens do balanço jun/26 sem contrato no SACI (SACI + balanço)', '+ ' + I(t.bx)]] : []),
+        ['Fora: contratos cancelados/distratados, obras canceladas, bln_pac = NÃO e sem modalidade (exceção provisória)', '', 'obs'],
+        ['Situação da obra: ' + (comBal() ? 'SACI + balanço — concluída se um dos dois disser; senão a do SACI, ou a do balanço se o SACI não registrar início'
+          : 'só o SACI'), '', 'obs'],
+        ['= base das médias: em execução + paralisadas', I(base), 'sub'],
+        ['% físico: do SACI; nos itens só do balanço, o do balanço (com % informado)', I(nf)],
+        ['% financeiro: do SACI (com % informado)', I(t.fin_n)],
+        ['Investimento paralisado: migradas pelo valor da base GM (pós-2023); demais pelo investimento do SACI', BM(t.vpar)],
+      ], 'critérios das médias');
+  },
 };
 
 // filtros (liga/desliga) e seletores exclusivos (pct1: tabela 1.1 em % · med/modo: gráfico 4.3)
 // origem: mig/nov no slide 1.1 · gmig/gnov no gráfico 4.3 (começa só com as novas) · c95: no 4.3,
 // conta como concluída também a obra iniciada com ≥ 95% de execução física
 const state = { uf: '', sel: true, enq: true, ogu: true, fin: true, mig: true, nov: true,
-                gmig: false, gnov: true, anos: {}, pct1: '0', med: 'qtd', modo: 'tot', c95: '0', aln: 'vlr',
+                gmig: true, gnov: true, anos: {}, pct1: '0', med: 'qtd', modo: 'tot', c95: '1', aln: 'vlr',
                 sitobra: 'bal', alnp: 'todos', wmed: 'qtd', wmodo: 'tot', rmed: 'qtd', ret: 'pub', rpc72: 'sim', modg: '' };
 const PAR = { sel: 'enq', enq: 'sel', ogu: 'fin', fin: 'ogu', mig: 'nov', nov: 'mig', gmig: 'gnov', gnov: 'gmig' };
 const ORIGENS = ['', 'g'];  // prefixos das chaves de origem
@@ -2188,8 +2226,8 @@ function render() {
   const ori = (params.get('origem') || '').toLowerCase().trim();
   if (ori === 'mig') state.nov = false; else if (ori === 'nov') state.mig = false;
   const ori43 = (params.get('origem43') || '').toLowerCase().trim();
-  if (ori43 === 'mig') { state.gmig = true; state.gnov = false; } else if (ori43 === 'ambas') state.gmig = true;
-  if (params.get('c95') === '1') state.c95 = '1';
+  if (ori43 === 'mig') state.gnov = false; else if (ori43 === 'nov') state.gmig = false;
+  if (params.get('c95') === '0') state.c95 = '0';
   if (params.get('aln') === 'n') state.aln = 'n';
   if (params.get('alnp') === 'pend') state.alnp = 'pend';
   if (params.get('wmed') === 'valor') state.wmed = 'valor';
@@ -2346,7 +2384,7 @@ function render() {
     pdfLink.addEventListener('click', function (e) {
       const filtrado = state.uf !== '' || !state.sel || !state.enq || !state.ogu || !state.fin
         || !state.mig || !state.nov || state.pct1 !== '0' || state.med !== 'qtd' || state.modo !== 'tot'
-        || state.gmig || !state.gnov || state.c95 !== '0' || state.aln !== 'vlr' || state.alnp !== 'todos' || state.sitobra !== 'bal'
+        || !state.gmig || !state.gnov || state.c95 !== '1' || state.aln !== 'vlr' || state.alnp !== 'todos' || state.sitobra !== 'bal'
         || state.wmed !== 'qtd' || state.wmodo !== 'tot' || state.rmed !== 'qtd' || state.modg !== '' || state.ret !== 'pub' || state.rpc72 !== 'sim'
         || ANOS.some((a) => !state.anos[a]);
       if (!filtrado) return;
