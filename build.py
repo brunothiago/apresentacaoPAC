@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.32'  # subir a cada commit que altere a apresentação
+VERSAO = '1.33'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -60,6 +60,7 @@ HISTORICO = [
     ('1.30', 'Slide 3.2: contratos da PC 72 na régua (mesma regra, LAE + 60 / publicação + 120) e botão para o fim da licitação.'),
     ('1.31', 'Slide 3.2: prazos até maio/2026 agrupados em uma coluna "até mai/26".'),
     ('1.32', 'Slide 2.2: segunda nota com a lista das pendentes fora do alinhamento (clique), como nas bolinhas.'),
+    ('1.33', 'Slide 2.2: situação atual (SACI, ou PBI se vazia) na lista das pendentes fora do alinhamento.'),
 ]
 
 D = dados.load()
@@ -177,8 +178,20 @@ for _, r in D['bx'].iterrows():
 
 # contratos OGU (painelpac): [mod, uf, kind, ano, repasse, cancelado, susp, pc48, tetoVencido,
 #                             fase, pubLicitação, homLicitação, casaCivil, data alinhada DMP 08/26,
-#                             ligado a seleção OGU nova, em contratação, fora das contas, convênio, município, TCI]
+#                             ligado a seleção OGU nova, em contratação, fora das contas, convênio, município, TCI,
+#                             Contratado - Normal, situação atual 'FONTE|texto' (só pendentes sem data alinhada)]
 _mun_saci = D['saci'].set_index('cod_tci').txt_municipio
+
+
+def _sit_atual(r):
+    """situação atual (SACI; se vazia, PBI) — só das pendentes fora do alinhamento (lista do 2.2), para não pesar a página"""
+    if not (pd.isna(r.dt_alinhamento) and r.status_suspensiva_calc == 'PENDENTE'):
+        return ''
+    for col, fonte in (('dsc_situacao_atual_saci', 'SACI'), ('situacao_atual_operacao_pbi', 'PBI')):
+        t = r.get(col)
+        if t is not None and not pd.isna(t) and str(t).strip(' "'):
+            return fonte + '|' + ' '.join(str(t).strip(' "').split())
+    return ''
 OG = []
 for _, r in D['ogu'].iterrows():
     teto = pd.to_datetime(r.prazo_suspensiva_pc48_prorrogado_calc, errors='coerce')
@@ -193,7 +206,8 @@ for _, r in D['ogu'].iterrows():
                1 if str(r.num_proposta_selecao_pac_saci).strip() in PROP_SEL_OGU else 0,
                1 if r.dsc_situacao_contrato_mcid_saci == 'Em Contratação' else 0, 1 if r.excl else 2 if r.semmod else 0,
                str(r.num_convenio_saci or ''), str(_mun_saci.get(r.cod_tci_saci, '') or ''), r.cod_tci_saci,
-               1 if r.dsc_situacao_contrato_mcid_saci == 'Contratado - Normal' else 0])
+               1 if r.dsc_situacao_contrato_mcid_saci == 'Contratado - Normal' else 0,
+               _sit_atual(r)])
 
 # régua do prazo da licitação (3.2, porte do regua-licitacao.js do painelpac): contratos OGU em
 # "Contratado - Normal" — [mod, uf, kind, ano, repasse, fora do PAC, prazo legal pub (LAE+60), prazo efetivo pub,
@@ -403,6 +417,14 @@ EXTRA_CSS = """
   .aln-b.sel circle:first-of-type{ fill:#0C3C8F; fill-opacity:1; stroke:#071D41; stroke-width:3; }
   .aln-dica{ margin-left:auto; font-style:italic; }
   .nota.nota2{ margin-top:2px; }
+  .aln-lista.larga{ width:820px; }
+  .aln-lista.larga .aln-l-corpo table{ table-layout:fixed; }
+  .aln-lista.larga .aln-l-corpo th:nth-child(1){ width:24%; } .aln-lista.larga .aln-l-corpo th:nth-child(2){ width:11%; }
+  .aln-lista.larga .aln-l-corpo th:nth-child(3){ width:30%; } .aln-lista.larga .aln-l-corpo th:nth-child(4){ width:12%; }
+  .aln-lista.larga .aln-l-corpo th:nth-child(5){ width:13%; } .aln-lista.larga .aln-l-corpo th:nth-child(6){ width:10%; }
+  .aln-lista.larga .aln-l-corpo td{ overflow:hidden; text-overflow:ellipsis; }
+  .aln-l-corpo tr.aln-sit td{ border-top:0; padding:0 8px 6px 0; white-space:normal; font-size:13px; line-height:1.3; color:var(--ink-soft); font-style:italic; }
+  .aln-l-corpo tr.aln-sit b{ font-style:normal; color:var(--navy); }
   .aln-fora{ font-style:normal; font-weight:700; color:var(--accent-deep); border-bottom:1px dotted currentColor; cursor:pointer; white-space:nowrap; }
   @media print{ .aln-fora{ border:0; } }
   .aln-lista{ position:absolute; top:36px; right:0; z-index:30; width:640px; max-height:440px; display:flex; flex-direction:column;
@@ -1863,6 +1885,15 @@ function renderAlinhamento() {
 }
 
 // quadro com os contratos do grupo clicado (modalidade × data alinhada)
+// linha extra na lista "fora do alinhamento": situação atual do SACI (ou do PBI), resumida; texto inteiro no mouse
+function situacaoLinha(v) {
+  if (!v) return '<tr class="aln-sit"><td colspan="6">situação atual: sem registro no SACI nem no PBI</td></tr>';
+  const [fonte, txt] = [v.slice(0, v.indexOf('|')), v.slice(v.indexOf('|') + 1)];
+  const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  const curto = txt.length > 150 ? txt.slice(0, 150).replace(/\s+\S*$/, '') + '…' : txt;
+  return '<tr class="aln-sit"><td colspan="6" title="' + esc(txt) + '"><b>' + fonte + ':</b> ' + esc(curto) + '</td></tr>';
+}
+
 function listaAlinhamento() {
   const box = document.querySelector('#g-alin .aln-lista');
   if (!box) return;
@@ -1886,9 +1917,11 @@ function listaAlinhamento() {
       : '<i class="aln-st ' + c + '"></i>' + t) + '</td><td>' + (r[17] || '—')
       + '</td><td>' + [r[18], r[1]].filter(Boolean).join('/') + '</td>' + (fora ? '<td>' + PC48[r[7]] + '</td>' : '')
       + '<td>' + BM(r[4]) + '</td><td><a href="https://saci.cidades.gov.br/contratos/'
-      + encodeURIComponent(r[19]) + '" target="_blank" rel="noopener">SACI ↗</a></td></tr>'; }).join('')
+      + encodeURIComponent(r[19]) + '" target="_blank" rel="noopener">SACI ↗</a></td></tr>'
+      + (fora ? situacaoLinha(r[21]) : ''); }).join('')
     + '</tbody></table></div>';
   box.classList.toggle('esq', ALN.lado === 'esq');
+  box.classList.toggle('larga', fora);
   box.hidden = false;
 }
 

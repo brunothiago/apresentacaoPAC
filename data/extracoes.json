@@ -170,5 +170,35 @@
       "power_bi_caixa": "2026-10-13",
       "balanco": "2026-06-30"
     }
+  },
+  {
+    "carimbo": "16102026_1135",
+    "extraido_em": "2026-10-16 11:35",
+    "arquivos": {
+      "base_unica_gm": "base_unica_gm_15102026_1811.xlsx",
+      "carteira_saci": "carteira_saci_16102026_0910.xlsx",
+      "painelpac_ogu": "painelpac_ogu_16102026_1135.xlsx",
+      "balanco_governa": "balanco_governa_15102026_1852.xlsx"
+    },
+    "linhas": {
+      "base_unica_gm": 3522,
+      "carteira_saci": 2925,
+      "painelpac_ogu": 1609,
+      "balanco_governa": 3135
+    },
+    "hash": {
+      "base_unica_gm": "0f7643c20d13de4d",
+      "carteira_saci": "d4de69e5addc69e0",
+      "painelpac_ogu": "afbb2084a5821100",
+      "balanco_governa": "1d0ee92faba9e698"
+    },
+    "atualizacao": {
+      "base_unica_gm": "2026-10-09",
+      "saci": "2026-10-15",
+      "transferegov": "2026-10-16",
+      "bdgestores": "2026-10-15",
+      "power_bi_caixa": "2026-10-13",
+      "balanco": "2026-06-30"
+    }
   }
 ]

@@ -105,6 +105,7 @@ PAC_COLUNAS = [
     'status_pub_licitacao_calc', 'status_homolog_licitacao_calc', 'status_regra_casa_civil_calc',
     'status_inicio_obra_calc', 'alinhamento_suspensivas_0826', 'origem_regra_alinhamento',
     'prazo_pub_licitacao_36a_calc', 'prazo_homolog_licitacao_120d',  # prazos legais (régua do 3.2)
+    'dsc_situacao_atual_saci', 'situacao_atual_operacao_pbi',          # situação atual: SACI e, se vazia, PBI
 ]
 
 
