@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.24'  # subir a cada commit que altere a apresentação
+VERSAO = '1.25'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -52,6 +52,7 @@ HISTORICO = [
     ('1.22', 'Extração de 16/10: 55 contratos da SNP saíram da fase Novo PAC no SACI (já estavam fora das contas).'),
     ('1.23', 'Slide 1.2: ícones de Renovação de Frota (ônibus) e Regularização Fundiária; ícones em cinza, azul só OGU, verde só FIN.'),
     ('1.24', 'Slide 2.2: "ver a conta passo a passo" na nota, dos contratos OGU do 2.1 às bolinhas do gráfico.'),
+    ('1.25', 'Slide 1.2: ícones das modalidades maiores.'),
 ]
 
 D = dados.load()
@@ -313,10 +314,10 @@ EXTRA_CSS = """
   .waf-card{ background:#fff; border:1px solid var(--line); border-radius:8px; box-shadow:0 1px 4px rgba(7,29,65,.06); padding:10px 14px 12px; }
   .waf-nome{ font-size:16px; font-weight:800; color:var(--navy); line-height:1.2; min-height:39px; letter-spacing:.01em; display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
   /* os PNG têm ~25% de margem transparente: a imagem é maior que o círculo e o excesso fica cortado */
-  .waf-ico{ flex:none; width:54px; height:54px; margin:-4px -6px -14px 0;  /* margem negativa: não empurra os quadrados */ border-radius:50%; background:#344054; display:inline-flex; align-items:center; justify-content:center; overflow:hidden; transition:background .3s; }
+  .waf-ico{ flex:none; width:64px; height:64px; margin:-6px -8px -24px 0;  /* margem negativa: não empurra os quadrados */ border-radius:50%; background:#344054; display:inline-flex; align-items:center; justify-content:center; overflow:hidden; transition:background .3s; }
   .waf.so-ogu .waf-ico{ background:#2563EB; }  /* fonte só OGU: a cor do OGU */
   .waf.so-fin .waf-ico{ background:#16A34A; }  /* fonte só FIN: a cor do FIN */
-  .waf-ico img{ width:64px; height:64px; display:block; flex:none; }
+  .waf-ico img{ width:76px; height:76px; display:block; flex:none; }
   .waf-corpo{ display:flex; gap:12px; align-items:flex-start; margin-top:6px; }
   .waf-svg{ flex:none; display:block; }
   .waf-num{ flex:1; min-width:0; font-variant-numeric:tabular-nums; }
