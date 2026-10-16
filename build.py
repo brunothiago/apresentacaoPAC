@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.16'  # subir a cada commit que altere a apresentação
+VERSAO = '1.17'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -44,6 +44,7 @@ HISTORICO = [
     ('1.14', 'A mesma trilha das etapas também na linha de cima dos slides.'),
     ('1.15', 'Slide 2.2: mais espaço entre as linhas das modalidades.'),
     ('1.16', 'Slide 3.2 vira a régua do prazo da licitação (antes × agora, 1 ponto = 1 contrato), com Quantidade/Valor.'),
+    ('1.17', 'Slide 3.2: gráfico mais alto (pontos e barras maiores).'),
 ]
 
 D = dados.load()
@@ -306,22 +307,22 @@ EXTRA_CSS = """
   .rg-leg i{ display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:6px; vertical-align:-1px; }
   .rg-corpo{ display:grid; grid-template-columns:auto 110px auto; justify-content:center; align-items:end; gap:24px; }
   .rg-tit{ font-size:14px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:4px; }
-  .rg-colunas{ display:flex; align-items:flex-end; gap:14px; min-height:250px; }
+  .rg-colunas{ display:flex; align-items:flex-end; gap:16px; min-height:290px; }
   .rg-col{ display:flex; flex-direction:column; align-items:center; }
-  .rg-n{ font-size:15px; font-weight:800; color:var(--navy); font-variant-numeric:tabular-nums; margin-bottom:3px; white-space:nowrap; }
-  .rg-pilha{ display:flex; flex-wrap:wrap-reverse; justify-content:center; align-items:center; gap:4px; }
+  .rg-n{ font-size:17px; font-weight:800; color:var(--navy); font-variant-numeric:tabular-nums; margin-bottom:3px; white-space:nowrap; }
+  .rg-pilha{ display:flex; flex-wrap:wrap-reverse; justify-content:center; align-items:center; gap:5px; }
   .rg-base{ width:100%; min-width:30px; height:2px; background:var(--line-strong); margin-top:4px; }
-  .rg-lab{ font-size:13px; font-weight:700; color:var(--ink-soft); margin-top:3px; white-space:nowrap; }
+  .rg-lab{ font-size:15px; font-weight:700; color:var(--ink-soft); margin-top:3px; white-space:nowrap; }
   .rg-col.dest .rg-lab{ color:#B45309; } .rg-col.dest .rg-base{ background:#B45309; height:3px; }
   .rg-dot{ display:inline-block; border-radius:50%; flex:none; }
   .rg-dot.anel{ box-shadow:0 0 0 2px #fff, 0 0 0 4px #B42318; }
   .rg-obs{ font-size:13px; color:var(--ink-soft); margin-top:6px; } .rg-obs .rg-dot{ width:11px; height:11px; margin:0 8px 0 4px; vertical-align:-1px; }
   .rg-seta{ align-self:center; color:var(--ink-soft); } .rg-seta svg{ width:100px; height:22px; stroke:var(--ink-soft); fill:none; stroke-width:2; }
-  .rg-comps{ display:grid; grid-template-columns:1fr 1fr; gap:30px; margin-top:12px; }
+  .rg-comps{ display:grid; grid-template-columns:1fr 1fr; gap:30px; margin-top:14px; }
   .rg-comp-t{ font-size:14px; font-weight:800; letter-spacing:.04em; color:var(--navy); margin-bottom:4px; }
-  .rg-barra{ display:grid; grid-template-columns:56px 1fr; align-items:center; gap:8px; margin-top:4px; font-size:14px; color:var(--ink-soft); }
-  .rg-trilho{ display:flex; gap:2px; height:24px; border-radius:3px; overflow:hidden; background:#EEF1F5; }
-  .rg-seg{ display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:800; min-width:0; overflow:hidden; white-space:nowrap; }
+  .rg-barra{ display:grid; grid-template-columns:62px 1fr; align-items:center; gap:8px; margin-top:6px; font-size:15px; color:var(--ink-soft); }
+  .rg-trilho{ display:flex; gap:2px; height:32px; border-radius:3px; overflow:hidden; background:#EEF1F5; }
+  .rg-seg{ display:flex; align-items:center; justify-content:center; color:#fff; font-size:15px; font-weight:800; min-width:0; overflow:hidden; white-space:nowrap; }
   .alin{ margin-top:4px; }
   .alin svg{ display:block; width:100%; height:auto; }
   .alin-leg{ display:flex; gap:28px; font-size:16px; color:var(--ink-soft); margin-top:6px; }
@@ -1377,7 +1378,7 @@ function renderRegua() {
   RGN.pub = pub.length; RGN.hom = hom.length;
   const val = state.rmed === 'valor';
   const vmax = Math.max(1, ...pub.map((it) => it.r[4] || 0));
-  const tam = (it) => (val ? Math.round(8 + 24 * Math.sqrt((it.r[4] || 0) / vmax)) : 17);
+  const tam = (it) => (val ? Math.round(8 + 25 * Math.sqrt((it.r[4] || 0) / vmax)) : 21);
   const soma = (l) => (val ? BM(l.reduce((s, it) => s + (it.r[4] || 0), 0)) : I(l.length));
   const br = (iso) => iso.slice(8, 10) + '/' + iso.slice(5, 7) + '/' + iso.slice(0, 4);
   const ponto = (it, cor, anel) => {
@@ -1389,7 +1390,7 @@ function renderRegua() {
   const coluna = (rot, lista, html, larg, dest) => '<div class="rg-col' + (dest ? ' dest' : '') + '"><span class="rg-n">' + soma(lista)
     + '</span><div class="rg-pilha" style="width:' + larg + 'px">' + html + '</div><div class="rg-base"></div><span class="rg-lab">' + rot + '</span></div>';
   const ordem = { vencido: 0, janela: 1, depois: 2 };
-  const L = (n) => (val ? n * 32 : n * 21);  // largura da pilha para n pontos por linha
+  const L = (n) => (val ? n * 29 : n * 26);  // largura da pilha para n pontos por linha
   const o = [];
   const lim2 = RG_LIM.slice(8, 10) + '/' + RG_LIM.slice(5, 7), ref2 = HOJE_ISO.slice(8, 10) + '/' + HOJE_ISO.slice(5, 7);
   o.push('<div class="rg-cab"><h3>' + (val ? soma(pub) + ' em ' + I(pub.length) + ' contratos sem edital publicado · área do ponto ∝ repasse'
