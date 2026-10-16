@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.36'
+VERSAO = '1.37'
 # "Situação das obras" (antigo 5.1) fora da apresentação até a revisão das inconsistências; False traz de volta
 # (renumerar: "Execução média" é o 5.1 e o funil "Da seleção à obra" o 5.2 — o slide volta como 5.1 e os outros sobem)
 OCULTAR_SITUACAO_OBRAS = True  # subir a cada commit que altere a apresentação
@@ -67,6 +67,7 @@ HISTORICO = [
     ('1.34', 'Slide 3.1: faixa no topo fechando o total (a concluir a licitação + homologadas + obras) e conta do edital até a régua.'),
     ('1.35', 'Slides 4.1 e 4.2: conta das 3.507 propostas até os contratos assinados (quantidade e valor) e das 338 em suspensiva até as 294 do 2.1.'),
     ('1.36', '"Da seleção à obra" passa a ser o último slide da Execução (5.2); "Situação das obras" fica oculto até a revisão.'),
+    ('1.37', 'Slide 5.2: filtro de status (selecionadas / enquadradas).'),
 ]
 
 D = dados.load()
@@ -730,9 +731,9 @@ def slide_transicao(etapa, n, titulo, legenda, atualizado, fonte, dek='', nota='
     Origem própria (prefixo 'g'): começa só com as novas seleções, como o slide 4.1."""
     extra = radio('Medida', 'med', [('qtd', 'Quantidade'), ('valor', 'Valor')]) + radio('Exibir', 'modo', [('tot', 'Total'), ('pct', '%')])
     criterio = radio('Concluídas', 'c95', [('0', 'Pela situação'), ('1', '+ obras com ≥ 95% físico')])
-    return (cabeca(etapa, n, titulo, 'g-funil', dek, origem='g', extra=extra, ori_on=(False, True))
+    return (cabeca(etapa, n, titulo, 'g-funil', dek, status=True, origem='g', extra=extra, ori_on=(False, True))
             + f"""
-        {tmeta(atualizado, legenda, origem='g', ori_txt='somente novas')}
+        {tmeta(atualizado, legenda, status=True, origem='g', ori_txt='somente novas')}
         <div class="funil" id="g-funil"></div>
         <div class="rodape-row"><p class="nota">{nota}</p><div class="rodape-ctl col">{SIT_OBRA()}{criterio}</div></div>
       </div>
@@ -897,8 +898,8 @@ SLIDES = f"""
        kpis=[('% físico médio',), ('% financeiro médio',), ('Paralisadas', '', 'alerta'), ('Investimento paralisado', '', 'alerta')],
        nota='<span data-ref="ex2"></span>')}
 {slide_transicao(5, 2, 'Da seleção à obra',
-       'Contagem: seleções (GM) × contratos do Novo PAC Seleção / Migrado (SACI)', AT_CT, f'base GM, SACI e Balanço Governa ({DT_BAL})',
-       dek='Quanto das seleções já virou contrato assinado, obra iniciada e obra concluída.',
+       'Seleções (GM) × contratos (SACI)', AT_CT, f'base GM, SACI e Balanço Governa ({DT_BAL})',
+       dek='Quanto das seleções já virou contrato, obra iniciada e obra concluída.',
        nota='<span data-ref="g43"></span> Valor: seleções pela portaria; contratos pelo repasse do SACI. '
             'Setas: conversão sobre o bloco anterior.')}
 
@@ -1491,7 +1492,7 @@ const SETA = '<svg viewBox="0 0 90 18" aria-hidden="true"><path d="M2 9h84"></pa
 function renderFunil() {
   const el = document.getElementById('g-funil');
   if (!el) return;
-  const t = {};  // sem status / origem: só UF, fonte e ano
+  const t = { status: true };  // UF, fonte, ano e status (as migradas contam como selecionadas); origem pelo seletor próprio
   const b = { sel: [0, 0], ass: [0, 0], ini: [0, 0], con: [0, 0] };  // [quantidade, valor]
   const obra = [0, 0, 0, 0, 0];
   let c95 = 0;  // obras somadas às concluídas pelo critério de ≥ 95% físico
