@@ -1053,7 +1053,7 @@
   .stbtn:focus-visible{ outline:2px solid var(--blue); outline-offset:-2px; }
   .title-row{ display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:40px; }
   @media print{ .ufctl select{ border:0; padding:0; } }
-  .ufctl select.modsel{ width:300px; min-width:0; }
+  .ufctl select.modsel{ width:280px; min-width:0; font-size:18px; }
   /* cores por etapa (paleta da novopac-apresentacao) */
   .e1{ --accent:#1351B4; --accent-deep:#0C3C8F; }
   .e2{ --accent:#BC4749; --accent-deep:#9A383A; }
@@ -1455,7 +1455,7 @@
           <h2 class="title"><span class="etapa"><span class="n">5.1</span><span class="t">Execução</span></span>Execução média e paralisações</h2>
         </div>
         <div class="ctrls">
-          <div class="ctrow"><div class="ufctl"><label for="t-ex2-mod">Modalidade</label><select id="t-ex2-mod" class="modsel" data-k="modex2"><option value="">Todas as modalidades</option><option value="0">Abastecimento de Água - Rural</option><option value="1">Abastecimento de Água - Urbano</option><option value="2">Contenção de Encostas</option><option value="3">Drenagem Urbana</option><option value="4">Esgotamento Sanitário</option><option value="5">Mobilidade: Médias e Grandes Cidades</option><option value="6">Regularização Fundiária</option><option value="7">Renovação de Frota</option><option value="8">Resíduos Sólidos</option><option value="9">Urbanização de Favelas</option></select></div><div class="ufctl"><label for="t-ex2-uf">Recorte</label><select id="t-ex2-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div></div>
+          <div class="ctrow"><div class="ufctl"><label for="t-ex2-uf">Recorte</label><select id="t-ex2-uf" class="ufsel"><option value="">Brasil — todas as UFs</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></div></div>
           <div class="ctrow">
             <div class="stctl"><label>Fonte</label><div class="stgrp"><button type="button" class="stbtn fonbtn" data-fon="ogu" aria-pressed="true">OGU</button><button type="button" class="stbtn fonbtn" data-fon="fin" aria-pressed="true">FIN</button></div></div><div class="stctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" title="2023" aria-pressed="true">23</button><button type="button" class="stbtn anobtn" data-ano="2025" title="2025" aria-pressed="true">25</button><button type="button" class="stbtn anobtn" data-ano="2026" title="2026" aria-pressed="true">26</button></div></div>
           </div>
@@ -1464,7 +1464,7 @@
       </div>
       <div class="col grow" style="justify-content:flex-start;">
         <div class="kpis"><div class="kpi"><div class="kv" data-kpi="t-ex2:0">—</div><div class="kl">% físico médio</div></div><div class="kpi"><div class="kv" data-kpi="t-ex2:1">—</div><div class="kl">% financeiro médio</div></div><div class="kpi alerta"><div class="kv" data-kpi="t-ex2:2">—</div><div class="kl">Paralisadas</div></div><div class="kpi alerta"><div class="kv" data-kpi="t-ex2:3">—</div><div class="kl">Investimento paralisado</div></div></div>
-        <p class="tmeta">Atualizado em <b>15/10/2026</b><span class="sep">·</span>Médias: obras em execução ou paralisadas (média simples por contrato)<span class="sep">·</span>Fonte: <b class="fonname">OGU + FIN</b><span class="sep">·</span>Anos: <b class="anoname">todos</b><span class="sep">·</span>Recorte: <b class="ufname">Brasil</b><span class="sep">·</span>Modalidade: <b class="modname" data-k="modex2">todas</b></p>
+        <p class="tmeta">Atualizado em <b>15/10/2026</b><span class="sep">·</span>Médias: obras em execução ou paralisadas (média simples por contrato)<span class="sep">·</span>Fonte: <b class="fonname">OGU + FIN</b><span class="sep">·</span>Anos: <b class="anoname">todos</b><span class="sep">·</span>Recorte: <b class="ufname">Brasil</b></p>
         <table class="data dense" id="t-ex2">
           <thead><tr class="grp"><th class="vazio"></th><th colspan="3">% físico médio</th><th class="vazio"></th><th class="vazio"></th><th class="vazio"></th><th class="vazio"></th></tr><tr><th>Modalidade</th><th>Novas<br>seleções</th><th>Migradas</th><th>Total</th><th>% financeiro<br>médio</th><th>Paralisadas</th><th>Investimento<br>paralisado (R$ mi)</th><th>Concluídas</th></tr></thead>
           <tbody></tbody>
@@ -1497,7 +1497,7 @@
           <div class="ctrow">
             <div class="stctl"><label>Status</label><div class="stgrp"><button type="button" class="stbtn" data-st="sel" aria-pressed="true">Selecionadas</button><button type="button" class="stbtn" data-st="enq" aria-pressed="true">Enquadradas</button></div></div><div class="stctl"><label>Fonte</label><div class="stgrp"><button type="button" class="stbtn fonbtn" data-fon="ogu" aria-pressed="true">OGU</button><button type="button" class="stbtn fonbtn" data-fon="fin" aria-pressed="true">FIN</button></div></div><div class="stctl"><label>Ano</label><div class="stgrp"><button type="button" class="stbtn anobtn" data-ano="2023" title="2023" aria-pressed="true">23</button><button type="button" class="stbtn anobtn" data-ano="2025" title="2025" aria-pressed="true">25</button><button type="button" class="stbtn anobtn" data-ano="2026" title="2026" aria-pressed="true">26</button></div></div>
           </div>
-          <div class="ctrow"><div class="stctl"><label>Medida</label><div class="stgrp"><button type="button" class="stbtn rdbtn" data-k="med" data-v="qtd" aria-pressed="true">Quantidade</button><button type="button" class="stbtn rdbtn" data-k="med" data-v="valor" aria-pressed="false">Valor</button></div></div><div class="stctl"><label>Exibir</label><div class="stgrp"><button type="button" class="stbtn rdbtn" data-k="modo" data-v="tot" aria-pressed="true">Total</button><button type="button" class="stbtn rdbtn" data-k="modo" data-v="pct" aria-pressed="false">%</button></div></div></div>
+          <div class="ctrow"><div class="ufctl"><label for="g-funil-mod">Modalidade</label><select id="g-funil-mod" class="modsel" data-k="modg"><option value="">Todas as modalidades</option><option value="0">Abastecimento de Água - Rural</option><option value="1">Abastecimento de Água - Urbano</option><option value="2">Contenção de Encostas</option><option value="3">Drenagem Urbana</option><option value="4">Esgotamento Sanitário</option><option value="5">Mobilidade: Médias e Grandes Cidades</option><option value="6">Regularização Fundiária</option><option value="7">Renovação de Frota</option><option value="8">Resíduos Sólidos</option><option value="9">Urbanização de Favelas</option></select></div><div class="stctl"><label>Medida</label><div class="stgrp"><button type="button" class="stbtn rdbtn" data-k="med" data-v="qtd" aria-pressed="true">Quantidade</button><button type="button" class="stbtn rdbtn" data-k="med" data-v="valor" aria-pressed="false">Valor</button></div></div><div class="stctl"><label>Exibir</label><div class="stgrp"><button type="button" class="stbtn rdbtn" data-k="modo" data-v="tot" aria-pressed="true">Total</button><button type="button" class="stbtn rdbtn" data-k="modo" data-v="pct" aria-pressed="false">%</button></div></div></div>
         </div>
       </div>
       <div class="col grow" style="justify-content:flex-start;">
@@ -1578,7 +1578,7 @@
             <li><b>1.35</b>Slides 4.1 e 4.2: conta das 3.507 propostas até os contratos assinados (quantidade e valor) e das 338 em suspensiva até as 294 do 2.1.</li>
             <li><b>1.36</b>"Da seleção à obra" passa a ser o último slide da Execução (5.2); "Situação das obras" fica oculto até a revisão.</li>
             <li><b>1.37</b>Slide 5.2: filtro de status (selecionadas / enquadradas) e conta dos contratos assinados (1.708 do 4.1 + itens do balanço).</li>
-            <li><b>1.38</b>Slide 5.1: seletor de modalidade, no formato do recorte.</li>
+            <li><b>1.38</b>Slide 5.2: seletor de modalidade, no formato do recorte.</li>
           </ul>
         </div></span></span>
       <a class="xlsxlink" href="novopac-balanco-carteira.pdf" download title="Baixar o PDF da apresentação (um slide por página) — com filtros aplicados, o PDF é gerado refletindo os filtros">
@@ -3570,7 +3570,7 @@ const TABLES = [
                   H(a.n), P(a.o[3], a.n)],
     kpis: (t) => [I(t.o[1]), I(t.o[2]), I(t.o[3]) + ' · ' + P(t.o[3], t.n), I(t.o[0])] },
 
-  { id: 't-ex2', mod: 'modex2', parts: [{ src: 'ct', keep: (r) => r[5] !== 4 && sitObra(r) !== 5, add: (a, r) => exAdd(a, r) },
+  { id: 't-ex2', parts: [{ src: 'ct', keep: (r) => r[5] !== 4 && sitObra(r) !== 5, add: (a, r) => exAdd(a, r) },
       { src: 'bx', keep: () => comBal(), add: (a, r) => { exAdd(a, r); a.bx++; } }],
     init: () => ({ n: 0, par: 0, vpar: 0, conc: 0, fs: { s: 0, m: 0 }, fn: { s: 0, m: 0 }, fis: 0, fin_n: 0, bx: 0 }),
     cols: (a) => [media(a.fs.s, a.fn.s), media(a.fs.m, a.fn.m), [media(a.fs.s + a.fs.m, a.fn.s + a.fn.m), 'hl'],
@@ -3888,7 +3888,7 @@ const REFS = {
 // conta como concluída também a obra iniciada com ≥ 95% de execução física
 const state = { uf: '', sel: true, enq: true, ogu: true, fin: true, mig: true, nov: true,
                 gmig: false, gnov: true, anos: {}, pct1: '0', med: 'qtd', modo: 'tot', c95: '0', aln: 'vlr',
-                sitobra: 'bal', alnp: 'todos', wmed: 'qtd', wmodo: 'tot', rmed: 'qtd', ret: 'pub', rpc72: 'sim', modex2: '' };
+                sitobra: 'bal', alnp: 'todos', wmed: 'qtd', wmodo: 'tot', rmed: 'qtd', ret: 'pub', rpc72: 'sim', modg: '' };
 const PAR = { sel: 'enq', enq: 'sel', ogu: 'fin', fin: 'ogu', mig: 'nov', nov: 'mig', gmig: 'gnov', gnov: 'gmig' };
 const ORIGENS = ['', 'g'];  // prefixos das chaves de origem
 ANOS.forEach((a) => { state.anos[a] = true; });
@@ -3918,7 +3918,7 @@ const SETA = '<svg viewBox="0 0 90 18" aria-hidden="true"><path d="M2 9h84"></pa
 function renderFunil() {
   const el = document.getElementById('g-funil');
   if (!el) return;
-  const t = { status: true };  // UF, fonte, ano e status (as migradas contam como selecionadas); origem pelo seletor próprio
+  const t = { status: true, mod: 'modg' };  // UF, fonte, ano, status e modalidade (as migradas contam como selecionadas); origem pelo seletor próprio
   const b = { sel: [0, 0], ass: [0, 0], ini: [0, 0], con: [0, 0] };  // [quantidade, valor]
   const obra = [0, 0, 0, 0, 0];
   let c95 = 0;  // obras somadas às concluídas pelo critério de ≥ 95% físico
@@ -4602,7 +4602,7 @@ function render() {
   if (params.get('wmed') === 'valor') state.wmed = 'valor';
   if (params.get('wmodo') === 'pct') state.wmodo = 'pct';
   if (params.get('rmed') === 'valor') state.rmed = 'valor';
-  if (/^\d+$/.test(params.get('mod') || '')) state.modex2 = params.get('mod');
+  if (/^\d+$/.test(params.get('mod') || '')) state.modg = params.get('mod');
   if (params.get('ret') === 'hom') state.ret = 'hom';
   if (params.get('pc72') === 'nao') state.rpc72 = 'nao';
   if (params.get('obra') === 'saci') state.sitobra = 'saci';
@@ -4754,7 +4754,7 @@ function render() {
       const filtrado = state.uf !== '' || !state.sel || !state.enq || !state.ogu || !state.fin
         || !state.mig || !state.nov || state.pct1 !== '0' || state.med !== 'qtd' || state.modo !== 'tot'
         || state.gmig || !state.gnov || state.c95 !== '0' || state.aln !== 'vlr' || state.alnp !== 'todos' || state.sitobra !== 'bal'
-        || state.wmed !== 'qtd' || state.wmodo !== 'tot' || state.rmed !== 'qtd' || state.modex2 !== '' || state.ret !== 'pub' || state.rpc72 !== 'sim'
+        || state.wmed !== 'qtd' || state.wmodo !== 'tot' || state.rmed !== 'qtd' || state.modg !== '' || state.ret !== 'pub' || state.rpc72 !== 'sim'
         || ANOS.some((a) => !state.anos[a]);
       if (!filtrado) return;
       e.preventDefault();

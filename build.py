@@ -68,7 +68,7 @@ HISTORICO = [
     ('1.35', 'Slides 4.1 e 4.2: conta das 3.507 propostas até os contratos assinados (quantidade e valor) e das 338 em suspensiva até as 294 do 2.1.'),
     ('1.36', '"Da seleção à obra" passa a ser o último slide da Execução (5.2); "Situação das obras" fica oculto até a revisão.'),
     ('1.37', 'Slide 5.2: filtro de status (selecionadas / enquadradas) e conta dos contratos assinados (1.708 do 4.1 + itens do balanço).'),
-    ('1.38', 'Slide 5.1: seletor de modalidade, no formato do recorte.'),
+    ('1.38', 'Slide 5.2: seletor de modalidade, no formato do recorte.'),
 ]
 
 D = dados.load()
@@ -519,7 +519,7 @@ EXTRA_CSS = """
   .stbtn:focus-visible{ outline:2px solid var(--blue); outline-offset:-2px; }
   .title-row{ display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:40px; }
   @media print{ .ufctl select{ border:0; padding:0; } }
-  .ufctl select.modsel{ width:300px; min-width:0; }
+  .ufctl select.modsel{ width:280px; min-width:0; font-size:18px; }
   /* cores por etapa (paleta da novopac-apresentacao) */
   .e1{ --accent:#1351B4; --accent-deep:#0C3C8F; }
   .e2{ --accent:#BC4749; --accent-deep:#9A383A; }
@@ -665,11 +665,11 @@ def cabeca(etapa, n, titulo, tid, dek='', status=False, so_ogu=False, origem=Non
     fon_ctl = ('<div class="stctl"><label>Fonte</label><div class="stgrp"><span class="stbtn fixo">OGU</span></div></div>'
                if so_ogu else grupo('Fonte', [('fonbtn', 'data-fon="ogu"', 'OGU', True),
                                               ('fonbtn', 'data-fon="fin"', 'FIN', True)]))
-    extra_html = f'\n          <div class="ctrow">{extra}</div>' if extra else ''
     # seletor de modalidade (só onde o slide pede): state[modsel] = índice em MODS, '' = todas
     mod_ctl = (f'<div class="ufctl"><label for="{tid}-mod">Modalidade</label><select id="{tid}-mod" class="modsel" data-k="{modsel}">'
                '<option value="">Todas as modalidades</option>'
                + ''.join(f'<option value="{i}">{m}</option>' for i, m in enumerate(MODS[:-1])) + '</select></div>') if modsel else ''
+    extra_html = f'\n          <div class="ctrow">{mod_ctl}{extra}</div>' if extra or mod_ctl else ''  # modalidade vai na linha extra
     return f"""
   <section class="p2 content e{etapa}" data-label="{etapa}.{n} {ETAPAS[etapa]}">
 {chrome_top(etapa)}    <div class="body tight">
@@ -678,7 +678,7 @@ def cabeca(etapa, n, titulo, tid, dek='', status=False, so_ogu=False, origem=Non
           <h2 class="title"><span class="etapa"><span class="n">{etapa}.{n}</span><span class="t">{ETAPAS[etapa]}</span></span>{titulo}</h2>{dek_html}
         </div>
         <div class="ctrls">
-          <div class="ctrow">{ori_ctl}{mod_ctl}<div class="ufctl"><label for="{tid}-uf">Recorte</label><select id="{tid}-uf" class="ufsel">{uf_opts}</select></div></div>
+          <div class="ctrow">{ori_ctl}<div class="ufctl"><label for="{tid}-uf">Recorte</label><select id="{tid}-uf" class="ufsel">{uf_opts}</select></div></div>
           <div class="ctrow">
             {st_ctl}{fon_ctl}{ano_ctl}
           </div>{extra_html}
@@ -739,7 +739,7 @@ def slide_transicao(etapa, n, titulo, legenda, atualizado, fonte, dek='', nota='
     Origem própria (prefixo 'g'): começa só com as novas seleções, como o slide 4.1."""
     extra = radio('Medida', 'med', [('qtd', 'Quantidade'), ('valor', 'Valor')]) + radio('Exibir', 'modo', [('tot', 'Total'), ('pct', '%')])
     criterio = radio('Concluídas', 'c95', [('0', 'Pela situação'), ('1', '+ obras com ≥ 95% físico')])
-    return (cabeca(etapa, n, titulo, 'g-funil', dek, status=True, origem='g', extra=extra, ori_on=(False, True))
+    return (cabeca(etapa, n, titulo, 'g-funil', dek, status=True, origem='g', extra=extra, ori_on=(False, True), modsel='modg')
             + f"""
         {tmeta(atualizado, legenda, status=True, origem='g', ori_txt='somente novas')}
         <div class="funil" id="g-funil"></div>
@@ -902,7 +902,7 @@ SLIDES = f"""
        nota='<span data-ref="ex1"></span>', extra=SIT_OBRA())}
 {slide(5, 1, 'Execução média e paralisações', 't-ex2',
        [('% físico médio', ['Novas<br>seleções', 'Migradas', 'Total']), '% financeiro<br>médio', 'Paralisadas', 'Investimento<br>paralisado (R$ mi)', 'Concluídas'],
-       'Médias: obras em execução ou paralisadas (média simples por contrato)', AT_SACI, SRC_EXEC, extra=SIT_OBRA(), modsel='modex2',
+       'Médias: obras em execução ou paralisadas (média simples por contrato)', AT_SACI, SRC_EXEC, extra=SIT_OBRA(),
        kpis=[('% físico médio',), ('% financeiro médio',), ('Paralisadas', '', 'alerta'), ('Investimento paralisado', '', 'alerta')],
        nota='<span data-ref="ex2"></span>')}
 {slide_transicao(5, 2, 'Da seleção à obra',
@@ -1163,7 +1163,7 @@ const TABLES = [
                   H(a.n), P(a.o[3], a.n)],
     kpis: (t) => [I(t.o[1]), I(t.o[2]), I(t.o[3]) + ' · ' + P(t.o[3], t.n), I(t.o[0])] },
 
-  { id: 't-ex2', mod: 'modex2', parts: [{ src: 'ct', keep: (r) => r[5] !== 4 && sitObra(r) !== 5, add: (a, r) => exAdd(a, r) },
+  { id: 't-ex2', parts: [{ src: 'ct', keep: (r) => r[5] !== 4 && sitObra(r) !== 5, add: (a, r) => exAdd(a, r) },
       { src: 'bx', keep: () => comBal(), add: (a, r) => { exAdd(a, r); a.bx++; } }],
     init: () => ({ n: 0, par: 0, vpar: 0, conc: 0, fs: { s: 0, m: 0 }, fn: { s: 0, m: 0 }, fis: 0, fin_n: 0, bx: 0 }),
     cols: (a) => [media(a.fs.s, a.fn.s), media(a.fs.m, a.fn.m), [media(a.fs.s + a.fs.m, a.fn.s + a.fn.m), 'hl'],
@@ -1481,7 +1481,7 @@ const REFS = {
 // conta como concluída também a obra iniciada com ≥ 95% de execução física
 const state = { uf: '', sel: true, enq: true, ogu: true, fin: true, mig: true, nov: true,
                 gmig: false, gnov: true, anos: {}, pct1: '0', med: 'qtd', modo: 'tot', c95: '0', aln: 'vlr',
-                sitobra: 'bal', alnp: 'todos', wmed: 'qtd', wmodo: 'tot', rmed: 'qtd', ret: 'pub', rpc72: 'sim', modex2: '' };
+                sitobra: 'bal', alnp: 'todos', wmed: 'qtd', wmodo: 'tot', rmed: 'qtd', ret: 'pub', rpc72: 'sim', modg: '' };
 const PAR = { sel: 'enq', enq: 'sel', ogu: 'fin', fin: 'ogu', mig: 'nov', nov: 'mig', gmig: 'gnov', gnov: 'gmig' };
 const ORIGENS = ['', 'g'];  // prefixos das chaves de origem
 ANOS.forEach((a) => { state.anos[a] = true; });
@@ -1511,7 +1511,7 @@ const SETA = '<svg viewBox="0 0 90 18" aria-hidden="true"><path d="M2 9h84"></pa
 function renderFunil() {
   const el = document.getElementById('g-funil');
   if (!el) return;
-  const t = { status: true };  // UF, fonte, ano e status (as migradas contam como selecionadas); origem pelo seletor próprio
+  const t = { status: true, mod: 'modg' };  // UF, fonte, ano, status e modalidade (as migradas contam como selecionadas); origem pelo seletor próprio
   const b = { sel: [0, 0], ass: [0, 0], ini: [0, 0], con: [0, 0] };  // [quantidade, valor]
   const obra = [0, 0, 0, 0, 0];
   let c95 = 0;  // obras somadas às concluídas pelo critério de ≥ 95% físico
@@ -2195,7 +2195,7 @@ function render() {
   if (params.get('wmed') === 'valor') state.wmed = 'valor';
   if (params.get('wmodo') === 'pct') state.wmodo = 'pct';
   if (params.get('rmed') === 'valor') state.rmed = 'valor';
-  if (/^\d+$/.test(params.get('mod') || '')) state.modex2 = params.get('mod');
+  if (/^\d+$/.test(params.get('mod') || '')) state.modg = params.get('mod');
   if (params.get('ret') === 'hom') state.ret = 'hom';
   if (params.get('pc72') === 'nao') state.rpc72 = 'nao';
   if (params.get('obra') === 'saci') state.sitobra = 'saci';
@@ -2347,7 +2347,7 @@ function render() {
       const filtrado = state.uf !== '' || !state.sel || !state.enq || !state.ogu || !state.fin
         || !state.mig || !state.nov || state.pct1 !== '0' || state.med !== 'qtd' || state.modo !== 'tot'
         || state.gmig || !state.gnov || state.c95 !== '0' || state.aln !== 'vlr' || state.alnp !== 'todos' || state.sitobra !== 'bal'
-        || state.wmed !== 'qtd' || state.wmodo !== 'tot' || state.rmed !== 'qtd' || state.modex2 !== '' || state.ret !== 'pub' || state.rpc72 !== 'sim'
+        || state.wmed !== 'qtd' || state.wmodo !== 'tot' || state.rmed !== 'qtd' || state.modg !== '' || state.ret !== 'pub' || state.rpc72 !== 'sim'
         || ANOS.some((a) => !state.anos[a]);
       if (!filtrado) return;
       e.preventDefault();
