@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.39'
+VERSAO = '1.40'
 # "Situação das obras" (antigo 5.1) fora da apresentação até a revisão das inconsistências; False traz de volta
 # (renumerar: "Execução média" é o 5.1 e o funil "Da seleção à obra" o 5.2 — o slide volta como 5.1 e os outros sobem)
 OCULTAR_SITUACAO_OBRAS = True  # subir a cada commit que altere a apresentação
@@ -69,6 +69,7 @@ HISTORICO = [
     ('1.36', '"Da seleção à obra" passa a ser o último slide da Execução (5.2); "Situação das obras" fica oculto até a revisão.'),
     ('1.37', 'Slide 5.2: filtro de status (selecionadas / enquadradas) e conta dos contratos assinados (1.708 do 4.1 + itens do balanço).'),
     ('1.38', 'Slide 5.2: seletor de modalidade, no formato do recorte.'),
+    ('1.40', 'Notas de rodapé numeradas (¹ ² ³ …), com o mesmo número no item do slide a que se referem.'),
     ('1.39', 'Slide 5.1: faixa de totais e nota dos critérios das médias; 5.2 abre com migradas + novas e concluídas ≥ 95% físico; 3.1 destaca LAE e edital.'),
 ]
 
@@ -292,6 +293,9 @@ EXTRA_CSS = """
   .tmeta b{ color:var(--navy); font-weight:700; }
   .tmeta .sep{ margin:0 10px; opacity:.5; }
   .nota b{ font-style:normal; color:var(--navy); }
+  sup.fn{ font-size:.62em; font-weight:800; font-style:normal; color:var(--accent-deep); vertical-align:super; line-height:0; margin-left:2px;
+    letter-spacing:0; text-transform:none; }
+  .nota > sup.fn, .nota span > sup.fn:first-child{ margin-left:0; }
   /* quadro da conta (nota do 3.1): aparece ao passar o mouse ou com foco */
   .nota{ position:relative; }  /* o quadro abre ancorado no início da nota, onde quer que o link caia */
   .conta{ position:static; font-style:normal; font-weight:700; color:var(--accent-deep); border-bottom:1px dotted currentColor; cursor:help; white-space:nowrap; }
@@ -629,6 +633,11 @@ def foot(fonte, etapa=None):
 ETAPAS = {1: 'Seleção', 2: 'Suspensivas', 3: 'Licitação', 4: 'Contratação', 5: 'Execução'}
 
 
+def fn(n):
+    """número sobrescrito que liga um item do slide à nota de rodapé de mesmo número"""
+    return f'<sup class="fn">{n}</sup>'
+
+
 def cabecalho(colunas):
     """colunas: lista de rótulos ou de (grupo, [rótulos]) — grupos viram uma 2ª linha de cabeçalho."""
     if not any(isinstance(c, tuple) for c in colunas):
@@ -765,7 +774,7 @@ def slide_waffle(etapa, n, titulo, legenda, atualizado, fonte, dek=''):
             + f"""
         {tmeta(atualizado, legenda, status=True, origem='')}
         <div class="waf" id="g-waf"></div>
-        <p class="nota"><span data-ref="waf"></span></p>
+        <p class="nota">{fn(1)} <span data-ref="waf"></span></p>
       </div>
     </div>
 {foot(fonte, etapa)}  </section>
@@ -871,37 +880,37 @@ SLIDES = f"""
 {slide(1, 1, 'Carteira de seleções', 't-sel1',
        ['Qtd. FIN', 'Qtd. OGU', 'Total', 'Valor OGU<br>(R$ mi)', 'Valor FIN<br>(R$ mi)', 'Valor total<br>(R$ mi)'],
        'Contagem: migradas + novas seleções', AT_GM, SRC_GM,
-       kpis=[('Propostas',), ('Valor total',), ('OGU',), ('Financiamento',)], status=True, origem='',
-       nota='<span data-ref="sel1"></span>',
+       kpis=[('Propostas' + fn(1),), ('Valor total',), ('OGU',), ('Financiamento',)], status=True, origem='',
+       nota=fn(1) + ' <span data-ref="sel1"></span>',
        rodape=radio('Exibir', 'pct1', [('0', 'Valores'), ('1', '% do total')]))}
 {slide_waffle(1, 2, 'Carteira do Novo PAC por Modalidade', 'Contagem: migradas + novas seleções', AT_GM, SRC_GM,
        dek='Distribuição das seleções por fonte de recursos.')}
 {slide(2, 1, 'Cláusulas suspensivas — OGU', 't-susp1',
-       ['Sem<br>suspensiva', ('Com cláusula suspensiva', ['Retiradas', 'Pendentes', 'Subtotal']), 'Total<br>contratos OGU', '% retirada', 'Repasse<br>pendente (R$ mi)'],
+       ['Sem<br>suspensiva', ('Com cláusula suspensiva', ['Retiradas', 'Pendentes' + fn(3), 'Subtotal']), 'Total<br>contratos OGU' + fn(2), '% retirada' + fn(1), 'Repasse<br>pendente (R$ mi)'],
        'Contagem: contratos OGU do Novo PAC Seleção (sem SNH), sem cancelados', AT_PAC, SRC_PAC,
        dek='Contratos OGU = sem suspensiva + suspensiva retirada + suspensiva pendente.',
-       kpis=[('Contratos OGU',), ('Com suspensiva',), ('Retiradas', '', 'ok'), ('Pendentes', '', 'alerta')],
-       nota='% retirada = retiradas ÷ contratos com cláusula suspensiva. <span data-ref="susp1"></span>', so_ogu=True)}
+       kpis=[('Contratos OGU' + fn(2),), ('Com suspensiva',), ('Retiradas', '', 'ok'), ('Pendentes' + fn(3), '', 'alerta')],
+       nota=fn(1) + ' % retirada = retiradas ÷ contratos com cláusula suspensiva. <span data-ref="susp1"></span>', so_ogu=True)}
 {slide_alinhamento(2, 2, 'Alinhamento das suspensivas',
        'Contagem: contratos OGU com data alinhada pela DMP (08/2026)', AT_PAC, SRC_PAC,
        dek='Datas de retirada pactuadas pela DMP (08/2026), por modalidade.')}
 {slide(3, 1, 'Etapa atual dos contratos OGU', 't-lic1',
-       ['Sem<br>registro', 'Em<br>suspensiva', 'Suspensiva<br>retirada/LAE', 'Edital<br>publicado', 'Licitação<br>homologada', 'VRPL /<br>AIO', 'Obra<br>iniciada', 'Total'],
+       ['Sem<br>registro', 'Em<br>suspensiva' + fn(2), 'Suspensiva<br>retirada/LAE' + fn(3), 'Edital<br>publicado' + fn(4), 'Licitação<br>homologada', 'VRPL /<br>AIO', 'Obra<br>iniciada', 'Total' + fn(1)],
        'Contagem: contratos OGU do Novo PAC Seleção, sem cancelados — etapa mais avançada', AT_PAC, SRC_PAC,
        topo='<div class="lic-ponte" id="lic-ponte"></div>', so_ogu=True,
        nota='<span data-ref="lic1"></span>')}
 {slide_regua(3, 2, 'Régua do prazo: antes × agora',
        'Contagem: contratos OGU em Contratado - Normal, aguardando edital ou homologação', AT_PAC, SRC_PAC)}
 {slide(4, 1, 'Selecionado × contratado', 't-ct1',
-       ['Seleções', 'Contratos<br>assinados', 'Em<br>contratação', 'Cancelados /<br>distratados', '% assinado', 'Investimento<br>assinado (R$ mi)'],
+       ['Seleções' + fn(2), 'Contratos<br>assinados' + fn(1), 'Em<br>contratação', 'Cancelados /<br>distratados', '% assinado', 'Investimento<br>assinado (R$ mi)'],
        'Contagem: novas seleções (GM) × contratos do Novo PAC Seleção (SACI)', AT_CT, 'base única GM e ' + SRC_SACI,
        topo='<div class="aln-ponte ct-ponte" id="ct-ponte"></div>',
        nota='<span data-ref="ct1"></span> Proposta com OGU e FIN conta uma vez em cada fonte.')}
 {slide(4, 2, 'Situação dos contratos assinados', 't-ct2',
-       ['Normal', 'Suspensiva', 'Concluído', 'Outros*', 'Total', 'Qtd. OGU', 'Qtd. FIN', 'Repasse /<br>financ. (R$ mi)'],
+       ['Normal', 'Suspensiva' + fn(3), 'Concluído', 'Outros' + fn(1), 'Total' + fn(2), 'Qtd. OGU', 'Qtd. FIN', 'Repasse /<br>financ. (R$ mi)'],
        'Contagem: contratos assinados do Novo PAC Seleção (SACI)', AT_SACI, SRC_SACI,
-       kpis=[('Assinados',), ('Normal', '', 'ok'), ('Em suspensiva', '', 'alerta'), ('Repasse / financiamento',)],
-       nota='* Outros: em TCE, liminar e em prestação de contas. <span data-ref="ct2"></span>')}
+       kpis=[('Assinados' + fn(2),), ('Normal', '', 'ok'), ('Em suspensiva' + fn(3), '', 'alerta'), ('Repasse / financiamento',)],
+       nota=fn(1) + ' Outros: em TCE, liminar e em prestação de contas. <span data-ref="ct2"></span>')}
 {'' if OCULTAR_SITUACAO_OBRAS else slide(5, 1, 'Situação das obras', 't-ex1',
        ['Não<br>iniciada', 'Em<br>execução', 'Paralisada', 'Concluída', 'Inacabada', 'Total', '% concluída'],
        'Contagem: contratos do Novo PAC Seleção + Migrado (SACI), sem cancelados', AT_SACI, SRC_EXEC,
@@ -1184,9 +1193,9 @@ const TABLES = [
       const b = (n, rot, det, cls) => '<div class="lp-b' + (cls ? ' ' + cls : '') + '"><b>' + n + '</b><span>' + rot + '</span>'
         + (det ? '<em>' + det + '</em>' : '') + '</div>';
       const base = t.o[1] + t.o[2];
-      el.innerHTML = b(I(t.n), 'contratos considerados', I(t.n - t.nm - t.bx) + ' novas · ' + I(t.nm) + ' migr.' + (t.bx ? ' · ' + I(t.bx) + ' bal.' : ''))
+      el.innerHTML = b(I(t.n), 'contratos considerados' + FN(2), I(t.n - t.nm - t.bx) + ' novas · ' + I(t.nm) + ' migr.' + (t.bx ? ' · ' + I(t.bx) + ' bal.' : ''))
         + '<i class="lp-op">=</i>' + b(I(t.o[0]), 'não iniciadas', P(t.o[0], t.n)) + '<i class="lp-op">+</i>'
-        + '<div class="lp-grupo"><div class="lp-g-t">' + I(base) + ' base das médias · físico ' + media(t.fs.s + t.fs.m, t.fn.s + t.fn.m)
+        + '<div class="lp-grupo"><div class="lp-g-t">' + I(base) + ' base das médias' + FN(1) + ' · físico ' + media(t.fs.s + t.fs.m, t.fn.s + t.fn.m)
         + ' · financeiro ' + media(t.fis, t.fin_n) + '</div><div class="lp-g-c">'
         + b(I(t.o[1]), 'em execução', P(t.o[1], t.n)) + '<i class="lp-op">+</i>'
         + b(I(t.o[2]), 'paralisadas', BM(t.vpar) + ' investimento', 'alerta') + '</div></div><i class="lp-op">+</i>'
@@ -1202,7 +1211,7 @@ function renderPonteCt() {
   const c = cadeiaCt();
   const b = (o, rot, cls) => '<div class="ap-b' + (cls ? ' ' + cls : '') + '"><b>' + I(o.n) + '</b><span>' + rot + ' · ' + BM(o.v) + '</span></div>';
   const seta = (txt) => '<div class="ap-s"><span>' + txt + '</span><i></i></div>';
-  el.innerHTML = b(c.prop, 'propostas (1.1)') + seta('−' + I(c.mig.n) + ' migradas')
+  el.innerHTML = b(c.prop, 'propostas (1.1)' + FN(1)) + seta('−' + I(c.mig.n) + ' migradas')
     + b(c.nov, 'seleções') + seta('−' + I(c.sem.n + c.canc.n + c.emc.n) + ' sem contrato assinado')
     + b(c.ass, 'com contrato · ' + P(c.ass.n, c.nov.n)) + seta('+' + I(c.ctSem.n) + ' sem seleção ligada')
     + b(c.ct, 'assinados', 'fim');
@@ -1228,7 +1237,7 @@ function cadeiaCt() {
   return c;
 }
 // coluna "Suspensiva" do 4.2 (SACI, OGU + FIN) → suspensivas pendentes do 2.1 (painelpac, OGU)
-function quadroSuspCt() {
+function quadroSuspCt(n) {
   const t = {}, q = { col: 0, fin: 0, outra: 0, ps: 0, pc: 0 };
   for (const r of CT) {
     if (r[3] < 1 || r[5] !== 1 || !passa(SRC.ct, r, t)) continue;
@@ -1246,13 +1255,13 @@ function quadroSuspCt() {
     ['+ pendentes no painelpac que o SACI já pôs em outra situação (prestação de contas, concluído)', '+ ' + I(q.outra)],
     ['= suspensivas pendentes (slide 2.1)', I(q.col - q.fin + q.outra), 'tot'],
     ['No slide 2.2: ' + I(q.pc) + ' com data alinhada + ' + I(q.ps) + ' fora do alinhamento de 08/2026.', '', 'obs'],
-  ], 'conta das suspensivas (2.1)');
+  ], 'conta das suspensivas (2.1)', n);
 }
 
-function quadroCt(aqui) {
+function quadroCt(aqui, n) {
   const c = cadeiaCt(), Q = (o, s) => (s || '') + I(o.n), V = (o, s) => (s || '') + BM(o.v);
   const L = (txt, o, sinal, tipo) => '<tr class="' + (tipo || '') + '"><td>' + txt + '</td><td>' + Q(o, sinal) + '</td><td>' + V(o, sinal) + '</td></tr>';
-  return '<span class="conta" tabindex="0">ver a conta passo a passo ⓘ<span class="conta-pop larga" role="tooltip"><b class="conta-t">'
+  return FN(n) + ' <span class="conta" tabindex="0">ver a conta passo a passo ⓘ<span class="conta-pop larga" role="tooltip"><b class="conta-t">'
     + 'Das propostas (1.1) aos contratos assinados (4.1)</b><table><tr class="cab"><td></td><td>qtd.</td><td>valor</td></tr>'
     + L('Propostas (slide 1.1) — valor de portaria', c.prop, '', 'tot')
     + L('− migradas: entram direto na execução (5.1)', c.mig, '− ')
@@ -1278,13 +1287,16 @@ function exclCt(keep, cod = 1, rows = CT, src = SRC.ct) {
 const SEMMOD = ' (exceção provisória, a revisar)';
 
 // quadro "ver a conta passo a passo" (aparece ao passar o mouse): título + linhas [texto, valor, tipo]
-function quadroConta(titulo, linhas, rotulo = 'ver a conta passo a passo') {
+// número sobrescrito que liga a nota de rodapé ao item do slide
+const FN = (n) => (n ? '<sup class="fn">' + n + '</sup>' : '');
+
+function quadroConta(titulo, linhas, rotulo = 'ver a conta passo a passo', n) {
   const L = ([txt, v, tipo]) => '<tr class="' + (tipo || '') + '"><td>' + txt + '</td><td>' + v + '</td></tr>';
-  return '<span class="conta" tabindex="0">' + rotulo + ' ⓘ<span class="conta-pop" role="tooltip"><b class="conta-t">'
+  return FN(n) + ' <span class="conta" tabindex="0">' + rotulo + ' ⓘ<span class="conta-pop" role="tooltip"><b class="conta-t">'
     + titulo + '</b><table>' + linhas.map(L).join('') + '</table></span></span>';
 }
 
-function quadroOgu(c) {
+function quadroOgu(c, n) {
     const L = (txt, v, tipo) => '<tr class="' + (tipo || '') + '"><td>' + txt + '</td><td>' + v + '</td></tr>';
     const quadro = '<span class="conta-pop" role="tooltip"><b class="conta-t">Das seleções OGU aos contratos do slide</b><table>'
       + L('Seleções OGU (slide 1.1)', I(c.sel), 'tot')
@@ -1299,7 +1311,7 @@ function quadroOgu(c) {
       + L('− cancelados / distratados', '− ' + I(c.canc))
       + L('= contratos deste slide (inclui ' + I(c.emc) + ' em contratação)', I(c.ativos), 'tot')
       + '</table></span>';
-    return '<span class="conta" tabindex="0">ver a conta passo a passo ⓘ' + quadro + '</span>';
+    return FN(n) + ' <span class="conta" tabindex="0">ver a conta passo a passo ⓘ' + quadro + '</span>';
 }
 
 // suspensivas pendentes (2.1) × etapa mais avançada (3.1), no recorte — FASES: 1 suspensiva · 2 retirada ·
@@ -1317,7 +1329,7 @@ function pendEtapa() {
 }
 
 // pendentes (2.1) × coluna "Em suspensiva" (3.1) — o mesmo quadro nos dois slides; `aqui` = slide onde aparece
-function quadroEmSusp(aqui) {
+function quadroEmSusp(aqui, n) {
   const e = pendEtapa();
   const p21 = aqui === '2.1' ? 'Suspensivas pendentes (este slide)' : 'Suspensivas pendentes (slide 2.1)';
   const c31 = aqui === '3.1' ? '= coluna "Em suspensiva" deste slide' : '= coluna "Em suspensiva" (slide 3.1)';
@@ -1331,7 +1343,7 @@ function quadroEmSusp(aqui) {
     [c31, I(e.susp), 'tot'],
     ['Os ' + I(e.pend - e.susp) + ' contratos acima têm a suspensiva pendente, mas já há data de etapa posterior no TGOV/BDGestores; '
       + 'o 3.1 os classifica pela etapa mais avançada.', '', 'obs'],
-  ], 'conta da coluna Em suspensiva (3.1)');
+  ], 'conta da coluna Em suspensiva (3.1)', n);
 }
 
 // coluna "Suspensiva retirada/LAE" (3.1) → pontos sem edital da régua (3.2), no recorte. FASES 2 e 3 = a coluna.
@@ -1353,7 +1365,7 @@ function ponteRegua() {
   return p;
 }
 // coluna "Edital publicado" (3.1) → contratos sem homologação da régua (3.2, etapa "Fim da licitação")
-function quadroReguaHom(aqui) {
+function quadroReguaHom(aqui, n) {
   const t = {}, p = { col: 0, naoNormal: 0, pc72: 0, pc72inc: 0, dentro: 0, extra: 0 }, inc = state.rpc72 === 'sim';
   for (const r of OG) { if (r[5] || r[9] !== 4 || !passa(SRC.og, r, t)) continue; p.col++; if (!r[20]) p.naoNormal++; }
   for (const r of RG) {
@@ -1369,10 +1381,10 @@ function quadroReguaHom(aqui) {
     ['= com prazo de homologação' + (p.pc72inc ? ' (inclui ' + I(p.pc72inc) + ' da PC 72, em simulação)' : ''), I(p.dentro), 'sub'],
     ['+ com edital e sem homologação registrada, mas em etapa posterior no 3.1 (VRPL/AIO, obra)', '+ ' + I(p.extra)],
     [aqui === '3.2' ? '= contratos sem homologação deste slide (Fim da licitação)' : '= sem homologação na régua (slide 3.2)', I(p.dentro + p.extra), 'tot'],
-  ], 'conta do edital até o fim da licitação (3.2)');
+  ], 'conta do edital até o fim da licitação (3.2)', n);
 }
 
-function quadroRegua(aqui) {
+function quadroRegua(aqui, n) {
   const p = ponteRegua();
   return quadroConta('Coluna "Suspensiva retirada/LAE" (3.1) → pontos da régua (3.2)', [
     [aqui === '3.1' ? 'Coluna "Suspensiva retirada/LAE" deste slide' : 'Coluna "Suspensiva retirada/LAE" (slide 3.1)', I(p.col), 'tot'],
@@ -1382,7 +1394,7 @@ function quadroRegua(aqui) {
     ['= com prazo de publicação do edital' + (p.pc72inc ? ' (inclui ' + I(p.pc72inc) + ' da PC 72, em simulação)' : ''), I(p.comPrazo), 'sub'],
     ...(p.extra ? [['+ sem edital registrado, mas em etapa posterior no 3.1 (ex.: obra iniciada)', '+ ' + I(p.extra)]] : []),
     [aqui === '3.2' ? '= pontos da régua deste slide (sem edital publicado)' : '= pontos da régua (slide 3.2)', I(p.comPrazo + p.extra), 'tot'],
-  ], 'conta até a régua (3.2)');
+  ], 'conta até a régua (3.2)', n);
 }
 
 function cadeiaOgu() {
@@ -1414,19 +1426,19 @@ const REFS = {
     + 'o último é parcial; cinza = posição livre (70 por modalidade).'
     + (state.wmodo === 'pct' ? ' Em %: número grande = participação na carteira; OGU/FIN = % na modalidade.' : '')
     + (anoFiltrado() ? SEMANO : ''),
-  ct2: () => { const c = cadeiaCt(); return 'Os <b>' + I(c.ct.n) + '</b> assinados são os do slide 4.1. ' + quadroCt('4.2')
-    + ' · ' + quadroSuspCt(); },
-  ct1: (T) => quadroCt('4.1') + ' · ' + 'Seleções = as <b>' + I(T['t-ct1'].sel) + '</b> novas seleções do slide 1.1'
+  ct2: () => { const c = cadeiaCt(); return FN(2) + ' Os <b>' + I(c.ct.n) + '</b> assinados são os do slide 4.1. ' + quadroCt('4.2')
+    + ' · ' + quadroSuspCt(3); },
+  ct1: (T) => quadroCt('4.1', 1) + ' · ' + FN(2) + ' Seleções = as <b>' + I(T['t-ct1'].sel) + '</b> novas seleções do slide 1.1'
     + (state.sel && state.enq ? '' : ' (selecionadas + enquadradas)')
     + '; as <b>' + I(T['t-ct1'].mig) + '</b> migradas (legado) entram direto na execução (slides 5.1 e 5.2).'
     + (exclCt((r) => r[3] >= 1) ? ' Sem os <b>' + I(exclCt((r) => r[3] >= 1)) + '</b> contratos com bln_pac = NÃO no SACI' : '')
     + (exclCt((r) => r[3] >= 1, 2) ? ' e os <b>' + I(exclCt((r) => r[3] >= 1, 2)) + '</b> sem modalidade' + SEMMOD : '') + '.',
-  g43: () => (state.gmig && state.gnov ? 'Migradas + novas (migradas saem com recorte de ano).'
+  g43: () => FN(1) + ' ' + (state.gmig && state.gnov ? 'Migradas + novas (migradas saem com recorte de ano).'
     : state.gmig ? 'Só as migradas.' : 'Só as novas seleções, como no 4.1.')
     + (comBal() ? ' Obra: SACI + balanço jun/26.' : '')
     + (state.c95 === '1' ? ' Concluídas: + iniciadas com ≥ 95% físico.' : '')
     + (state.gmig ? ' Migradas pelo valor GM (pós-2023).' : '')
-    + (FUN.bx ? ' Assinados <b>' + I(FUN.ass[0]) + '</b> = <b>' + I(FUN.sn) + '</b> do SACI (slide 4.1)'
+    + (FUN.bx ? ' ' + FN(2) + ' Assinados <b>' + I(FUN.ass[0]) + '</b> = <b>' + I(FUN.sn) + '</b> do SACI (slide 4.1)'
       + (FUN.sm ? ' + <b>' + I(FUN.sm) + '</b> migrados' : '') + ' + <b>' + I(FUN.bx) + '</b> itens do balanço sem contrato no SACI.' : '')
     + ' ' + quadroConta('Contratos assinados: slide 4.1 → bloco deste slide', [
       ['Contratos assinados do SACI — novas seleções (slide 4.1)', I(FUN.sn) + ' · ' + BM(FUN.sr), 'tot'],
@@ -1435,21 +1447,21 @@ const REFS = {
       ['= bloco "Contratos assinados" deste slide', I(FUN.ass[0]) + ' · ' + BM(FUN.ass[1]), 'tot'],
       ['Valor aqui é o repasse/financiamento do SACI; no 4.1 é o investimento (' + BM(FUN.si) + ' nas novas seleções). Com "Só SACI" '
         + 'os itens do balanço saem. O filtro de status vale aqui e não no 4.1.', '', 'obs'],
-    ], 'conta dos assinados (4.1)'),
-  reg: () => 'Contratos OGU em Contratado - Normal. Prazo efetivo = o maior entre o legal e 30/10/2026, na data da extração. '
+    ], 'conta dos assinados (4.1)', FUN.bx ? 0 : 2),
+  reg: () => FN(1) + ' Contratos OGU em Contratado - Normal. Prazo efetivo = o maior entre o legal e 30/10/2026, na data da extração. '
     + (state.rpc72 === 'sim'
       ? 'Inclui <b>' + I(RGN.pc72p) + '</b> sem edital e <b>' + I(RGN.pc72h) + '</b> sem homologação assinados antes de 21/10/2025 (PC 72) '
         + '<b>em simulação</b>: o painelpac não lhes dá prazo; aqui vale a mesma regra. '
       : 'Fora: <b>' + I(RGN.pc72 + RGN.pc72hf) + '</b> da PC 72 (sem prazo). ')
     + (RGN.semLae ? '<b>' + I(RGN.semLae) + '</b> sem LAE ficam fora. ' : '')
     + (RGN.excl ? '<b>' + I(RGN.excl) + '</b> com bln_pac = NÃO fora. ' : '')
-    + 'Clique num ponto para abrir no SACI. ' + quadroRegua('3.2') + ' · ' + quadroReguaHom('3.2'),
+    + 'Clique num ponto para abrir no SACI. ' + quadroRegua('3.2', 2) + ' · ' + quadroReguaHom('3.2', 3),
   // 2ª nota do 2.2: as pendentes sem data alinhada, com a mesma lista das bolinhas (clique)
-  aln2: () => !ALN.ps ? '' : '<b>' + I(ALN.ps) + '</b> suspensivas pendentes do 2.1 ficaram fora do alinhamento de 08/2026 (sem data, '
+  aln2: () => !ALN.ps ? '' : FN(2) + ' <b>' + I(ALN.ps) + '</b> suspensivas pendentes do 2.1 ficaram fora do alinhamento de 08/2026 (sem data, '
     + 'não aparecem no gráfico) — ' + BM(ALN.fora.reduce((s, r) => s + r[4], 0)) + ' de repasse. '
     + '<span class="aln-fora" role="button" tabindex="0">ver os contratos ⓘ</span>',
   aln: () => !ALN.n ? 'Nenhum contrato com data alinhada neste recorte.'
-    : (state.alnp === 'pend' ? 'Só pendentes. ' : '') + '<b>' + I(ALN.n) + '</b> &gt; <b>' + I(ALN.pc + ALN.ps)
+    : FN(1) + ' ' + (state.alnp === 'pend' ? 'Só pendentes. ' : '') + '<b>' + I(ALN.n) + '</b> &gt; <b>' + I(ALN.pc + ALN.ps)
       + '</b> pendentes: às <b>' + I(ALN.pc) + '</b> pendentes com data somam-se <b>' + I(ALN.ret) + '</b> já retiradas'
       + (ALN.canc ? ' e <b>' + I(ALN.canc) + '</b> cancelada' : '') + ' (a data vale após a retirada); <b>' + I(ALN.ps)
       + '</b> pendentes ficaram fora do alinhamento. '
@@ -1463,7 +1475,7 @@ const REFS = {
         ['+ já retiradas com data alinhada (a data vale depois da retirada)', '+ ' + I(ALN.ret)],
         ['+ canceladas com data alinhada', '+ ' + I(ALN.canc)],
         ['= contratos com data alinhada (bolinhas do gráfico)', I(ALN.n), 'tot'],
-      ]),
+      ], undefined, 0),
   ex1: (T) => {
     const t = T['t-ex1'];
     let s = 'Total = <b>' + I(t.sel) + '</b> Novo PAC Seleção + <b>' + I(t.mig) + '</b> migrados'
@@ -1481,21 +1493,21 @@ const REFS = {
   // 3.1: nota curta + quadro da conta (aparece ao passar o mouse) — das seleções OGU aos contratos do slide
   lic1: () => {
     const c = cadeiaOgu();
-    return 'De <b>' + I(c.sel) + '</b> seleções OGU (slide 1.1) a <b>' + I(c.ativos) + '</b> contratos OGU: migradas, seleções sem contrato, '
+    return FN(1) + ' De <b>' + I(c.sel) + '</b> seleções OGU (slide 1.1) a <b>' + I(c.ativos) + '</b> contratos OGU: migradas, seleções sem contrato, '
       + 'bln_pac = NÃO, sem modalidade e cancelados saem; contratos sem proposta ligada entram. ' + quadroOgu(c)
-      + ' · ' + quadroEmSusp('3.1') + ' · ' + quadroRegua('3.1') + ' · ' + quadroReguaHom('3.1');
+      + ' · ' + quadroEmSusp('3.1', 2) + ' · ' + quadroRegua('3.1', 3) + ' · ' + quadroReguaHom('3.1', 4);
   },
   susp1: () => {
     const c = cadeiaOgu();
     const fora = [c.excl ? '<b>' + I(c.excl) + '</b> com bln_pac = NÃO' : '', c.semmod ? '<b>' + I(c.semmod) + '</b> sem modalidade' + SEMMOD : '']
       .filter(Boolean);
-    return 'Base: <b>' + I(c.ativos) + '</b> contratos OGU do painelpac, sem cancelados' + (fora.length ? ' e sem ' + fora.join(' e ') : '')
+    return FN(2) + ' Base: <b>' + I(c.ativos) + '</b> contratos OGU do painelpac, sem cancelados' + (fora.length ? ' e sem ' + fora.join(' e ') : '')
     + '. ' + quadroOgu(c)
-    + ' · ' + quadroEmSusp('2.1');
+    + ' · ' + quadroEmSusp('2.1', 3);
   },
   ex2: (T) => {
     const t = T['t-ex2'], base = t.o[1] + t.o[2], nf = t.fn.s + t.fn.m;
-    return 'Médias simples só das <b>' + I(base) + '</b> em execução ou paralisadas com % informado: físico <b>' + I(nf)
+    return FN(1) + ' Médias simples só das <b>' + I(base) + '</b> em execução ou paralisadas com % informado: físico <b>' + I(nf)
       + '</b>' + (t.semfis ? ' (−' + I(t.semfis) + ')' : '') + ', financeiro <b>' + I(t.fin_n) + '</b>' + (t.semfin ? ' (' + I(t.semfin) + ' sem informação)' : '')
       + '; não iniciadas, concluídas e inacabadas ficam fora. '
       + quadroConta('Critérios do slide 5.1', [
@@ -1510,7 +1522,7 @@ const REFS = {
         ['% físico: do SACI; nos itens só do balanço, o do balanço (com % informado)', I(nf)],
         ['% financeiro: do SACI (com % informado)', I(t.fin_n)],
         ['Investimento paralisado: migradas pelo valor da base GM (pós-2023); demais pelo investimento do SACI', BM(t.vpar)],
-      ], 'critérios das médias');
+      ], 'critérios das médias', 2);
   },
 };
 
@@ -1651,7 +1663,7 @@ function aplicarFunil() {  // estado final (sem animação pendente)
     if (B.ghost) { B.ghost.style.height = a[0].h + 'px'; B.ghost.style.opacity = ''; }
     B.val.textContent = FUN.fmt(x.n);
     B.sec.textContent = x.sec;
-    B.nome.textContent = x.nome; B.det.textContent = x.det; B.el.title = x.title;
+    B.nome.innerHTML = x.nome + FN({ 'Seleções': 1, 'Contratos assinados': 2 }[x.nome]); B.det.textContent = x.det; B.el.title = x.title;
     if (i) { FUN.setas[i - 1].querySelector('.pc').textContent = x.conv; FUN.setas[i - 1].classList.remove('oculta'); }
   });
 }
@@ -1763,7 +1775,7 @@ function renderWaffle() {
   const escala = val ? 'R$ ' + I(un / 1e6) + ' mi' : '10 propostas';
   const o = [];
   o.push('<div class="waf-top"><div class="waf-tot' + (val ? ' rs' : '') + '"><div class="n">' + (val ? BM(tot) : I(tot)) + '</div><div class="l">'
-    + (val ? 'valor da carteira' : 'propostas na carteira') + '</div></div>'
+    + (val ? 'valor da carteira' : 'propostas na carteira') + FN(1) + '</div></div>'
     + '<div class="waf-faixa"><div class="waf-bar">' + seg('ogu', 'OGU', ogu(TOT), po) + seg('fin', 'FIN', fin(TOT), 100 - po) + '</div>'
     + '<div class="waf-bar-leg"' + (po >= 14 && po <= 86 ? ' hidden' : '') + '><span><i style="background:' + COR_OGU + '"></i>OGU <b>'
     + fmt(ogu(TOT)) + '</b> · ' + pc(ogu(TOT), tot) + '</span><span><i style="background:' + COR_FIN + '"></i>FIN <b>' + fmt(fin(TOT))
@@ -1860,7 +1872,7 @@ function renderRegua() {
   const lim2 = RG_LIM.slice(8, 10) + '/' + RG_LIM.slice(5, 7), ref2 = HOJE_ISO.slice(8, 10) + '/' + HOJE_ISO.slice(5, 7);
   const oque = H ? 'com edital e sem homologação' : 'sem edital publicado';
   o.push('<div class="rg-cab"><h3>' + (val ? soma(lista) + ' em ' + I(lista.length) + ' contratos ' + oque + ' · área do ponto ∝ repasse'
-    : I(lista.length) + ' contratos ' + oque + ' · 1 ponto = 1 contrato') + '</h3><div class="rg-leg">'
+    : I(lista.length) + ' contratos ' + oque + ' · 1 ponto = 1 contrato') + FN(1) + '</h3><div class="rg-leg">'
     + '<span><i style="background:' + RG_COR.vencido + '"></i>prazo vencido em ' + ref2 + '</span>'
     + '<span><i style="background:' + RG_COR.janela + '"></i>vence até ' + lim2 + '</span>'
     + '<span><i style="background:' + RG_COR.depois + '"></i>vence depois de ' + lim2 + '</span></div></div>');
@@ -1905,9 +1917,9 @@ function renderRegua() {
     }).join('');
     return '<div class="rg-barra"><span>' + rot + '</span><div class="rg-trilho">' + (tot ? segs : '') + '</div></div>';
   };
-  const comp = (tit, lista) => '<div class="rg-comp"><div class="rg-comp-t">' + tit + ' · ' + (val ? soma(lista) + ' em ' : '') + I(lista.length)
+  const comp = (tit, lista, n) => '<div class="rg-comp"><div class="rg-comp-t">' + tit + FN(n) + ' · ' + (val ? soma(lista) + ' em ' : '') + I(lista.length)
     + ' contratos com prazo</div>' + (lista.length ? barra('Antes', lista, 'antes') + barra('Agora', lista, 'agora') : '<p class="nota">Nenhum contrato nesta etapa.</p>') + '</div>';
-  o.push('<div class="rg-comps">' + comp('Publicação', pub) + comp('Homologação', hom) + '</div>');
+  o.push('<div class="rg-comps">' + comp('Publicação', pub, 2) + comp('Homologação', hom, 3) + '</div>');
   el.innerHTML = o.join('');
   // com muitos pontos (fim da licitação, valor), reduz o gráfico até caber na largura do slide
   const corpo = el.querySelector('.rg-corpo');
@@ -1958,10 +1970,10 @@ function renderAlinhamento() {
     ponte.innerHTML = bloco(ALN.ct, 'contratos OGU (2.1)')
       + seta('−' + I(ALN.sem) + ' sem susp. −' + I(ALN.ret21) + ' retiradas')
       + bloco(ALN.pc + ALN.ps, 'pendentes (2.1)')
-      + seta('−' + I(ALN.ps) + ' sem data')
+      + seta('−' + I(ALN.ps) + ' sem data' + FN(2))
       + bloco(ALN.pc, 'pendentes com data')
       + seta('+' + I(ALN.ret) + ' retiradas' + (ALN.canc ? ' +' + I(ALN.canc) + ' cancel.' : '') + ' com data')
-      + bloco(ALN.n, 'no gráfico', 'fim');
+      + bloco(ALN.n, 'no gráfico' + FN(1), 'fim');
   }
   const totMod = new Map();
   for (const g of lista) {
