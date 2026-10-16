@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.21'  # subir a cada commit que altere a apresentação
+VERSAO = '1.22'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -49,6 +49,7 @@ HISTORICO = [
     ('1.19', 'Slide 1.2: ícone no canto superior direito do cartão, maior.'),
     ('1.20', 'Slide 1.2: ícone das modalidades ainda maior.'),
     ('1.21', 'Slide 2.2: clicar numa bolinha abre a lista dos contratos do grupo, com link para o SACI.'),
+    ('1.22', 'Extração de 16/10: 55 contratos da SNP saíram da fase Novo PAC no SACI (já estavam fora das contas).'),
 ]
 
 D = dados.load()
