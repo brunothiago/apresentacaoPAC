@@ -7,7 +7,7 @@ Secretaria-Executiva, com o caminho da carteira em cinco etapas (slides numerado
 |---|---|---|
 | 01 Seleção | Carteira de seleções (migradas + novas) · Painel de quadrados por modalidade e fonte | `se_cgpac.tab_base_unica_gm` (painelgm) |
 | 02 Suspensivas | Cláusulas suspensivas OGU · Alinhamento das suspensivas (DMP 08/2026) | consulta OGU do painelpac |
-| 03 Licitação | Etapa atual dos contratos OGU · Prazos do art. 36-A | consulta OGU do painelpac |
+| 03 Licitação | Etapa atual dos contratos OGU · Régua do prazo: antes × agora (art. 36-A) | consulta OGU do painelpac |
 | 04 Contratação | Selecionado × contratado · Situação dos contratos assinados · Da seleção à obra (gráfico de blocos) | base GM × `se_saci.view_mat_carteira_investimento` |
 | 05 Execução | Situação das obras · Execução média e paralisações | `se_saci.view_mat_carteira_investimento` |
 
@@ -25,6 +25,8 @@ Abra **`index.html`** em qualquer navegador. Não precisa de servidor.
 - Slide 2.2 (alinhamento): **Tamanho** Repasse / Contratos (com Repasse, a bolha mostra o valor somado) e
   **Mostrar** Todos / Só pendentes (`?aln=n&alnp=pend`).
 - Rodapé com a numeração **N/total**.
+- Slide 3.2 (régua do prazo, porte do `regua-licitacao.js` do painelpac): **Medida** Quantidade / Valor
+  (`?rmed=valor`) — 1 ponto = 1 contrato, ou área do ponto ∝ repasse.
 - Slide 4.3 (da seleção à obra): **Medida** Quantidade / Valor e **Exibir** Total / %
   (`?med=valor&modo=pct`). Seleções → contratos assinados → obras iniciadas → concluídas;
   valor das seleções pela portaria e dos contratos pelo repasse/financiamento do SACI.

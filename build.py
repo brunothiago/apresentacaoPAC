@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.15'  # subir a cada commit que altere a apresentação
+VERSAO = '1.16'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -43,6 +43,7 @@ HISTORICO = [
     ('1.13', 'Trilha das etapas na linha de baixo de cada slide: a etapa atual em destaque, as demais como marca d\'água.'),
     ('1.14', 'A mesma trilha das etapas também na linha de cima dos slides.'),
     ('1.15', 'Slide 2.2: mais espaço entre as linhas das modalidades.'),
+    ('1.16', 'Slide 3.2 vira a régua do prazo da licitação (antes × agora, 1 ponto = 1 contrato), com Quantidade/Valor.'),
 ]
 
 D = dados.load()
@@ -152,6 +153,18 @@ for _, r in D['ogu'].iterrows():
                '' if pd.isna(r.dt_alinhamento) else f'{r.dt_alinhamento:%Y-%m-%d}',
                1 if str(r.num_proposta_selecao_pac_saci).strip() in PROP_SEL_OGU else 0,
                1 if r.dsc_situacao_contrato_mcid_saci == 'Em Contratação' else 0, 1 if r.excl else 0])
+
+# régua do prazo da licitação (3.2, porte do regua-licitacao.js do painelpac): contratos OGU em
+# "Contratado - Normal" — [mod, uf, kind, ano, repasse, fora do PAC, prazo legal pub (LAE+60), prazo efetivo pub,
+#  edital publicado, prazo legal hom (pub+120), prazo efetivo hom, homologada, assinatura, convênio, município, TCI]
+_iso = lambda v: '' if pd.isna(v) else f'{pd.Timestamp(v):%Y-%m-%d}'
+_mun = D['saci'].set_index('cod_tci').txt_municipio
+RG = []
+for _, r in D['ogu'][D['ogu'].dsc_situacao_contrato_mcid_saci == 'Contratado - Normal'].iterrows():
+    RG.append([MODS.index(r['mod']), r.uf, int(r.kind), r.ano, num(r.vlr_repasse_saci), 1 if r.excl else 0,
+               _iso(r.prazo_pub_licitacao_36a_calc), _iso(r.prazo_pub_licitacao_calc), 0 if pd.isna(r.dte_publicacao_licitacao_tgov) else 1,
+               _iso(r.prazo_homolog_licitacao_120d), _iso(r.prazo_homolog_licitacao_calc), 0 if pd.isna(r.dte_homologacao_licitacao_tgov) else 1,
+               _iso(r.dte_assinatura_contrato_saci), str(r.num_convenio_saci or ''), str(_mun.get(r.cod_tci_saci, '') or ''), r.cod_tci_saci])
 
 ANOS = sorted({r[6] for r in SEL if r[6]})
 ufs = sorted(({r[2] for r in SEL} | {r[2] for r in CT} | {r[1] for r in OG}) - {'BR', ''})
@@ -277,6 +290,38 @@ EXTRA_CSS = """
   .waf-fin span{ font-size:15px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); }
   .waf-fin b{ font-size:26px; font-weight:800; color:var(--navy); font-variant-numeric:tabular-nums; }
   .waf-fin .t b{ color:var(--accent-deep); }
+  /* 3.2 · régua do prazo da licitação */
+  .rg-regra{ margin:2px 0 10px; }
+  .rg-kicker{ display:block; font-size:13px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px; }
+  .rg-trilha{ display:flex; align-items:center; gap:6px; }
+  .rg-etapa{ flex:none; font-size:15px; font-weight:700; padding:5px 10px; border-radius:3px; color:#fff; white-space:nowrap; }
+  .rg-etapa.escuro{ background:#344054; } .rg-etapa.verde{ background:#1F7A4D; } .rg-etapa.azul{ background:#1351B4; }
+  .rg-trecho{ flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; font-size:13px; color:var(--ink-soft); line-height:1.15; }
+  .rg-trecho b{ font-weight:800; color:var(--navy); white-space:nowrap; } .rg-trecho em{ font-style:normal; font-size:12px; }
+  .rg-trecho i{ display:block; width:100%; height:2px; margin:2px 0; background:#1F7A4D; }
+  .rg-trecho.azul i{ background:#1351B4; } .rg-trecho.neutro i{ background:var(--line-strong); }
+  .rg-cab{ display:flex; justify-content:space-between; align-items:baseline; gap:20px; margin-bottom:4px; }
+  .rg-cab h3{ margin:0; font-size:20px; font-weight:800; color:var(--navy); }
+  .rg-leg{ display:flex; gap:18px; font-size:15px; color:var(--ink-soft); }
+  .rg-leg i{ display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:6px; vertical-align:-1px; }
+  .rg-corpo{ display:grid; grid-template-columns:auto 110px auto; justify-content:center; align-items:end; gap:24px; }
+  .rg-tit{ font-size:14px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:4px; }
+  .rg-colunas{ display:flex; align-items:flex-end; gap:14px; min-height:250px; }
+  .rg-col{ display:flex; flex-direction:column; align-items:center; }
+  .rg-n{ font-size:15px; font-weight:800; color:var(--navy); font-variant-numeric:tabular-nums; margin-bottom:3px; white-space:nowrap; }
+  .rg-pilha{ display:flex; flex-wrap:wrap-reverse; justify-content:center; align-items:center; gap:4px; }
+  .rg-base{ width:100%; min-width:30px; height:2px; background:var(--line-strong); margin-top:4px; }
+  .rg-lab{ font-size:13px; font-weight:700; color:var(--ink-soft); margin-top:3px; white-space:nowrap; }
+  .rg-col.dest .rg-lab{ color:#B45309; } .rg-col.dest .rg-base{ background:#B45309; height:3px; }
+  .rg-dot{ display:inline-block; border-radius:50%; flex:none; }
+  .rg-dot.anel{ box-shadow:0 0 0 2px #fff, 0 0 0 4px #B42318; }
+  .rg-obs{ font-size:13px; color:var(--ink-soft); margin-top:6px; } .rg-obs .rg-dot{ width:11px; height:11px; margin:0 8px 0 4px; vertical-align:-1px; }
+  .rg-seta{ align-self:center; color:var(--ink-soft); } .rg-seta svg{ width:100px; height:22px; stroke:var(--ink-soft); fill:none; stroke-width:2; }
+  .rg-comps{ display:grid; grid-template-columns:1fr 1fr; gap:30px; margin-top:12px; }
+  .rg-comp-t{ font-size:14px; font-weight:800; letter-spacing:.04em; color:var(--navy); margin-bottom:4px; }
+  .rg-barra{ display:grid; grid-template-columns:56px 1fr; align-items:center; gap:8px; margin-top:4px; font-size:14px; color:var(--ink-soft); }
+  .rg-trilho{ display:flex; gap:2px; height:24px; border-radius:3px; overflow:hidden; background:#EEF1F5; }
+  .rg-seg{ display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:800; min-width:0; overflow:hidden; white-space:nowrap; }
   .alin{ margin-top:4px; }
   .alin svg{ display:block; width:100%; height:auto; }
   .alin-leg{ display:flex; gap:28px; font-size:16px; color:var(--ink-soft); margin-top:6px; }
@@ -549,6 +594,27 @@ def slide_waffle(etapa, n, titulo, legenda, atualizado, fonte, dek=''):
 """)
 
 
+def slide_regua(etapa, n, titulo, legenda, atualizado, fonte):
+    """régua do prazo da licitação (art. 36-A) — regra estática + pontos e barras montados no render() do JS."""
+    extra = radio('Medida', 'rmed', [('qtd', 'Quantidade'), ('valor', 'Valor')])
+    passo = lambda t, cls: f'<span class="rg-etapa {cls}">{t}</span>'
+    trecho = lambda p, b, cls: f'<span class="rg-trecho {cls}"><b>{p}</b><i></i><em>{b}</em></span>'
+    regra = ('<div class="rg-regra"><span class="rg-kicker">A regra · art. 36-A da PC 32/2024 (incluído pela PC 48/2026)</span>'
+             '<div class="rg-trilha">' + passo('LAE', 'escuro') + trecho('até 60 dias', 'caput', 'verde') + passo('Edital publicado', 'verde')
+             + trecho('até 120 dias', '§ 1º', 'verde') + passo('Licitação homologada', 'verde') + trecho('VRPL', '', 'neutro')
+             + passo('AIO', 'azul') + trecho('10 dias úteis', '§ 4º', 'azul') + passo('Ordem de serviço', 'azul') + '</div></div>')
+    return (cabeca(etapa, n, titulo, 'g-regua', so_ogu=True, extra=extra)
+            + f"""
+        {tmeta(atualizado, legenda, so_ogu=True)}
+        {regra}
+        <div class="rg" id="g-regua"></div>
+        <p class="nota"><span data-ref="reg"></span></p>
+      </div>
+    </div>
+{foot(fonte, etapa)}  </section>
+""")
+
+
 def slide_alinhamento(etapa, n, titulo, legenda, atualizado, fonte, dek='', kpis=None):
     """linha do tempo do alinhamento das suspensivas (gráfico do painelpac) — montada no render() do JS."""
     extra = (radio('Tamanho', 'aln', [('vlr', 'Repasse'), ('n', 'Contratos')])
@@ -642,11 +708,8 @@ SLIDES = f"""
        'Contagem: contratos OGU do Novo PAC Seleção, sem cancelados — etapa mais avançada', AT_PAC, SRC_PAC,
        kpis=[('Aguardando licitação',), ('Edital publicado',), ('Homologada até AIO',), ('Obra iniciada', '', 'ok')], so_ogu=True,
        nota='<span data-ref="lic1"></span>')}
-{slide(3, 2, 'Prazos da licitação — art. 36-A', 't-lic2',
-       [('Publicação do edital', ['Publicado', 'No prazo', 'Vence em<br>30 dias', 'Vencido']), ('Homologação', ['Homologada', 'No prazo', 'Vence em<br>30 dias', 'Vencido'])],
-       'Contagem: contratos OGU assinados após a PC 72/2025, com LAE', AT_PAC, SRC_PAC, so_ogu=True,
-       dek='Publicação em até 60 dias da LAE e homologação em até 120 dias da publicação — data-limite de 30/10/2026.',
-       nota=f'Prazos vencidos ou vencendo antes de 30/10/2026 passam para 30/10/2026 (regra do painelpac). Situação em {EXTRAIDO:%d/%m/%Y}.')}
+{slide_regua(3, 2, 'Régua do prazo: antes × agora',
+       'Contagem: contratos OGU em Contratado - Normal, sem edital publicado', AT_PAC, SRC_PAC)}
 {slide(4, 1, 'Selecionado × contratado', 't-ct1',
        ['Seleções', 'Contratos<br>assinados', 'Em<br>contratação', 'Cancelados /<br>distratados', '% assinado', 'Investimento<br>assinado (R$ mi)'],
        'Contagem: novas seleções (GM) × contratos do Novo PAC Seleção (SACI)', AT_CT, 'base única GM e ' + SRC_SACI,
@@ -792,6 +855,8 @@ const CT = __CT__;
 //   2 ≤30 dias · 3 vencido · fase = índice em FASES · pub/hom 0 n/a · 1 concluída · 2 no prazo ·
 //   3 ≤30 dias · 4 vencida
 const OG = __OG__;
+// régua do 3.2 (contratos OGU em Contratado - Normal)
+const RG = __RG__;
 // itens do balanço sem contrato na carteira (mesmo formato do CT; sem SNH, ativos)
 const BX = __BX__;
 
@@ -801,6 +866,7 @@ const SRC = {
   ct:  { rows: CT,  uf: 2, kind: 3, ano: 4, fon: 1, ex: 14 },
   bx:  { rows: BX,  uf: 2, kind: 3, ano: 4, fon: 1 },
   og:  { rows: OG,  uf: 1, kind: 2, ano: 3, ex: 16 },
+  rg:  { rows: RG,  uf: 1, kind: 2, ano: 3, ex: 5 },
 };
 
 const fmtInt = new Intl.NumberFormat('pt-BR');
@@ -875,12 +941,6 @@ const TABLES = [
     init: () => ({ n: 0, f: [0, 0, 0, 0, 0, 0, 0] }),
     cols: (a) => a.f.map((v, i) => i === 6 ? H(v) : I(v)).concat([H(a.n)]),
     kpis: (t) => [I(t.f[0] + t.f[1] + t.f[2]), I(t.f[3]), I(t.f[4] + t.f[5]), I(t.f[6]) + ' · ' + P(t.f[6], t.n)] },
-
-  { id: 't-lic2', parts: [{ src: 'og', keep: (r) => !r[5] && (r[10] || r[11]), add: (a, r) => {
-      a.n++; if (r[10]) a.p[r[10]]++; if (r[11]) a.h[r[11]]++; } }],
-    init: () => ({ n: 0, p: [0, 0, 0, 0, 0], h: [0, 0, 0, 0, 0] }),
-    cols: (a) => [H(a.p[1]), I(a.p[2]), I(a.p[3]), A(a.p[4]),
-                  H(a.h[1]), I(a.h[2]), I(a.h[3]), A(a.h[4])] },
 
   { id: 't-ct1', parts: [
       { src: 'sel', keep: (r) => r[3] >= 1, add: (a, r) => { a.n++; a.sel++; } },
@@ -968,6 +1028,9 @@ const REFS = {
     + (comBal() ? ' Obra: SACI + balanço jun/26, com <b>' + I(FUN.bx) + '</b> itens só no balanço (valor: total previsto Novo PAC).' : '')
     + (state.c95 === '1' ? ' Concluídas: + iniciadas com ≥ 95% físico' + (comBal() ? ' (SACI ou balanço)' : '') + '.' : '')
     + (state.gmig ? ' Migradas pelo valor da base GM (pós-2023).' : ''),
+  reg: () => 'Contratos OGU em Contratado - Normal (como no painelpac). Prazo efetivo = o maior entre o legal e 30/10/2026; '
+    + 'antes × agora na data da extração. Ficam de fora <b>' + I(RGN.pc72) + '</b> sem prazo (PC 72, assinados antes de 21/10/2025), <b>'
+    + I(RGN.semLae) + '</b> sem LAE' + (RGN.excl ? ' e <b>' + I(RGN.excl) + '</b> com bln_pac = NÃO' : '') + '. Clique num ponto para abrir no SACI.',
   aln: () => !ALN.n ? 'Nenhum contrato com data alinhada neste recorte.'
     : (state.alnp === 'pend' ? 'Só pendentes. ' : '') + '<b>' + I(ALN.n) + '</b> com data alinhada = <b>' + I(ALN.pc)
       + '</b> pendentes + <b>' + I(ALN.ret) + '</b> já retiradas' + (ALN.canc ? ' + <b>' + I(ALN.canc) + '</b> cancelado(s)' : '')
@@ -1007,7 +1070,7 @@ const REFS = {
 // conta como concluída também a obra iniciada com ≥ 95% de execução física
 const state = { uf: '', sel: true, enq: true, ogu: true, fin: true, mig: true, nov: true,
                 gmig: false, gnov: true, anos: {}, pct1: '0', med: 'qtd', modo: 'tot', c95: '0', aln: 'vlr',
-                sitobra: 'bal', alnp: 'todos', wmed: 'qtd', wmodo: 'tot' };
+                sitobra: 'bal', alnp: 'todos', wmed: 'qtd', wmodo: 'tot', rmed: 'qtd' };
 const PAR = { sel: 'enq', enq: 'sel', ogu: 'fin', fin: 'ogu', mig: 'nov', nov: 'mig', gmig: 'gnov', gnov: 'gmig' };
 const ORIGENS = ['', 'g'];  // prefixos das chaves de origem
 ANOS.forEach((a) => { state.anos[a] = true; });
@@ -1282,6 +1345,97 @@ function animarWaffle() {
   WAF.timer = setTimeout(() => el.classList.remove('anim'), 70 * 35 + 900);  // último quadrado + duração
 }
 
+// ---- 3.2 · régua do prazo da licitação (porte do regua-licitacao.js do painelpac). Antes = prazo legal
+// (LAE + 60 / publicação + 120); agora = prazo efetivo (o maior entre o legal e a data-limite de 30/10/2026),
+// os dois classificados na data da extração. Medida: 1 ponto = 1 contrato ou ponto com área ∝ repasse.
+const RG_LIM = '2026-10-30', RG_PC72 = '2025-10-21';
+const RG_COR = { vencido: '#B42318', janela: '#B45309', depois: '#356C8C' };
+const RGN = { pub: 0, pc72: 0, semLae: 0, resg: 0, hom: 0, excl: 0 };
+function renderRegua() {
+  const el = document.getElementById('g-regua');
+  if (!el) return;
+  const ref = dUTC(HOJE_ISO), lim = dUTC(RG_LIM), corte = dUTC(RG_PC72);
+  const faixa = (iso) => { const t = dUTC(iso); return t < ref ? 'vencido' : (t <= lim ? 'janela' : 'depois'); };
+  const efet = (legal, calc) => (calc || (dUTC(legal) < lim ? RG_LIM : legal));
+  const pub = [], hom = [];
+  Object.assign(RGN, { pub: 0, pc72: 0, semLae: 0, resg: 0, hom: 0, excl: 0 });
+  for (const r of RG) {
+    if (!passa(SRC.rg, r, { excl: true })) continue;
+    if (r[5]) { if (!r[8]) RGN.excl++; continue; }                     // fora do PAC (bln_pac = NÃO)
+    const pc72 = r[12] && dUTC(r[12]) < corte;
+    if (!r[8]) {
+      if (pc72) { RGN.pc72++; continue; }
+      if (!r[6]) { RGN.semLae++; continue; }
+      const ef = efet(r[6], r[7]);
+      pub.push({ r, legal: r[6], ef, antes: faixa(r[6]), agora: faixa(ef) });
+    } else if (!r[11]) {
+      if (pc72 || !r[9]) continue;
+      const ef = efet(r[9], r[10]);
+      hom.push({ r, legal: r[9], ef, antes: faixa(r[9]), agora: faixa(ef) });
+    }
+  }
+  RGN.pub = pub.length; RGN.hom = hom.length;
+  const val = state.rmed === 'valor';
+  const vmax = Math.max(1, ...pub.map((it) => it.r[4] || 0));
+  const tam = (it) => (val ? Math.round(8 + 24 * Math.sqrt((it.r[4] || 0) / vmax)) : 17);
+  const soma = (l) => (val ? BM(l.reduce((s, it) => s + (it.r[4] || 0), 0)) : I(l.length));
+  const br = (iso) => iso.slice(8, 10) + '/' + iso.slice(5, 7) + '/' + iso.slice(0, 4);
+  const ponto = (it, cor, anel) => {
+    const r = it.r, t = [r[13], [r[14], r[1]].filter(Boolean).join('/'), 'prazo legal ' + br(it.legal)]
+      .concat(it.ef !== it.legal ? ['efetivo ' + br(it.ef)] : []).concat(val ? [BM(r[4] || 0)] : []).filter(Boolean).join(' · ');
+    return '<a class="rg-dot' + (anel ? ' anel' : '') + '" style="background:' + cor + ';width:' + tam(it) + 'px;height:' + tam(it)
+      + 'px" title="' + t + ' · abrir no SACI" href="https://saci.cidades.gov.br/contratos/' + encodeURIComponent(r[15]) + '" target="_blank" rel="noopener"></a>';
+  };
+  const coluna = (rot, lista, html, larg, dest) => '<div class="rg-col' + (dest ? ' dest' : '') + '"><span class="rg-n">' + soma(lista)
+    + '</span><div class="rg-pilha" style="width:' + larg + 'px">' + html + '</div><div class="rg-base"></div><span class="rg-lab">' + rot + '</span></div>';
+  const ordem = { vencido: 0, janela: 1, depois: 2 };
+  const L = (n) => (val ? n * 32 : n * 21);  // largura da pilha para n pontos por linha
+  const o = [];
+  const lim2 = RG_LIM.slice(8, 10) + '/' + RG_LIM.slice(5, 7), ref2 = HOJE_ISO.slice(8, 10) + '/' + HOJE_ISO.slice(5, 7);
+  o.push('<div class="rg-cab"><h3>' + (val ? soma(pub) + ' em ' + I(pub.length) + ' contratos sem edital publicado · área do ponto ∝ repasse'
+    : I(pub.length) + ' contratos sem edital publicado · 1 ponto = 1 contrato') + '</h3><div class="rg-leg">'
+    + '<span><i style="background:' + RG_COR.vencido + '"></i>prazo vencido em ' + ref2 + '</span>'
+    + '<span><i style="background:' + RG_COR.janela + '"></i>vence até ' + lim2 + '</span>'
+    + '<span><i style="background:' + RG_COR.depois + '"></i>vence depois de ' + lim2 + '</span></div></div>');
+  if (!pub.length) o.push('<p class="nota">Nenhum contrato aguardando publicação com prazo calculado neste recorte.</p>');
+  else {
+    const meses = pub.map((it) => +it.legal.slice(0, 4) * 12 + (+it.legal.slice(5, 7) - 1));
+    const m0 = Math.min(...meses), m1 = Math.max(...meses);
+    const cols = [];
+    for (let m = m0; m <= m1; m++) {
+      const ano = Math.floor(m / 12), mes = m % 12;
+      const doMes = pub.filter((it) => +it.legal.slice(0, 4) === ano && +it.legal.slice(5, 7) - 1 === mes)
+        .sort((a, b) => ordem[a.antes] - ordem[b.antes] || (a.legal < b.legal ? -1 : 1));
+      cols.push(coluna(MESES[mes] + (mes === 0 || m === m0 ? '/' + String(ano).slice(2) : ''), doMes,
+        doMes.map((it) => ponto(it, RG_COR[it.antes])).join(''), L(4)));
+    }
+    const g = (k) => pub.filter((it) => it.agora === k);
+    const venc = g('vencido'), noLim = g('janela').sort((a, b) => ordem[a.antes] - ordem[b.antes]), dep = g('depois');
+    RGN.resg = noLim.filter((it) => it.antes === 'vencido').length;
+    const ag = [];
+    if (venc.length) ag.push(coluna('vencidas', venc, venc.map((it) => ponto(it, RG_COR.vencido)).join(''), L(4)));
+    if (noLim.length) ag.push(coluna(lim2, noLim, noLim.map((it) => ponto(it, RG_COR.janela, it.antes === 'vencido')).join(''), L(noLim.length > 40 ? 10 : 6), true));
+    if (dep.length) ag.push(coluna('depois', dep, dep.map((it) => ponto(it, RG_COR.depois)).join(''), L(3)));
+    o.push('<div class="rg-corpo"><div class="rg-lado"><div class="rg-tit">Antes · mês do prazo legal (LAE + 60 dias)</div><div class="rg-colunas">'
+      + cols.join('') + '</div></div><div class="rg-seta">' + SETA + '</div><div class="rg-lado"><div class="rg-tit">Agora · prazo efetivo</div><div class="rg-colunas">'
+      + ag.join('') + '</div>' + (RGN.resg ? '<div class="rg-obs"><i class="rg-dot anel" style="background:' + RG_COR.janela + '"></i>anel vermelho: estava vencido e ganhou até 30/10/2026 (<b>'
+      + I(RGN.resg) + '</b>)</div>' : '') + '</div></div>');
+  }
+  // antes × agora, nas duas etapas
+  const barra = (rot, lista, k) => {
+    const tot = lista.reduce((s, it) => s + (val ? it.r[4] || 0 : 1), 0);
+    const segs = ['vencido', 'janela', 'depois'].map((f) => {
+      const sub = lista.filter((it) => it[k] === f), v = sub.reduce((s, it) => s + (val ? it.r[4] || 0 : 1), 0);
+      return v ? '<div class="rg-seg" style="flex:' + v + ' 1 0;background:' + RG_COR[f] + '" title="' + soma(sub) + '">' + soma(sub) + '</div>' : '';
+    }).join('');
+    return '<div class="rg-barra"><span>' + rot + '</span><div class="rg-trilho">' + (tot ? segs : '') + '</div></div>';
+  };
+  const comp = (tit, lista) => '<div class="rg-comp"><div class="rg-comp-t">' + tit + ' · ' + (val ? soma(lista) + ' em ' : '') + I(lista.length)
+    + ' contratos com prazo</div>' + (lista.length ? barra('Antes', lista, 'antes') + barra('Agora', lista, 'agora') : '<p class="nota">Nenhum contrato nesta etapa.</p>') + '</div>';
+  o.push('<div class="rg-comps">' + comp('Publicação', pub) + comp('Homologação', hom) + '</div>');
+  el.innerHTML = o.join('');
+}
+
 // ---- 2.2 · alinhamento das suspensivas (DMP, 08/2026) — porte do alinhamento-timeline.js do painelpac:
 // uma linha por modalidade, um círculo por data alinhada (área ∝ repasse ou nº de contratos) e o anel
 // verde com a fatia já retirada. A data é fixa: o gráfico parte de todos os contratos com data.
@@ -1451,6 +1605,7 @@ function render() {
   renderFunil();
   renderAlinhamento();
   renderWaffle();
+  renderRegua();
   ORIGENS.forEach((sf) => {
     const m = state[sf + 'mig'], n = state[sf + 'nov'];
     const txt = m && n ? 'migradas + novas' : (m ? 'somente migradas' : 'somente novas');
@@ -1500,6 +1655,7 @@ function render() {
   if (params.get('alnp') === 'pend') state.alnp = 'pend';
   if (params.get('wmed') === 'valor') state.wmed = 'valor';
   if (params.get('wmodo') === 'pct') state.wmodo = 'pct';
+  if (params.get('rmed') === 'valor') state.rmed = 'valor';
   if (params.get('obra') === 'saci') state.sitobra = 'saci';
   if (params.get('pct') === '1') state.pct1 = '1';
   if (params.get('med') === 'valor') state.med = 'valor';
@@ -1646,7 +1802,7 @@ function render() {
       const filtrado = state.uf !== '' || !state.sel || !state.enq || !state.ogu || !state.fin
         || !state.mig || !state.nov || state.pct1 !== '0' || state.med !== 'qtd' || state.modo !== 'tot'
         || state.gmig || !state.gnov || state.c95 !== '0' || state.aln !== 'vlr' || state.alnp !== 'todos' || state.sitobra !== 'bal'
-        || state.wmed !== 'qtd' || state.wmodo !== 'tot'
+        || state.wmed !== 'qtd' || state.wmodo !== 'tot' || state.rmed !== 'qtd'
         || ANOS.some((a) => !state.anos[a]);
       if (!filtrado) return;
       e.preventDefault();
@@ -1687,7 +1843,7 @@ def js(v):
 
 
 app_js = (APP_JS.replace('__MODS__', js(MODS)).replace('__ANOS__', js(ANOS)).replace('__HOJE__', js(f'{HOJE:%Y-%m-%d}'))
-          .replace('__SEL__', js(SEL)).replace('__CT__', js(CT)).replace('__OG__', js(OG)).replace('__BX__', js(BX)))
+          .replace('__SEL__', js(SEL)).replace('__CT__', js(CT)).replace('__OG__', js(OG)).replace('__BX__', js(BX)).replace('__RG__', js(RG)))
 
 SLIDES = SLIDES.replace('__NSLIDES__', f"{SLIDES.count('<section '):02d}")
 html = (HEAD + SLIDES
