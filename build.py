@@ -24,7 +24,10 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.35'  # subir a cada commit que altere a apresentação
+VERSAO = '1.36'
+# "Situação das obras" (antigo 5.1) fora da apresentação até a revisão das inconsistências; False traz de volta
+# (renumerar: "Execução média" é o 5.1 e o funil "Da seleção à obra" o 5.2 — o slide volta como 5.1 e os outros sobem)
+OCULTAR_SITUACAO_OBRAS = True  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -63,6 +66,7 @@ HISTORICO = [
     ('1.33', 'Slide 2.2: situação atual (SACI, ou PBI se vazia) na lista das pendentes fora do alinhamento.'),
     ('1.34', 'Slide 3.1: faixa no topo fechando o total (a concluir a licitação + homologadas + obras) e conta do edital até a régua.'),
     ('1.35', 'Slides 4.1 e 4.2: conta das 3.507 propostas até os contratos assinados (quantidade e valor) e das 338 em suspensiva até as 294 do 2.1.'),
+    ('1.36', '"Da seleção à obra" passa a ser o último slide da Execução (5.2); "Situação das obras" fica oculto até a revisão.'),
 ]
 
 D = dados.load()
@@ -882,21 +886,21 @@ SLIDES = f"""
        'Contagem: contratos assinados do Novo PAC Seleção (SACI)', AT_SACI, SRC_SACI,
        kpis=[('Assinados',), ('Normal', '', 'ok'), ('Em suspensiva', '', 'alerta'), ('Repasse / financiamento',)],
        nota='* Outros: em TCE, liminar e em prestação de contas. <span data-ref="ct2"></span>')}
-{slide_transicao(4, 3, 'Da seleção à obra',
-       'Contagem: seleções (GM) × contratos do Novo PAC Seleção / Migrado (SACI)', AT_CT, f'base GM, SACI e Balanço Governa ({DT_BAL})',
-       dek='Quanto das seleções já virou contrato assinado, obra iniciada e obra concluída.',
-       nota='<span data-ref="g43"></span> Valor: seleções pela portaria; contratos pelo repasse do SACI. '
-            'Setas: conversão sobre o bloco anterior.')}
-{slide(5, 1, 'Situação das obras', 't-ex1',
+{'' if OCULTAR_SITUACAO_OBRAS else slide(5, 1, 'Situação das obras', 't-ex1',
        ['Não<br>iniciada', 'Em<br>execução', 'Paralisada', 'Concluída', 'Inacabada', 'Total', '% concluída'],
        'Contagem: contratos do Novo PAC Seleção + Migrado (SACI), sem cancelados', AT_SACI, SRC_EXEC,
        kpis=[('Em execução',), ('Paralisadas', '', 'alerta'), ('Concluídas', '', 'ok'), ('Não iniciadas',)],
        nota='<span data-ref="ex1"></span>', extra=SIT_OBRA())}
-{slide(5, 2, 'Execução média e paralisações', 't-ex2',
+{slide(5, 1, 'Execução média e paralisações', 't-ex2',
        [('% físico médio', ['Novas<br>seleções', 'Migradas', 'Total']), '% financeiro<br>médio', 'Paralisadas', 'Investimento<br>paralisado (R$ mi)', 'Concluídas'],
        'Médias: obras em execução ou paralisadas (média simples por contrato)', AT_SACI, SRC_EXEC, extra=SIT_OBRA(),
        kpis=[('% físico médio',), ('% financeiro médio',), ('Paralisadas', '', 'alerta'), ('Investimento paralisado', '', 'alerta')],
        nota='<span data-ref="ex2"></span>')}
+{slide_transicao(5, 2, 'Da seleção à obra',
+       'Contagem: seleções (GM) × contratos do Novo PAC Seleção / Migrado (SACI)', AT_CT, f'base GM, SACI e Balanço Governa ({DT_BAL})',
+       dek='Quanto das seleções já virou contrato assinado, obra iniciada e obra concluída.',
+       nota='<span data-ref="g43"></span> Valor: seleções pela portaria; contratos pelo repasse do SACI. '
+            'Setas: conversão sobre o bloco anterior.')}
 
   <!-- ============ ENCERRAMENTO ============ -->
   <section class="p2 dark" data-label="Encerramento">
@@ -2091,6 +2095,7 @@ function render() {
     const body = [];
     acc.forEach((a, i) => { if (a.n) body.push('<tr><td>' + MODS[i] + '</td>' + t.cols(a, tot).map(td).join('') + '</tr>'); });
     const tb = document.querySelector('#' + t.id + ' tbody');
+    if (!tb) continue;  // slide oculto
     const ncols = document.querySelectorAll('#' + t.id + ' thead tr:last-child th').length;
     if (!body.length) {
       tb.innerHTML = '<tr><td class="empty" colspan="' + ncols + '">Sem registros neste recorte.</td></tr>';
