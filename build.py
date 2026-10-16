@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.34'  # subir a cada commit que altere a apresentação
+VERSAO = '1.35'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -62,6 +62,7 @@ HISTORICO = [
     ('1.32', 'Slide 2.2: segunda nota com a lista das pendentes fora do alinhamento (clique), como nas bolinhas.'),
     ('1.33', 'Slide 2.2: situação atual (SACI, ou PBI se vazia) na lista das pendentes fora do alinhamento.'),
     ('1.34', 'Slide 3.1: faixa no topo fechando o total (a concluir a licitação + homologadas + obras) e conta do edital até a régua.'),
+    ('1.35', 'Slides 4.1 e 4.2: conta das 3.507 propostas até os contratos assinados (quantidade e valor) e das 338 em suspensiva até as 294 do 2.1.'),
 ]
 
 D = dados.load()
@@ -147,20 +148,38 @@ _prop = lambda x: x.astype(str).str.strip()
 PROP_SEL_OGU = set(_prop(D['sel'].loc[D['sel'].fonte == 'OGU', 'num_proposta_selecao']))
 PROP_CT_OGU = set(_prop(D['ogu'].num_proposta_selecao_pac_saci.dropna()))
 
-# seleção: [mod, fonte, uf, kind, ogu, fin, ano, tem contrato OGU (só nas novas OGU)]
+# seleção: [mod, fonte, uf, kind, ogu, fin, ano, tem contrato OGU (só nas novas OGU), melhor contrato (0–3)]
 #           kind 0 migrada · 1 selecionada · 2 enquadrada
+# melhor situação de contrato de cada nova seleção (0 sem contrato · 1 só cancelado · 2 em contratação · 3 assinado)
+# e se o contrato está ligado a alguma seleção — a conta do 4.1 (das 3.507 propostas aos contratos assinados)
+_c = D['saci'][(D['saci'].kind >= 1) & ~D['saci'].excl & ~D['saci'].semmod].copy()
+_c['pf'] = _prop(_c.num_proposta_selecao_pac) + '|' + _c.txt_fonte.astype(str).str.upper()
+_c['pp'] = _prop(_c.num_proposta_selecao_pac)
+_c['rk'] = _c.dsc_situacao_contrato_mcid.map(lambda x: 1 if x == 'Cancelado ou Distratado' else 2 if x == 'Em Contratação' else 3)
+_spf = set(_prop(D['sel'].num_proposta_selecao) + '|' + D['sel'].fonte.astype(str).str.upper())
+_spp = set(_prop(D['sel'].num_proposta_selecao))
+RK_PF = _c.groupby('pf').rk.max().to_dict()
+RK_PP = _c[~_c.pf.isin(_spf)].groupby('pp').rk.max().to_dict()  # contratos que só casam pela proposta
+CT_LIG = set(_c.cod_tci[_c.pf.isin(_spf) | _c.pp.isin(_spp)])
+
+
+def rank_sel(r):
+    pf = str(r.num_proposta_selecao).strip() + '|' + str(r.fonte).upper()
+    return int(RK_PF.get(pf, RK_PP.get(str(r.num_proposta_selecao).strip(), 0)))
+
+
 SEL = []
 for _, r in D['mig'].iterrows():
     SEL.append([MODS.index(r['mod']), FONTE.get(r.fonte, 2), r.uf, 0,
-                num(r.vlr_portaria_ogu), num(r.vlr_portaria_fin), '', 0])
+                num(r.vlr_portaria_ogu), num(r.vlr_portaria_fin), '', 0, 0])
 for _, r in D['sel'].iterrows():
     SEL.append([MODS.index(r['mod']), FONTE.get(r.fonte, 2), r.uf, 2 if r.status_selecao == 'enquadrada' else 1,
                 num(r.vlr_portaria_ogu), num(r.vlr_portaria_fin), dados.ANO_LABEL[int(r.ano_selecao)],
-                1 if r.fonte == 'OGU' and str(r.num_proposta_selecao).strip() in PROP_CT_OGU else 0])
+                1 if r.fonte == 'OGU' and str(r.num_proposta_selecao).strip() in PROP_CT_OGU else 0, rank_sel(r)])
 
 # contratos SACI: [mod, fonte, uf, kind, ano, sitContrato, sitObra, investimento, repasse, %fís, %fin,
 #                  valor GM da migrada (pós-2023) ou None, grupo no balanço, % físico no balanço,
-#                  fora: 1 bln_pac = NÃO · 2 sem modalidade (exceção provisória)]
+#                  fora: 1 bln_pac = NÃO · 2 sem modalidade (exceção provisória), ligado a uma nova seleção]
 # grupo no balanço: 0 outra fase / sem balanço · 1 em execução · 2 paralisada · 3 concluída
 CT = []
 for _, r in D['saci'].iterrows():
@@ -168,19 +187,20 @@ for _, r in D['saci'].iterrows():
                idx_sit_ct(r.dsc_situacao_contrato_mcid), SIT_OBRA.get(r.dsc_situacao_objeto_mcid, 0),
                num(r.vlr_investimento) or 0, num(r.vlr_repasse) or 0,
                num(r.prc_execucao_fisica), num(r.prc_execucao_financ), num(r.vlr_gm),
-               int(r.bal_g), num(r.bal_exec), 1 if r.excl else 2 if r.semmod else 0])
+               int(r.bal_g), num(r.bal_exec), 1 if r.excl else 2 if r.semmod else 0, 1 if r.cod_tci in CT_LIG else 0])
 
 # itens do balanço sem contrato na carteira (sem SNH, ativos, em obra ou concluídos): mesmo formato do CT,
 # como novas seleções sem ano, situação da obra pelo balanço e valor pelo total previsto no Novo PAC
 BX = []
 for _, r in D['bx'].iterrows():
     BX.append([MODS.index(r['mod']), FONTE.get(r.fonte, 2), r.uf, 1, '', 0, {1: 1, 2: 2, 3: 3}[int(r.g)],
-               num(r.vlr) or 0, num(r.vlr) or 0, num(r['exec']), None, None, int(r.g), num(r['exec']), 2 if r['mod'] == dados.OUTRAS else 0])
+               num(r.vlr) or 0, num(r.vlr) or 0, num(r['exec']), None, None, int(r.g), num(r['exec']), 2 if r['mod'] == dados.OUTRAS else 0, 0])
 
 # contratos OGU (painelpac): [mod, uf, kind, ano, repasse, cancelado, susp, pc48, tetoVencido,
 #                             fase, pubLicitação, homLicitação, casaCivil, data alinhada DMP 08/26,
 #                             ligado a seleção OGU nova, em contratação, fora das contas, convênio, município, TCI,
-#                             Contratado - Normal, situação atual 'FONTE|texto' (só pendentes sem data alinhada)]
+#                             Contratado - Normal, situação atual 'FONTE|texto' (só pendentes sem data alinhada),
+#                             situação do contrato no SACI (índice de SIT_CT)]
 _mun_saci = D['saci'].set_index('cod_tci').txt_municipio
 
 
@@ -208,7 +228,7 @@ for _, r in D['ogu'].iterrows():
                1 if r.dsc_situacao_contrato_mcid_saci == 'Em Contratação' else 0, 1 if r.excl else 2 if r.semmod else 0,
                str(r.num_convenio_saci or ''), str(_mun_saci.get(r.cod_tci_saci, '') or ''), r.cod_tci_saci,
                1 if r.dsc_situacao_contrato_mcid_saci == 'Contratado - Normal' else 0,
-               _sit_atual(r)])
+               _sit_atual(r), idx_sit_ct(r.dsc_situacao_contrato_mcid_saci)])
 
 # régua do prazo da licitação (3.2, porte do regua-licitacao.js do painelpac): contratos OGU em
 # "Contratado - Normal" — [mod, uf, kind, ano, repasse, fora do PAC, prazo legal pub (LAE+60), prazo efetivo pub,
@@ -279,6 +299,11 @@ EXTRA_CSS = """
   .conta-pop tr.sub td{ border-top:1px solid var(--line); font-weight:700; }
   .conta-pop tr.tot td{ border-top:2px solid var(--line-strong); font-weight:800; color:var(--navy); }
   .conta-pop tr:first-child td{ border-top:0; }
+  .conta-pop.larga{ width:760px; }
+  .conta-pop tr.obs td{ white-space:normal !important; text-align:left !important; }
+  .conta-pop tr.cab td{ font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); text-align:right; }
+  .conta-pop td:nth-child(2){ text-align:right; padding-left:12px; white-space:nowrap; font-weight:700; color:var(--navy); }
+  .ct-ponte{ margin:0 0 10px; } .ct-ponte .ap-b b{ font-size:26px; }
   .conta-pop tr.obs td{ border-top:1px solid var(--line); padding-top:6px; font-size:14px; font-style:italic; color:var(--ink-soft); font-weight:400; }
   @media print{ .conta-pop{ display:none !important; } }
   .rodape-row{ display:flex; justify-content:space-between; align-items:flex-start; gap:40px; margin-top:8px; }
@@ -850,13 +875,13 @@ SLIDES = f"""
 {slide(4, 1, 'Selecionado × contratado', 't-ct1',
        ['Seleções', 'Contratos<br>assinados', 'Em<br>contratação', 'Cancelados /<br>distratados', '% assinado', 'Investimento<br>assinado (R$ mi)'],
        'Contagem: novas seleções (GM) × contratos do Novo PAC Seleção (SACI)', AT_CT, 'base única GM e ' + SRC_SACI,
-       kpis=[('Seleções',), ('Contratos assinados', '', 'ok'), ('% assinado',), ('Investimento assinado',)],
+       topo='<div class="aln-ponte ct-ponte" id="ct-ponte"></div>',
        nota='<span data-ref="ct1"></span> Proposta com OGU e FIN conta uma vez em cada fonte.')}
 {slide(4, 2, 'Situação dos contratos assinados', 't-ct2',
        ['Normal', 'Suspensiva', 'Concluído', 'Outros*', 'Total', 'Qtd. OGU', 'Qtd. FIN', 'Repasse /<br>financ. (R$ mi)'],
        'Contagem: contratos assinados do Novo PAC Seleção (SACI)', AT_SACI, SRC_SACI,
        kpis=[('Assinados',), ('Normal', '', 'ok'), ('Em suspensiva', '', 'alerta'), ('Repasse / financiamento',)],
-       nota='* Outros: em TCE, liminar e em prestação de contas.')}
+       nota='* Outros: em TCE, liminar e em prestação de contas. <span data-ref="ct2"></span>')}
 {slide_transicao(4, 3, 'Da seleção à obra',
        'Contagem: seleções (GM) × contratos do Novo PAC Seleção / Migrado (SACI)', AT_CT, f'base GM, SACI e Balanço Governa ({DT_BAL})',
        dek='Quanto das seleções já virou contrato assinado, obra iniciada e obra concluída.',
@@ -1134,6 +1159,78 @@ const TABLES = [
 ];
 
 // cadeia seleções OGU (GM) → contratos OGU do painelpac, com os filtros de UF e ano
+function renderPonteCt() {
+  const el = document.getElementById('ct-ponte');
+  if (!el) return;
+  const c = cadeiaCt();
+  const b = (o, rot, cls) => '<div class="ap-b' + (cls ? ' ' + cls : '') + '"><b>' + I(o.n) + '</b><span>' + rot + ' · ' + BM(o.v) + '</span></div>';
+  const seta = (txt) => '<div class="ap-s"><span>' + txt + '</span><i></i></div>';
+  el.innerHTML = b(c.prop, 'propostas (1.1)') + seta('−' + I(c.mig.n) + ' migradas')
+    + b(c.nov, 'seleções') + seta('−' + I(c.sem.n + c.canc.n + c.emc.n) + ' sem contrato assinado')
+    + b(c.ass, 'com contrato · ' + P(c.ass.n, c.nov.n)) + seta('+' + I(c.ctSem.n) + ' sem seleção ligada')
+    + b(c.ct, 'assinados', 'fim');
+}
+
+// das 3.507 propostas (1.1) aos contratos assinados (4.1), em quantidade e valor — com UF, fonte e ano
+function cadeiaCt() {
+  const t = {}, z = () => ({ n: 0, v: 0 });
+  const c = { prop: z(), mig: z(), nov: z(), sem: z(), canc: z(), emc: z(), ass: z(), ctLig: z(), ctSem: z(), ct: z() };
+  const add = (o, v) => { o.n++; o.v += v; };
+  for (const r of SEL) {
+    if (!passa(SRC.sel, r, t)) continue;
+    const v = (r[4] || 0) + (r[5] || 0);
+    add(c.prop, v);
+    if (r[3] === 0) { add(c.mig, v); continue; }
+    add(c.nov, v);
+    add([c.sem, c.canc, c.emc, c.ass][r[8]], v);
+  }
+  for (const r of CT) {
+    if (r[3] < 1 || r[5] === 3 || r[5] === 4 || !passa(SRC.ct, r, t)) continue;  // contratos assinados (4.1)
+    add(c.ct, r[7]); add(r[15] ? c.ctLig : c.ctSem, r[7]);
+  }
+  return c;
+}
+// coluna "Suspensiva" do 4.2 (SACI, OGU + FIN) → suspensivas pendentes do 2.1 (painelpac, OGU)
+function quadroSuspCt() {
+  const t = {}, q = { col: 0, fin: 0, outra: 0, ps: 0, pc: 0 };
+  for (const r of CT) {
+    if (r[3] < 1 || r[5] !== 1 || !passa(SRC.ct, r, t)) continue;
+    q.col++; if (r[1] === 0) q.fin++;
+  }
+  for (const r of OG) {
+    if (r[5] || r[6] !== 1 || !passa(SRC.og, r, t)) continue;
+    if (r[22] !== 1) q.outra++;
+    if (r[13]) q.pc++; else q.ps++;
+  }
+  return quadroConta('Coluna "Suspensiva" (4.2) → suspensivas pendentes (2.1 e 2.2)', [
+    ['Coluna "Suspensiva" deste slide (SACI, OGU + FIN)', I(q.col), 'tot'],
+    ['− FIN: o painelpac e os slides 2.1/2.2 são só OGU', '− ' + I(q.fin)],
+    ['= OGU em "Contratado - Suspensiva" (todas pendentes no painelpac)', I(q.col - q.fin), 'sub'],
+    ['+ pendentes no painelpac que o SACI já pôs em outra situação (prestação de contas, concluído)', '+ ' + I(q.outra)],
+    ['= suspensivas pendentes (slide 2.1)', I(q.col - q.fin + q.outra), 'tot'],
+    ['No slide 2.2: ' + I(q.pc) + ' com data alinhada + ' + I(q.ps) + ' fora do alinhamento de 08/2026.', '', 'obs'],
+  ], 'conta das suspensivas (2.1)');
+}
+
+function quadroCt(aqui) {
+  const c = cadeiaCt(), Q = (o, s) => (s || '') + I(o.n), V = (o, s) => (s || '') + BM(o.v);
+  const L = (txt, o, sinal, tipo) => '<tr class="' + (tipo || '') + '"><td>' + txt + '</td><td>' + Q(o, sinal) + '</td><td>' + V(o, sinal) + '</td></tr>';
+  return '<span class="conta" tabindex="0">ver a conta passo a passo ⓘ<span class="conta-pop larga" role="tooltip"><b class="conta-t">'
+    + 'Das propostas (1.1) aos contratos assinados (4.1)</b><table><tr class="cab"><td></td><td>qtd.</td><td>valor</td></tr>'
+    + L('Propostas (slide 1.1) — valor de portaria', c.prop, '', 'tot')
+    + L('− migradas: entram direto na execução (5.1)', c.mig, '− ')
+    + L('= novas seleções' + (aqui === '4.1' ? ' (coluna Seleções)' : ' (slide 4.1)'), c.nov, '', 'sub')
+    + L('− sem contrato no SACI', c.sem, '− ')
+    + L('− só com contrato cancelado/distratado', c.canc, '− ')
+    + L('− só com contrato em contratação', c.emc, '− ')
+    + L('= seleções com contrato assinado', c.ass, '', 'sub')
+    + L('→ contratos assinados dessas seleções — valor de investimento', c.ctLig, '')
+    + L('+ contratos assinados sem seleção ligada no SACI', c.ctSem, '+ ')
+    + L('= contratos assinados' + (aqui === '4.2' ? ' (total deste slide)' : ' (coluna Contratos assinados)'), c.ct, '', 'tot')
+    + '<tr class="obs"><td colspan="3">O valor muda de base: portaria nas seleções e investimento do SACI nos contratos; há propostas com mais de um '
+    + 'contrato e contratos sem proposta de seleção ligada.</td></tr></table></span></span>';
+}
+
 // contratos fora das contas, no recorte — para as notas: código 1 = bln_pac NÃO no SACI ·
 // 2 = sem modalidade (exceção provisória); BX = itens do balanço sem contrato no SACI
 function exclCt(keep, cod = 1, rows = CT, src = SRC.ct) {
@@ -1280,7 +1377,9 @@ const REFS = {
     + 'o último é parcial; cinza = posição livre (70 por modalidade).'
     + (state.wmodo === 'pct' ? ' Em %: número grande = participação na carteira; OGU/FIN = % na modalidade.' : '')
     + (anoFiltrado() ? SEMANO : ''),
-  ct1: (T) => 'Seleções = as <b>' + I(T['t-ct1'].sel) + '</b> novas seleções do slide 1.1'
+  ct2: () => { const c = cadeiaCt(); return 'Os <b>' + I(c.ct.n) + '</b> assinados são os do slide 4.1. ' + quadroCt('4.2')
+    + ' · ' + quadroSuspCt(); },
+  ct1: (T) => quadroCt('4.1') + ' · ' + 'Seleções = as <b>' + I(T['t-ct1'].sel) + '</b> novas seleções do slide 1.1'
     + (state.sel && state.enq ? '' : ' (selecionadas + enquadradas)')
     + '; as <b>' + I(T['t-ct1'].mig) + '</b> migradas (legado) entram direto na execução (slides 5.1 e 5.2).'
     + (exclCt((r) => r[3] >= 1) ? ' Sem os <b>' + I(exclCt((r) => r[3] >= 1)) + '</b> contratos com bln_pac = NÃO no SACI' : '')
@@ -2014,6 +2113,7 @@ function render() {
   }
   renderFunil();
   renderAlinhamento();
+  renderPonteCt();
   renderWaffle();
   renderRegua();
   ORIGENS.forEach((sf) => {
