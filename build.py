@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.26'  # subir a cada commit que altere a apresentação
+VERSAO = '1.27'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -54,6 +54,7 @@ HISTORICO = [
     ('1.24', 'Slide 2.2: "ver a conta passo a passo" na nota, dos contratos OGU do 2.1 às bolinhas do gráfico.'),
     ('1.25', 'Slide 1.2: ícones das modalidades maiores.'),
     ('1.26', 'Slide 3.1: conta da coluna "Em suspensiva" (pendentes do 2.1 × etapa mais avançada).'),
+    ('1.27', 'Slide 2.1: a mesma conta das pendentes × coluna "Em suspensiva" do 3.1.'),
 ]
 
 D = dados.load()
@@ -1108,6 +1109,24 @@ function pendEtapa() {
   return e;
 }
 
+// pendentes (2.1) × coluna "Em suspensiva" (3.1) — o mesmo quadro nos dois slides; `aqui` = slide onde aparece
+function quadroEmSusp(aqui) {
+  const e = pendEtapa();
+  const p21 = aqui === '2.1' ? 'Suspensivas pendentes (este slide)' : 'Suspensivas pendentes (slide 2.1)';
+  const c31 = aqui === '3.1' ? '= coluna "Em suspensiva" deste slide' : '= coluna "Em suspensiva" (slide 3.1)';
+  return quadroConta('Suspensivas pendentes (2.1) × coluna "Em suspensiva" (3.1)', [
+    [p21, I(e.pend), 'tot'],
+    ['− já com LAE registrada (coluna Suspensiva retirada/LAE)', '− ' + I(e.lae)],
+    ['− já com edital publicado', '− ' + I(e.pub)],
+    ['− já com licitação homologada', '− ' + I(e.hom)],
+    ['− já com VRPL/AIO registrado', '− ' + I(e.vrpl)],
+    ...(e.outra ? [['− outra etapa', '− ' + I(e.outra)]] : []),
+    [c31, I(e.susp), 'tot'],
+    ['Os ' + I(e.pend - e.susp) + ' contratos acima têm a suspensiva pendente, mas já há data de etapa posterior no TGOV/BDGestores; '
+      + 'o 3.1 os classifica pela etapa mais avançada.', '', 'obs'],
+  ], 'conta da coluna Em suspensiva (3.1)');
+}
+
 function cadeiaOgu() {
   const t = {}, c = { sel: 0, mig: 0, nov: 0, comCt: 0, semCt: 0, ct: 0, lig: 0, semProp: 0, canc: 0, emc: 0, ativos: 0, excl: 0, semmod: 0 };
   for (const r of SEL) {
@@ -1188,23 +1207,16 @@ const REFS = {
     const c = cadeiaOgu();
     return 'De <b>' + I(c.sel) + '</b> seleções OGU (slide 1.1) a <b>' + I(c.ativos) + '</b> contratos OGU: migradas, seleções sem contrato, '
       + 'bln_pac = NÃO, sem modalidade e cancelados saem; contratos sem proposta ligada entram. ' + quadroOgu(c)
-      + (() => {
-        const e = pendEtapa();
-        return ' · ' + quadroConta('Suspensivas pendentes (slide 2.1) × coluna "Em suspensiva"', [
-          ['Suspensivas pendentes (slide 2.1)', I(e.pend), 'tot'],
-          ['− já com LAE registrada (coluna Suspensiva retirada/LAE)', '− ' + I(e.lae)],
-          ['− já com edital publicado', '− ' + I(e.pub)],
-          ['− já com licitação homologada', '− ' + I(e.hom)],
-          ['− já com VRPL/AIO registrado', '− ' + I(e.vrpl)],
-          ...(e.outra ? [['− outra etapa', '− ' + I(e.outra)]] : []),
-          ['= coluna "Em suspensiva" deste slide', I(e.susp), 'tot'],
-          ['Os ' + I(e.pend - e.susp) + ' contratos acima têm a suspensiva pendente, mas já há data de etapa posterior no TGOV/BDGestores; '
-            + 'o slide os classifica pela etapa mais avançada.', '', 'obs'],
-        ], 'conta da coluna Em suspensiva');
-      })();
+      + ' · ' + quadroEmSusp('3.1');
   },
-  susp1: () => { const c = cadeiaOgu(); return 'Base: <b>' + I(c.ativos) + '</b> contratos OGU do painelpac, sem cancelados e sem os <b>'
-    + I(c.excl) + '</b> com bln_pac = NÃO e dos <b>' + I(c.semmod) + '</b> sem modalidade' + SEMMOD + '. ' + quadroOgu(c); },
+  susp1: () => {
+    const c = cadeiaOgu();
+    const fora = [c.excl ? '<b>' + I(c.excl) + '</b> com bln_pac = NÃO' : '', c.semmod ? '<b>' + I(c.semmod) + '</b> sem modalidade' + SEMMOD : '']
+      .filter(Boolean);
+    return 'Base: <b>' + I(c.ativos) + '</b> contratos OGU do painelpac, sem cancelados' + (fora.length ? ' e sem ' + fora.join(' e ') : '')
+    + '. ' + quadroOgu(c)
+    + ' · ' + quadroEmSusp('2.1');
+  },
   ex2: (T) => 'Investimento paralisado: migradas pelo valor da base GM (pós-2023); demais pelo investimento do SACI'
     + (comBal() ? '. Situação da obra pelo SACI + balanço jun/26 (+ <b>' + I(T['t-ex2'].bx) + '</b> itens do balanço sem contrato no SACI, '
       + 'com o % físico do balanço).' : '.'),
