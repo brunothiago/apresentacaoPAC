@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.17'  # subir a cada commit que altere a apresentação
+VERSAO = '1.18'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -45,11 +45,32 @@ HISTORICO = [
     ('1.15', 'Slide 2.2: mais espaço entre as linhas das modalidades.'),
     ('1.16', 'Slide 3.2 vira a régua do prazo da licitação (antes × agora, 1 ponto = 1 contrato), com Quantidade/Valor.'),
     ('1.17', 'Exceção provisória: contratos e itens sem modalidade saem das contas; notas citam quantos.'),
+    ('1.18', 'Slide 1.2: ícones das modalidades nos cartões do painel de quadrados.'),
 ]
 
 D = dados.load()
 EXT = D['extracao']
 MODS = dados.MODS
+
+# ícones das modalidades (data/Icones, brancos sobre transparente): embutidos em base64 para o index.html
+# continuar autocontido; aparecem num círculo na cor da etapa (cartões do 1.2)
+import base64
+ICONES_ARQ = {
+    'Abastecimento de Água - Rural': 'abastecimento-de-agua-rural',
+    'Abastecimento de Água - Urbano': 'abastecimento-de-agua-urbano',
+    'Contenção de Encostas': 'contencao-de-encostas',
+    'Drenagem Urbana': 'drenagem-urbana',
+    'Esgotamento Sanitário': 'esgotamento-sanitario',
+    'Mobilidade: Médias e Grandes Cidades': 'mobilidade-medias-e-grandes-cidades',
+    'Regularização Fundiária': 'regularizacao-de-favelas',
+    'Renovação de Frota': 'renovacao-de-frota',
+    'Resíduos Sólidos': 'residuos-solidos',
+    'Urbanização de Favelas': 'urbanizacao-de-favelas',
+}
+ICONES = []
+for m in MODS:
+    arq = f'{HERE}/data/Icones/{ICONES_ARQ.get(m, "")}.png'
+    ICONES.append('data:image/png;base64,' + base64.b64encode(open(arq, 'rb').read()).decode() if os.path.exists(arq) else '')
 
 
 def br(iso):
@@ -280,7 +301,10 @@ EXTRA_CSS = """
   .waf-leg .esc{ width:100%; text-align:right; font-weight:700; color:var(--navy); }
   .waf-grid{ display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:14px; }
   .waf-card{ background:#fff; border:1px solid var(--line); border-radius:8px; box-shadow:0 1px 4px rgba(7,29,65,.06); padding:10px 14px 12px; }
-  .waf-nome{ font-size:16px; font-weight:800; color:var(--navy); line-height:1.2; min-height:39px; letter-spacing:.01em; }
+  .waf-nome{ font-size:16px; font-weight:800; color:var(--navy); line-height:1.2; min-height:39px; letter-spacing:.01em; display:flex; align-items:center; gap:8px; }
+  /* os PNG têm ~25% de margem transparente: a imagem é maior que o círculo e o excesso fica cortado */
+  .waf-ico{ flex:none; width:32px; height:32px; border-radius:50%; background:var(--accent); display:inline-flex; align-items:center; justify-content:center; overflow:hidden; }
+  .waf-ico img{ width:38px; height:38px; display:block; flex:none; }
   .waf-corpo{ display:flex; gap:12px; align-items:flex-start; margin-top:6px; }
   .waf-svg{ flex:none; display:block; }
   .waf-num{ flex:1; min-width:0; font-variant-numeric:tabular-nums; }
@@ -873,6 +897,8 @@ const CT = __CT__;
 const OG = __OG__;
 // régua do 3.2 (contratos OGU em Contratado - Normal)
 const RG = __RG__;
+// ícones das modalidades (data URI, na ordem de MODS)
+const ICONES = __ICONES__;
 // itens do balanço sem contrato na carteira (mesmo formato do CT; sem SNH, ativos)
 const BX = __BX__;
 
@@ -1362,7 +1388,8 @@ function renderWaffle() {
     const rotulo = pct ? 'da carteira' : (val ? 'valor' : 'propostas');
     const linha = (rot, cor, x) => '<div class="f"><i style="background:' + cor + '"></i>' + rot
       + (pct ? '' : ' <b>' + curto(x) + '</b>') + '<span>' + pc(x, n) + '</span></div>';
-    o.push('<div class="waf-card"><div class="waf-nome">' + a.nome + '</div><div class="waf-corpo">' + waffleSvg(ogu(a), fin(a), un, 'wc' + a.i)
+    o.push('<div class="waf-card"><div class="waf-nome">' + (ICONES[a.i] ? '<span class="waf-ico"><img src="' + ICONES[a.i] + '" alt=""></span>' : '')
+      + '<span>' + a.nome + '</span></div><div class="waf-corpo">' + waffleSvg(ogu(a), fin(a), un, 'wc' + a.i)
       + '<div class="waf-num' + (val && !pct ? ' rs' : '') + '"><div class="q">' + grande + '</div><div class="ql">' + rotulo + '</div>'
       + linha('OGU', COR_OGU, ogu(a)) + linha('FIN', COR_FIN, fin(a)) + '</div></div></div>');
   }
@@ -1880,7 +1907,7 @@ def js(v):
 
 
 app_js = (APP_JS.replace('__MODS__', js(MODS)).replace('__ANOS__', js(ANOS)).replace('__HOJE__', js(f'{HOJE:%Y-%m-%d}'))
-          .replace('__SEL__', js(SEL)).replace('__CT__', js(CT)).replace('__OG__', js(OG)).replace('__BX__', js(BX)).replace('__RG__', js(RG)))
+          .replace('__SEL__', js(SEL)).replace('__CT__', js(CT)).replace('__OG__', js(OG)).replace('__BX__', js(BX)).replace('__RG__', js(RG)).replace('__ICONES__', js(ICONES)))
 
 SLIDES = SLIDES.replace('__NSLIDES__', f"{SLIDES.count('<section '):02d}")
 html = (HEAD + SLIDES
