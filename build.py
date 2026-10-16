@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.30'  # subir a cada commit que altere a apresentação
+VERSAO = '1.31'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -58,6 +58,7 @@ HISTORICO = [
     ('1.28', 'Slides 3.1 e 3.2: conta da coluna "Suspensiva retirada/LAE" até os pontos da régua.'),
     ('1.29', 'Slide 2.2: faixa no topo com a ponte do 2.1 (1.525 → 294 → 283 → 363) e nota explicando 363 > 294.'),
     ('1.30', 'Slide 3.2: contratos da PC 72 na régua (mesma regra, LAE + 60 / publicação + 120) e botão para o fim da licitação.'),
+    ('1.31', 'Slide 3.2: prazos até maio/2026 agrupados em uma coluna "até mai/26".'),
 ]
 
 D = dados.load()
@@ -1628,7 +1629,9 @@ function renderRegua() {
   else {
     const mesDe = (it) => +it.legal.slice(0, 4) * 12 + (+it.legal.slice(5, 7) - 1);
     const meses = lista.map(mesDe);
-    const m1 = Math.max(...meses), m0 = Math.max(Math.min(...meses), m1 - 10);  // até 11 colunas; o resto vai para "até …"
+    // prazos até maio/2026 numa coluna só ("até mai/26"); no máximo 11 colunas de mês depois dela
+    const ATE = 2026 * 12 + 4;
+    const m1 = Math.max(...meses), m0 = Math.max(Math.min(...meses), ATE + 1, m1 - 10);
     const cols = [];
     const rot = (m) => MESES[m % 12] + '/' + String(Math.floor(m / 12)).slice(2);
     const ord = (l) => l.sort((a, b) => ordem[a.antes] - ordem[b.antes] || (a.legal < b.legal ? -1 : 1));
