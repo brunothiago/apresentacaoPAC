@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.31'  # subir a cada commit que altere a apresentação
+VERSAO = '1.32'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -59,6 +59,7 @@ HISTORICO = [
     ('1.29', 'Slide 2.2: faixa no topo com a ponte do 2.1 (1.525 → 294 → 283 → 363) e nota explicando 363 > 294.'),
     ('1.30', 'Slide 3.2: contratos da PC 72 na régua (mesma regra, LAE + 60 / publicação + 120) e botão para o fim da licitação.'),
     ('1.31', 'Slide 3.2: prazos até maio/2026 agrupados em uma coluna "até mai/26".'),
+    ('1.32', 'Slide 2.2: segunda nota com a lista das pendentes fora do alinhamento (clique), como nas bolinhas.'),
 ]
 
 D = dados.load()
@@ -401,6 +402,9 @@ EXTRA_CSS = """
   .aln-b:hover circle:first-of-type, .aln-b:focus circle:first-of-type{ fill-opacity:1; }
   .aln-b.sel circle:first-of-type{ fill:#0C3C8F; fill-opacity:1; stroke:#071D41; stroke-width:3; }
   .aln-dica{ margin-left:auto; font-style:italic; }
+  .nota.nota2{ margin-top:2px; }
+  .aln-fora{ font-style:normal; font-weight:700; color:var(--accent-deep); border-bottom:1px dotted currentColor; cursor:pointer; white-space:nowrap; }
+  @media print{ .aln-fora{ border:0; } }
   .aln-lista{ position:absolute; top:36px; right:0; z-index:30; width:640px; max-height:440px; display:flex; flex-direction:column;
     background:#fff; border:1px solid var(--line-strong); border-left:4px solid var(--accent); border-radius:6px; box-shadow:0 12px 34px rgba(7,29,65,.2); }
   .aln-lista[hidden]{ display:none; }
@@ -722,6 +726,7 @@ def slide_alinhamento(etapa, n, titulo, legenda, atualizado, fonte, dek='', kpis
         <div class="aln-ponte" id="aln-ponte"></div>
         <div class="alin" id="g-alin"></div>
         <p class="nota"><span data-ref="aln"></span></p>
+        <p class="nota nota2"><span data-ref="aln2"></span></p>
       </div>
     </div>
 {foot(fonte, etapa)}  </section>
@@ -1228,6 +1233,10 @@ const REFS = {
     + (RGN.semLae ? '<b>' + I(RGN.semLae) + '</b> sem LAE ficam fora. ' : '')
     + (RGN.excl ? '<b>' + I(RGN.excl) + '</b> com bln_pac = NÃO fora. ' : '')
     + 'Clique num ponto para abrir no SACI. ' + quadroRegua('3.2'),
+  // 2ª nota do 2.2: as pendentes sem data alinhada, com a mesma lista das bolinhas (clique)
+  aln2: () => !ALN.ps ? '' : '<b>' + I(ALN.ps) + '</b> suspensivas pendentes do 2.1 ficaram fora do alinhamento de 08/2026 (sem data, '
+    + 'não aparecem no gráfico) — ' + BM(ALN.fora.reduce((s, r) => s + r[4], 0)) + ' de repasse. '
+    + '<span class="aln-fora" role="button" tabindex="0">ver os contratos ⓘ</span>',
   aln: () => !ALN.n ? 'Nenhum contrato com data alinhada neste recorte.'
     : (state.alnp === 'pend' ? 'Só pendentes. ' : '') + '<b>' + I(ALN.n) + '</b> &gt; <b>' + I(ALN.pc + ALN.ps)
       + '</b> pendentes: às <b>' + I(ALN.pc) + '</b> pendentes com data somam-se <b>' + I(ALN.ret) + '</b> já retiradas'
@@ -1690,12 +1699,12 @@ function renderAlinhamento() {
   const el = document.getElementById('g-alin');
   if (!el) return;
   const t = {};
-  Object.assign(ALN, { n: 0, ret: 0, pc: 0, canc: 0, ps: 0, ct: 0, sem: 0, ret21: 0 });
+  Object.assign(ALN, { n: 0, ret: 0, pc: 0, canc: 0, ps: 0, ct: 0, sem: 0, ret21: 0, fora: [] });
   const grupos = new Map();
   for (const r of OG) {
     if (!passa(SRC.og, r, t)) continue;
     if (!r[5]) { ALN.ct++; if (r[6] === 2) ALN.sem++; else if (r[6] === 0) ALN.ret21++; }  // base do slide 2.1
-    if (!r[13]) { if (r[6] === 1 && !r[5]) ALN.ps++; continue; }
+    if (!r[13]) { if (r[6] === 1 && !r[5]) { ALN.ps++; ALN.fora.push(r); } continue; }
     ALN.n++;
     const ret = r[6] === 0;
     if (ret) ALN.ret++; else if (r[5]) ALN.canc++; else ALN.pc++;
@@ -1838,6 +1847,18 @@ function renderAlinhamento() {
       if (e.key === 'Escape') { ALN.aberto = null; listaAlinhamento(); }
     });
   }
+  if (!document.body.dataset.alnFora) {  // link "ver os contratos" da 2ª nota
+    document.body.dataset.alnFora = '1';
+    const abrirFora = (e) => {
+      const l = e.target.closest && e.target.closest('.aln-fora');
+      if (!l) return;
+      if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault(); e.stopPropagation();
+      ALN.lado = 'dir'; ALN.aberto = ALN.aberto === '__fora__' ? null : '__fora__'; listaAlinhamento();
+    };
+    document.addEventListener('click', abrirFora, true);
+    document.addEventListener('keydown', abrirFora, true);
+  }
   listaAlinhamento();  // reabre a lista após troca de filtro, se o grupo ainda existir
 }
 
@@ -1845,20 +1866,26 @@ function renderAlinhamento() {
 function listaAlinhamento() {
   const box = document.querySelector('#g-alin .aln-lista');
   if (!box) return;
-  const g = ALN.aberto && ALN.grupos && ALN.grupos.get(ALN.aberto);
+  const fora = ALN.aberto === '__fora__';
+  const g = fora ? { rows: ALN.fora } : ALN.aberto && ALN.grupos && ALN.grupos.get(ALN.aberto);
   document.querySelectorAll('#g-alin .aln-b').forEach((b) => b.classList.toggle('sel', !!g && b.dataset.k === ALN.aberto));
   if (!g) { box.hidden = true; box.innerHTML = ''; return; }
   const pend = state.alnp === 'pend';
   const sit = (r) => (r[6] === 0 ? ['retirada', 'ret'] : r[5] ? ['cancelado', 'canc'] : ['pendente', 'pend']);
   const rows = g.rows.filter((r) => !pend || (r[6] !== 0 && !r[5]))
     .sort((a, b) => (sit(a)[1] === 'pend' ? 0 : 1) - (sit(b)[1] === 'pend' ? 0 : 1) || b[4] - a[4]);
-  const dt = g.iso.slice(8, 10) + '/' + g.iso.slice(5, 7) + '/' + g.iso.slice(0, 4);
-  box.innerHTML = '<div class="aln-l-cab"><div><b>' + MODS[g.mod] + '</b><span>data alinhada ' + dt + ' · ' + I(rows.length)
-    + (pend ? ' pendentes' : ' contratos') + ' · ' + BM(rows.reduce((s, r) => s + r[4], 0)) + '</span></div>'
+  const PC48 = ['—', 'no prazo', 'vence em 30 dias', 'vencido'];
+  const tit = fora ? 'Pendentes fora do alinhamento de 08/2026' : MODS[g.mod];
+  const sub = fora ? 'sem data alinhada' : 'data alinhada ' + g.iso.slice(8, 10) + '/' + g.iso.slice(5, 7) + '/' + g.iso.slice(0, 4);
+  box.innerHTML = '<div class="aln-l-cab"><div><b>' + tit + '</b><span>' + sub + ' · ' + I(rows.length)
+    + (pend || fora ? ' pendentes' : ' contratos') + ' · ' + BM(rows.reduce((s, r) => s + r[4], 0)) + '</span></div>'
     + '<button type="button" class="aln-fechar" aria-label="Fechar">×</button></div><div class="aln-l-corpo"><table>'
-    + '<thead><tr><th>Situação</th><th>Convênio</th><th>Município/UF</th><th>Repasse</th><th></th></tr></thead><tbody>'
-    + rows.map((r) => { const [t, c] = sit(r); return '<tr><td><i class="aln-st ' + c + '"></i>' + t + '</td><td>' + (r[17] || '—')
-      + '</td><td>' + [r[18], r[1]].filter(Boolean).join('/') + '</td><td>' + BM(r[4]) + '</td><td><a href="https://saci.cidades.gov.br/contratos/'
+    + '<thead><tr><th>' + (fora ? 'Modalidade' : 'Situação') + '</th><th>Convênio</th><th>Município/UF</th>' + (fora ? '<th>Prazo PC 48</th>' : '')
+    + '<th>Repasse</th><th></th></tr></thead><tbody>'
+    + rows.map((r) => { const [t, c] = sit(r); return '<tr><td>' + (fora ? MODS[r[0]].replace('Abastecimento de Água', 'Água')
+      : '<i class="aln-st ' + c + '"></i>' + t) + '</td><td>' + (r[17] || '—')
+      + '</td><td>' + [r[18], r[1]].filter(Boolean).join('/') + '</td>' + (fora ? '<td>' + PC48[r[7]] + '</td>' : '')
+      + '<td>' + BM(r[4]) + '</td><td><a href="https://saci.cidades.gov.br/contratos/'
       + encodeURIComponent(r[19]) + '" target="_blank" rel="noopener">SACI ↗</a></td></tr>'; }).join('')
     + '</tbody></table></div>';
   box.classList.toggle('esq', ALN.lado === 'esq');
