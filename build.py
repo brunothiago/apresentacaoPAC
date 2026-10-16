@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.33'  # subir a cada commit que altere a apresentação
+VERSAO = '1.34'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -61,6 +61,7 @@ HISTORICO = [
     ('1.31', 'Slide 3.2: prazos até maio/2026 agrupados em uma coluna "até mai/26".'),
     ('1.32', 'Slide 2.2: segunda nota com a lista das pendentes fora do alinhamento (clique), como nas bolinhas.'),
     ('1.33', 'Slide 2.2: situação atual (SACI, ou PBI se vazia) na lista das pendentes fora do alinhamento.'),
+    ('1.34', 'Slide 3.1: faixa no topo fechando o total (a concluir a licitação + homologadas + obras) e conta do edital até a régua.'),
 ]
 
 D = dados.load()
@@ -403,6 +404,17 @@ EXTRA_CSS = """
   .rg-trilho{ display:flex; gap:2px; height:24px; border-radius:3px; overflow:hidden; background:#EEF1F5; }
   .rg-seg{ display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:800; min-width:0; overflow:hidden; white-space:nowrap; }
   .alin{ margin-top:4px; position:relative; }
+  /* faixa do 3.1: o total fechado (a concluir a licitação + homologadas + obras) */
+  .lic-ponte{ display:flex; align-items:stretch; gap:8px; margin:0 0 10px; }
+  .lp-b{ flex:1 1 0; min-width:0; display:flex; flex-direction:column; justify-content:center; background:var(--paper-2); border-left:5px solid var(--accent); padding:6px 14px; }
+  .lp-b b{ font-size:34px; font-weight:800; color:var(--navy); line-height:1; font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
+  .lp-b span{ font-size:14px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); margin-top:3px; }
+  .lp-b em{ font-size:13px; font-style:normal; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .lp-b.ok{ border-left-color:#168821; } .lp-b.ok b{ color:#0F5F18; }
+  .lp-op{ flex:none; align-self:center; font-style:normal; font-size:26px; font-weight:800; color:var(--ink-soft); }
+  .lp-grupo{ flex:2.25 1 0; min-width:0; border:2px dashed var(--accent); border-radius:6px; padding:0 6px 6px; display:flex; flex-direction:column; }
+  .lp-g-t{ font-size:13px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--accent-deep); padding:3px 4px; }
+  .lp-g-c{ display:flex; gap:8px; flex:1; } .lp-g-c .lp-b{ background:#fff; }
   /* faixa do 2.2: ponte do slide 2.1 até as bolinhas do gráfico */
   .aln-ponte{ display:flex; align-items:center; gap:6px; margin:0 0 6px; }
   .ap-b{ flex:none; display:flex; align-items:baseline; gap:8px; background:var(--paper-2); border-left:4px solid var(--line-strong); padding:4px 12px; border-radius:3px; }
@@ -660,9 +672,9 @@ def cartoes(tid, kpis):
 
 
 def slide(etapa, n, titulo, tabela_id, colunas, legenda, atualizado, fonte, dek='', kpis=None, nota='',
-          status=False, so_ogu=False, origem=None, rodape='', extra=''):
+          status=False, so_ogu=False, origem=None, rodape='', extra='', topo=''):
     """slide de tabela; rodape: controles exibidos à direita da nota (ex.: valores × %)."""
-    kpi_html = cartoes(tabela_id, kpis)
+    kpi_html = cartoes(tabela_id, kpis) + (f'\n        {topo}' if topo else '')
     nota_html = f'<p class="nota">{nota}</p>' if nota else '<p class="nota"></p>'
     nota_html = (f'\n        <div class="rodape-row">{nota_html}<div class="rodape-ctl">{rodape}</div></div>' if rodape
                  else (f'\n        {nota_html}' if nota else ''))
@@ -831,7 +843,7 @@ SLIDES = f"""
 {slide(3, 1, 'Etapa atual dos contratos OGU', 't-lic1',
        ['Sem<br>registro', 'Em<br>suspensiva', 'Suspensiva<br>retirada/LAE', 'Edital<br>publicado', 'Licitação<br>homologada', 'VRPL /<br>AIO', 'Obra<br>iniciada', 'Total'],
        'Contagem: contratos OGU do Novo PAC Seleção, sem cancelados — etapa mais avançada', AT_PAC, SRC_PAC,
-       kpis=[('Aguardando licitação',), ('Edital publicado',), ('Homologada até AIO',), ('Obra iniciada', '', 'ok')], so_ogu=True,
+       topo='<div class="lic-ponte" id="lic-ponte"></div>', so_ogu=True,
        nota='<span data-ref="lic1"></span>')}
 {slide_regua(3, 2, 'Régua do prazo: antes × agora',
        'Contagem: contratos OGU em Contratado - Normal, aguardando edital ou homologação', AT_PAC, SRC_PAC)}
@@ -1067,7 +1079,20 @@ const TABLES = [
       const c = [0, 1, 2, 2, 3, 4, 5, 5, 6][f]; a.f[c]++; } }],
     init: () => ({ n: 0, f: [0, 0, 0, 0, 0, 0, 0] }),
     cols: (a) => a.f.map((v, i) => i === 6 ? H(v) : I(v)).concat([H(a.n)]),
-    kpis: (t) => [I(t.f[0] + t.f[1] + t.f[2]), I(t.f[3]), I(t.f[4] + t.f[5]), I(t.f[6]) + ' · ' + P(t.f[6], t.n)] },
+    // faixa do topo: o total fechado em grupos (a concluir a licitação = aguardando + edital publicado)
+    after: (t) => {
+      const el = document.getElementById('lic-ponte');
+      if (!el) return;
+      const ag = t.f[0] + t.f[1] + t.f[2], ed = t.f[3], ho = t.f[4] + t.f[5], ob = t.f[6];
+      const b = (n, rot, det, cls) => '<div class="lp-b' + (cls ? ' ' + cls : '') + '"><b>' + I(n) + '</b><span>' + rot + '</span>'
+        + (det ? '<em>' + det + '</em>' : '') + '</div>';
+      el.innerHTML = b(t.n, 'contratos OGU', 'slide 2.1') + '<i class="lp-op">=</i>'
+        + '<div class="lp-grupo"><div class="lp-g-t">' + I(ag + ed) + ' a concluir a licitação · régua no 3.2</div><div class="lp-g-c">'
+        + b(ag, 'aguardando licitação', I(t.f[0]) + ' sem registro · ' + I(t.f[1]) + ' em suspensiva · ' + I(t.f[2]) + ' LAE')
+        + '<i class="lp-op">+</i>' + b(ed, 'edital publicado', 'sem homologação') + '</div></div><i class="lp-op">+</i>'
+        + b(ho, 'homologada até AIO', I(t.f[4]) + ' homologada · ' + I(t.f[5]) + ' VRPL/AIO') + '<i class="lp-op">+</i>'
+        + b(ob, 'obra iniciada', P(ob, t.n) + ' dos contratos', 'ok');
+    } },
 
   { id: 't-ct1', parts: [
       { src: 'sel', keep: (r) => r[3] >= 1, add: (a, r) => { a.n++; a.sel++; } },
@@ -1193,6 +1218,26 @@ function ponteRegua() {
   }
   return p;
 }
+// coluna "Edital publicado" (3.1) → contratos sem homologação da régua (3.2, etapa "Fim da licitação")
+function quadroReguaHom(aqui) {
+  const t = {}, p = { col: 0, naoNormal: 0, pc72: 0, pc72inc: 0, dentro: 0, extra: 0 }, inc = state.rpc72 === 'sim';
+  for (const r of OG) { if (r[5] || r[9] !== 4 || !passa(SRC.og, r, t)) continue; p.col++; if (!r[20]) p.naoNormal++; }
+  for (const r of RG) {
+    if (!r[8] || r[11] || r[5] || !passa(SRC.rg, r, t)) continue;  // com edital, sem homologação
+    const pc72 = r[12] && dUTC(r[12]) < dUTC(RG_PC72), naColuna = r[16] === 4;
+    if (pc72 && !inc) { if (naColuna) p.pc72++; continue; }
+    if (naColuna) { p.dentro++; if (pc72) p.pc72inc++; } else p.extra++;
+  }
+  return quadroConta('Coluna "Edital publicado" (3.1) → sem homologação na régua (3.2)', [
+    [aqui === '3.1' ? 'Coluna "Edital publicado" deste slide' : 'Coluna "Edital publicado" (slide 3.1)', I(p.col), 'tot'],
+    ['− fora de "Contratado - Normal" (a régua só conta contratos normais)', '− ' + I(p.naoNormal)],
+    ...(p.pc72 ? [['− assinados antes de 21/10/2025: sem prazo (PC 72)', '− ' + I(p.pc72)]] : []),
+    ['= com prazo de homologação' + (p.pc72inc ? ' (inclui ' + I(p.pc72inc) + ' da PC 72, em simulação)' : ''), I(p.dentro), 'sub'],
+    ['+ com edital e sem homologação registrada, mas em etapa posterior no 3.1 (VRPL/AIO, obra)', '+ ' + I(p.extra)],
+    [aqui === '3.2' ? '= contratos sem homologação deste slide (Fim da licitação)' : '= sem homologação na régua (slide 3.2)', I(p.dentro + p.extra), 'tot'],
+  ], 'conta do edital até o fim da licitação (3.2)');
+}
+
 function quadroRegua(aqui) {
   const p = ponteRegua();
   return quadroConta('Coluna "Suspensiva retirada/LAE" (3.1) → pontos da régua (3.2)', [
@@ -1254,7 +1299,7 @@ const REFS = {
       : 'Fora: <b>' + I(RGN.pc72 + RGN.pc72hf) + '</b> da PC 72 (sem prazo). ')
     + (RGN.semLae ? '<b>' + I(RGN.semLae) + '</b> sem LAE ficam fora. ' : '')
     + (RGN.excl ? '<b>' + I(RGN.excl) + '</b> com bln_pac = NÃO fora. ' : '')
-    + 'Clique num ponto para abrir no SACI. ' + quadroRegua('3.2'),
+    + 'Clique num ponto para abrir no SACI. ' + quadroRegua('3.2') + ' · ' + quadroReguaHom('3.2'),
   // 2ª nota do 2.2: as pendentes sem data alinhada, com a mesma lista das bolinhas (clique)
   aln2: () => !ALN.ps ? '' : '<b>' + I(ALN.ps) + '</b> suspensivas pendentes do 2.1 ficaram fora do alinhamento de 08/2026 (sem data, '
     + 'não aparecem no gráfico) — ' + BM(ALN.fora.reduce((s, r) => s + r[4], 0)) + ' de repasse. '
@@ -1294,7 +1339,7 @@ const REFS = {
     const c = cadeiaOgu();
     return 'De <b>' + I(c.sel) + '</b> seleções OGU (slide 1.1) a <b>' + I(c.ativos) + '</b> contratos OGU: migradas, seleções sem contrato, '
       + 'bln_pac = NÃO, sem modalidade e cancelados saem; contratos sem proposta ligada entram. ' + quadroOgu(c)
-      + ' · ' + quadroEmSusp('3.1') + ' · ' + quadroRegua('3.1');
+      + ' · ' + quadroEmSusp('3.1') + ' · ' + quadroRegua('3.1') + ' · ' + quadroReguaHom('3.1');
   },
   susp1: () => {
     const c = cadeiaOgu();
@@ -1961,6 +2006,7 @@ function render() {
         th.innerHTML = state.pct1 !== '1' || !i ? o : (o.includes('R$ mi') ? o.replace('R$ mi', '%') : o + ' (%)');
       });
     }
+    if (t.after) t.after(tot);
     if (t.kpis) t.kpis(tot).forEach((v, i) => {
       const el = document.querySelector('[data-kpi="' + t.id + ':' + i + '"]');
       if (el) el.textContent = tot.n ? v : '—';

@@ -964,6 +964,17 @@
   .rg-trilho{ display:flex; gap:2px; height:24px; border-radius:3px; overflow:hidden; background:#EEF1F5; }
   .rg-seg{ display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:800; min-width:0; overflow:hidden; white-space:nowrap; }
   .alin{ margin-top:4px; position:relative; }
+  /* faixa do 3.1: o total fechado (a concluir a licitação + homologadas + obras) */
+  .lic-ponte{ display:flex; align-items:stretch; gap:8px; margin:0 0 10px; }
+  .lp-b{ flex:1 1 0; min-width:0; display:flex; flex-direction:column; justify-content:center; background:var(--paper-2); border-left:5px solid var(--accent); padding:6px 14px; }
+  .lp-b b{ font-size:34px; font-weight:800; color:var(--navy); line-height:1; font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
+  .lp-b span{ font-size:14px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); margin-top:3px; }
+  .lp-b em{ font-size:13px; font-style:normal; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .lp-b.ok{ border-left-color:#168821; } .lp-b.ok b{ color:#0F5F18; }
+  .lp-op{ flex:none; align-self:center; font-style:normal; font-size:26px; font-weight:800; color:var(--ink-soft); }
+  .lp-grupo{ flex:2.25 1 0; min-width:0; border:2px dashed var(--accent); border-radius:6px; padding:0 6px 6px; display:flex; flex-direction:column; }
+  .lp-g-t{ font-size:13px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--accent-deep); padding:3px 4px; }
+  .lp-g-c{ display:flex; gap:8px; flex:1; } .lp-g-c .lp-b{ background:#fff; }
   /* faixa do 2.2: ponte do slide 2.1 até as bolinhas do gráfico */
   .aln-ponte{ display:flex; align-items:center; gap:6px; margin:0 0 6px; }
   .ap-b{ flex:none; display:flex; align-items:baseline; gap:8px; background:var(--paper-2); border-left:4px solid var(--line-strong); padding:4px 12px; border-radius:3px; }
@@ -1135,7 +1146,7 @@
     <div class="bot" style="border-top:0; padding-top:18px;">
       <span class="org" style="color:var(--paper);">Ministério das Cidades - DMP/SE</span>
       <div style="flex: 1;"></div>
-      <span class="org" style="color:var(--paper);">Extração de 16/10/2026 11:35<span class="ver">versão 1.33</span></span>
+      <span class="org" style="color:var(--paper);">Extração de 16/10/2026 11:35<span class="ver">versão 1.34</span></span>
     </div>
   </section>
 
@@ -1171,7 +1182,7 @@
     <div class="trilha" aria-label="Etapa 1 de 5"><div class="tr-seg on"><span>01 Seleção</span><i></i></div><div class="tr-seg"><span>02 Suspensivas</span><i></i></div><div class="tr-seg"><span>03 Licitação</span><i></i></div><div class="tr-seg"><span>04 Contratação</span><i></i></div><div class="tr-seg"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: MCid · Portarias de seleção do Novo PAC (base única GM) · extração de 16/10/2026 11:35</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.33</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.34</span></span>
     </div>
   </section>
 
@@ -1205,7 +1216,7 @@
     <div class="trilha" aria-label="Etapa 1 de 5"><div class="tr-seg on"><span>01 Seleção</span><i></i></div><div class="tr-seg"><span>02 Suspensivas</span><i></i></div><div class="tr-seg"><span>03 Licitação</span><i></i></div><div class="tr-seg"><span>04 Contratação</span><i></i></div><div class="tr-seg"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: MCid · Portarias de seleção do Novo PAC (base única GM) · extração de 16/10/2026 11:35</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.33</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.34</span></span>
     </div>
   </section>
 
@@ -1242,7 +1253,7 @@
     <div class="trilha" aria-label="Etapa 2 de 5"><div class="tr-seg"><span>01 Seleção</span><i></i></div><div class="tr-seg on"><span>02 Suspensivas</span><i></i></div><div class="tr-seg"><span>03 Licitação</span><i></i></div><div class="tr-seg"><span>04 Contratação</span><i></i></div><div class="tr-seg"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: painelpac (SACI 15/10 · Transferegov 16/10 · Caixa 13/10 · BDGestores 15/10) · extração de 16/10/2026 11:35</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.33</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.34</span></span>
     </div>
   </section>
 
@@ -1278,7 +1289,7 @@
     <div class="trilha" aria-label="Etapa 2 de 5"><div class="tr-seg"><span>01 Seleção</span><i></i></div><div class="tr-seg on"><span>02 Suspensivas</span><i></i></div><div class="tr-seg"><span>03 Licitação</span><i></i></div><div class="tr-seg"><span>04 Contratação</span><i></i></div><div class="tr-seg"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: painelpac (SACI 15/10 · Transferegov 16/10 · Caixa 13/10 · BDGestores 15/10) · extração de 16/10/2026 11:35</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.33</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.34</span></span>
     </div>
   </section>
 
@@ -1302,7 +1313,7 @@
         </div>
       </div>
       <div class="col grow" style="justify-content:flex-start;">
-        <div class="kpis"><div class="kpi"><div class="kv" data-kpi="t-lic1:0">—</div><div class="kl">Aguardando licitação</div></div><div class="kpi"><div class="kv" data-kpi="t-lic1:1">—</div><div class="kl">Edital publicado</div></div><div class="kpi"><div class="kv" data-kpi="t-lic1:2">—</div><div class="kl">Homologada até AIO</div></div><div class="kpi ok"><div class="kv" data-kpi="t-lic1:3">—</div><div class="kl">Obra iniciada</div></div></div>
+        <div class="lic-ponte" id="lic-ponte"></div>
         <p class="tmeta">Situação em <b>16/10/2026</b><span class="sep">·</span>Contagem: contratos OGU do Novo PAC Seleção, sem cancelados — etapa mais avançada<span class="sep">·</span>Fonte: <b>OGU</b><span class="sep">·</span>Anos: <b class="anoname">todos</b><span class="sep">·</span>Recorte: <b class="ufname">Brasil</b></p>
         <table class="data dense" id="t-lic1">
           <thead><tr><th>Modalidade</th><th>Sem<br>registro</th><th>Em<br>suspensiva</th><th>Suspensiva<br>retirada/LAE</th><th>Edital<br>publicado</th><th>Licitação<br>homologada</th><th>VRPL /<br>AIO</th><th>Obra<br>iniciada</th><th>Total</th></tr></thead>
@@ -1314,7 +1325,7 @@
     <div class="trilha" aria-label="Etapa 3 de 5"><div class="tr-seg"><span>01 Seleção</span><i></i></div><div class="tr-seg"><span>02 Suspensivas</span><i></i></div><div class="tr-seg on"><span>03 Licitação</span><i></i></div><div class="tr-seg"><span>04 Contratação</span><i></i></div><div class="tr-seg"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: painelpac (SACI 15/10 · Transferegov 16/10 · Caixa 13/10 · BDGestores 15/10) · extração de 16/10/2026 11:35</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.33</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.34</span></span>
     </div>
   </section>
 
@@ -1348,7 +1359,7 @@
     <div class="trilha" aria-label="Etapa 3 de 5"><div class="tr-seg"><span>01 Seleção</span><i></i></div><div class="tr-seg"><span>02 Suspensivas</span><i></i></div><div class="tr-seg on"><span>03 Licitação</span><i></i></div><div class="tr-seg"><span>04 Contratação</span><i></i></div><div class="tr-seg"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: painelpac (SACI 15/10 · Transferegov 16/10 · Caixa 13/10 · BDGestores 15/10) · extração de 16/10/2026 11:35</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.33</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.34</span></span>
     </div>
   </section>
 
@@ -1384,7 +1395,7 @@
     <div class="trilha" aria-label="Etapa 4 de 5"><div class="tr-seg"><span>01 Seleção</span><i></i></div><div class="tr-seg"><span>02 Suspensivas</span><i></i></div><div class="tr-seg"><span>03 Licitação</span><i></i></div><div class="tr-seg on"><span>04 Contratação</span><i></i></div><div class="tr-seg"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: base única GM e SACI (view_mat_carteira_investimento) · extração de 16/10/2026 11:35</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.33</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.34</span></span>
     </div>
   </section>
 
@@ -1420,7 +1431,7 @@
     <div class="trilha" aria-label="Etapa 4 de 5"><div class="tr-seg"><span>01 Seleção</span><i></i></div><div class="tr-seg"><span>02 Suspensivas</span><i></i></div><div class="tr-seg"><span>03 Licitação</span><i></i></div><div class="tr-seg on"><span>04 Contratação</span><i></i></div><div class="tr-seg"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: SACI (view_mat_carteira_investimento) · extração de 16/10/2026 11:35</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.33</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.34</span></span>
     </div>
   </section>
 
@@ -1454,7 +1465,7 @@
     <div class="trilha" aria-label="Etapa 4 de 5"><div class="tr-seg"><span>01 Seleção</span><i></i></div><div class="tr-seg"><span>02 Suspensivas</span><i></i></div><div class="tr-seg"><span>03 Licitação</span><i></i></div><div class="tr-seg on"><span>04 Contratação</span><i></i></div><div class="tr-seg"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: base GM, SACI e Balanço Governa (30/06/2026) · extração de 16/10/2026 11:35</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.33</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.34</span></span>
     </div>
   </section>
 
@@ -1491,7 +1502,7 @@
     <div class="trilha" aria-label="Etapa 5 de 5"><div class="tr-seg"><span>01 Seleção</span><i></i></div><div class="tr-seg"><span>02 Suspensivas</span><i></i></div><div class="tr-seg"><span>03 Licitação</span><i></i></div><div class="tr-seg"><span>04 Contratação</span><i></i></div><div class="tr-seg on"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: SACI (view_mat_carteira_investimento) e Balanço Governa (30/06/2026) · extração de 16/10/2026 11:35</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.33</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.34</span></span>
     </div>
   </section>
 
@@ -1528,7 +1539,7 @@
     <div class="trilha" aria-label="Etapa 5 de 5"><div class="tr-seg"><span>01 Seleção</span><i></i></div><div class="tr-seg"><span>02 Suspensivas</span><i></i></div><div class="tr-seg"><span>03 Licitação</span><i></i></div><div class="tr-seg"><span>04 Contratação</span><i></i></div><div class="tr-seg on"><span>05 Execução</span><i></i></div></div>
     <div class="bot">
       <span class="org">Fonte: SACI (view_mat_carteira_investimento) e Balanço Governa (30/06/2026) · extração de 16/10/2026 11:35</span>
-      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.33</span></span>
+      <span style="display:inline-flex; align-items:baseline;"><span class="pageno"></span><span class="pagetot">/13</span><span class="ver">versão 1.34</span></span>
     </div>
   </section>
 
@@ -1555,7 +1566,7 @@
     <div class="bot" style="border-top:0; padding-top:18px;">
       <span class="org" style="color:var(--paper);">Ministério das Cidades - DMP/SE</span>
       <div style="flex: 1;"></div>
-      <span class="org" style="color:var(--paper);">Extração de 16/10/2026<span class="verwrap"><button type="button" class="ver verlink" id="verBtn" aria-haspopup="dialog" aria-expanded="false" title="Ver histórico de atualizações">versão 1.33</button>
+      <span class="org" style="color:var(--paper);">Extração de 16/10/2026<span class="verwrap"><button type="button" class="ver verlink" id="verBtn" aria-haspopup="dialog" aria-expanded="false" title="Ver histórico de atualizações">versão 1.34</button>
         <div class="verlog" id="verLog" role="dialog" aria-label="Histórico de atualizações" hidden>
           <h3>Atualizações da apresentação</h3>
           <ul>
@@ -1593,6 +1604,7 @@
             <li><b>1.31</b>Slide 3.2: prazos até maio/2026 agrupados em uma coluna "até mai/26".</li>
             <li><b>1.32</b>Slide 2.2: segunda nota com a lista das pendentes fora do alinhamento (clique), como nas bolinhas.</li>
             <li><b>1.33</b>Slide 2.2: situação atual (SACI, ou PBI se vazia) na lista das pendentes fora do alinhamento.</li>
+            <li><b>1.34</b>Slide 3.1: faixa no topo fechando o total (a concluir a licitação + homologadas + obras) e conta do edital até a régua.</li>
           </ul>
         </div></span></span>
       <a class="xlsxlink" href="novopac-balanco-carteira.pdf" download title="Baixar o PDF da apresentação (um slide por página) — com filtros aplicados, o PDF é gerado refletindo os filtros">
@@ -3538,7 +3550,20 @@ const TABLES = [
       const c = [0, 1, 2, 2, 3, 4, 5, 5, 6][f]; a.f[c]++; } }],
     init: () => ({ n: 0, f: [0, 0, 0, 0, 0, 0, 0] }),
     cols: (a) => a.f.map((v, i) => i === 6 ? H(v) : I(v)).concat([H(a.n)]),
-    kpis: (t) => [I(t.f[0] + t.f[1] + t.f[2]), I(t.f[3]), I(t.f[4] + t.f[5]), I(t.f[6]) + ' · ' + P(t.f[6], t.n)] },
+    // faixa do topo: o total fechado em grupos (a concluir a licitação = aguardando + edital publicado)
+    after: (t) => {
+      const el = document.getElementById('lic-ponte');
+      if (!el) return;
+      const ag = t.f[0] + t.f[1] + t.f[2], ed = t.f[3], ho = t.f[4] + t.f[5], ob = t.f[6];
+      const b = (n, rot, det, cls) => '<div class="lp-b' + (cls ? ' ' + cls : '') + '"><b>' + I(n) + '</b><span>' + rot + '</span>'
+        + (det ? '<em>' + det + '</em>' : '') + '</div>';
+      el.innerHTML = b(t.n, 'contratos OGU', 'slide 2.1') + '<i class="lp-op">=</i>'
+        + '<div class="lp-grupo"><div class="lp-g-t">' + I(ag + ed) + ' a concluir a licitação · régua no 3.2</div><div class="lp-g-c">'
+        + b(ag, 'aguardando licitação', I(t.f[0]) + ' sem registro · ' + I(t.f[1]) + ' em suspensiva · ' + I(t.f[2]) + ' LAE')
+        + '<i class="lp-op">+</i>' + b(ed, 'edital publicado', 'sem homologação') + '</div></div><i class="lp-op">+</i>'
+        + b(ho, 'homologada até AIO', I(t.f[4]) + ' homologada · ' + I(t.f[5]) + ' VRPL/AIO') + '<i class="lp-op">+</i>'
+        + b(ob, 'obra iniciada', P(ob, t.n) + ' dos contratos', 'ok');
+    } },
 
   { id: 't-ct1', parts: [
       { src: 'sel', keep: (r) => r[3] >= 1, add: (a, r) => { a.n++; a.sel++; } },
@@ -3664,6 +3689,26 @@ function ponteRegua() {
   }
   return p;
 }
+// coluna "Edital publicado" (3.1) → contratos sem homologação da régua (3.2, etapa "Fim da licitação")
+function quadroReguaHom(aqui) {
+  const t = {}, p = { col: 0, naoNormal: 0, pc72: 0, pc72inc: 0, dentro: 0, extra: 0 }, inc = state.rpc72 === 'sim';
+  for (const r of OG) { if (r[5] || r[9] !== 4 || !passa(SRC.og, r, t)) continue; p.col++; if (!r[20]) p.naoNormal++; }
+  for (const r of RG) {
+    if (!r[8] || r[11] || r[5] || !passa(SRC.rg, r, t)) continue;  // com edital, sem homologação
+    const pc72 = r[12] && dUTC(r[12]) < dUTC(RG_PC72), naColuna = r[16] === 4;
+    if (pc72 && !inc) { if (naColuna) p.pc72++; continue; }
+    if (naColuna) { p.dentro++; if (pc72) p.pc72inc++; } else p.extra++;
+  }
+  return quadroConta('Coluna "Edital publicado" (3.1) → sem homologação na régua (3.2)', [
+    [aqui === '3.1' ? 'Coluna "Edital publicado" deste slide' : 'Coluna "Edital publicado" (slide 3.1)', I(p.col), 'tot'],
+    ['− fora de "Contratado - Normal" (a régua só conta contratos normais)', '− ' + I(p.naoNormal)],
+    ...(p.pc72 ? [['− assinados antes de 21/10/2025: sem prazo (PC 72)', '− ' + I(p.pc72)]] : []),
+    ['= com prazo de homologação' + (p.pc72inc ? ' (inclui ' + I(p.pc72inc) + ' da PC 72, em simulação)' : ''), I(p.dentro), 'sub'],
+    ['+ com edital e sem homologação registrada, mas em etapa posterior no 3.1 (VRPL/AIO, obra)', '+ ' + I(p.extra)],
+    [aqui === '3.2' ? '= contratos sem homologação deste slide (Fim da licitação)' : '= sem homologação na régua (slide 3.2)', I(p.dentro + p.extra), 'tot'],
+  ], 'conta do edital até o fim da licitação (3.2)');
+}
+
 function quadroRegua(aqui) {
   const p = ponteRegua();
   return quadroConta('Coluna "Suspensiva retirada/LAE" (3.1) → pontos da régua (3.2)', [
@@ -3725,7 +3770,7 @@ const REFS = {
       : 'Fora: <b>' + I(RGN.pc72 + RGN.pc72hf) + '</b> da PC 72 (sem prazo). ')
     + (RGN.semLae ? '<b>' + I(RGN.semLae) + '</b> sem LAE ficam fora. ' : '')
     + (RGN.excl ? '<b>' + I(RGN.excl) + '</b> com bln_pac = NÃO fora. ' : '')
-    + 'Clique num ponto para abrir no SACI. ' + quadroRegua('3.2'),
+    + 'Clique num ponto para abrir no SACI. ' + quadroRegua('3.2') + ' · ' + quadroReguaHom('3.2'),
   // 2ª nota do 2.2: as pendentes sem data alinhada, com a mesma lista das bolinhas (clique)
   aln2: () => !ALN.ps ? '' : '<b>' + I(ALN.ps) + '</b> suspensivas pendentes do 2.1 ficaram fora do alinhamento de 08/2026 (sem data, '
     + 'não aparecem no gráfico) — ' + BM(ALN.fora.reduce((s, r) => s + r[4], 0)) + ' de repasse. '
@@ -3765,7 +3810,7 @@ const REFS = {
     const c = cadeiaOgu();
     return 'De <b>' + I(c.sel) + '</b> seleções OGU (slide 1.1) a <b>' + I(c.ativos) + '</b> contratos OGU: migradas, seleções sem contrato, '
       + 'bln_pac = NÃO, sem modalidade e cancelados saem; contratos sem proposta ligada entram. ' + quadroOgu(c)
-      + ' · ' + quadroEmSusp('3.1') + ' · ' + quadroRegua('3.1');
+      + ' · ' + quadroEmSusp('3.1') + ' · ' + quadroRegua('3.1') + ' · ' + quadroReguaHom('3.1');
   },
   susp1: () => {
     const c = cadeiaOgu();
@@ -4432,6 +4477,7 @@ function render() {
         th.innerHTML = state.pct1 !== '1' || !i ? o : (o.includes('R$ mi') ? o.replace('R$ mi', '%') : o + ' (%)');
       });
     }
+    if (t.after) t.after(tot);
     if (t.kpis) t.kpis(tot).forEach((v, i) => {
       const el = document.querySelector('[data-kpi="' + t.id + ':' + i + '"]');
       if (el) el.textContent = tot.n ? v : '—';
