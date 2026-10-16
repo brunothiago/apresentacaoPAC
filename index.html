@@ -1576,7 +1576,7 @@
             <li><b>1.34</b>Slide 3.1: faixa no topo fechando o total (a concluir a licitação + homologadas + obras) e conta do edital até a régua.</li>
             <li><b>1.35</b>Slides 4.1 e 4.2: conta das 3.507 propostas até os contratos assinados (quantidade e valor) e das 338 em suspensiva até as 294 do 2.1.</li>
             <li><b>1.36</b>"Da seleção à obra" passa a ser o último slide da Execução (5.2); "Situação das obras" fica oculto até a revisão.</li>
-            <li><b>1.37</b>Slide 5.2: filtro de status (selecionadas / enquadradas).</li>
+            <li><b>1.37</b>Slide 5.2: filtro de status (selecionadas / enquadradas) e conta dos contratos assinados (1.708 do 4.1 + itens do balanço).</li>
           </ul>
         </div></span></span>
       <a class="xlsxlink" href="novopac-balanco-carteira.pdf" download title="Baixar o PDF da apresentação (um slide por página) — com filtros aplicados, o PDF é gerado refletindo os filtros">
@@ -3808,7 +3808,17 @@ const REFS = {
     + (comBal() ? ' Obra: SACI + balanço jun/26, com <b>' + I(FUN.bx) + '</b> itens só no balanço (valor: total previsto Novo PAC).' : '')
     + (state.c95 === '1' ? ' Concluídas: + iniciadas com ≥ 95% físico' + (comBal() ? ' (SACI ou balanço)' : '') + '.' : '')
     + (state.gmig ? ' Migradas pelo valor da base GM (pós-2023).' : '')
-    + ' Sem itens sem modalidade' + SEMMOD + '.',
+    + ' Sem itens sem modalidade' + SEMMOD + '.'
+    + (FUN.bx ? ' Assinados <b>' + I(FUN.ass[0]) + '</b> = <b>' + I(FUN.sn) + '</b> do SACI (slide 4.1)'
+      + (FUN.sm ? ' + <b>' + I(FUN.sm) + '</b> migrados' : '') + ' + <b>' + I(FUN.bx) + '</b> itens do balanço sem contrato no SACI.' : '')
+    + ' ' + quadroConta('Contratos assinados: slide 4.1 → bloco deste slide', [
+      ['Contratos assinados do SACI — novas seleções (slide 4.1)', I(FUN.sn) + ' · ' + BM(FUN.sr), 'tot'],
+      ...(FUN.sm ? [['+ migrados assinados (origem Migradas ligada; valor da base GM)', '+ ' + I(FUN.sm) + ' · ' + BM(FUN.smr)]] : []),
+      ...(FUN.bx ? [['+ itens do balanço jun/26 sem contrato no SACI (SACI + balanço; valor: total previsto)', '+ ' + I(FUN.bx) + ' · ' + BM(FUN.bxv)]] : []),
+      ['= bloco "Contratos assinados" deste slide', I(FUN.ass[0]) + ' · ' + BM(FUN.ass[1]), 'tot'],
+      ['Valor aqui é o repasse/financiamento do SACI; no 4.1 é o investimento (' + BM(FUN.si) + ' nas novas seleções). Com "Só SACI" '
+        + 'os itens do balanço saem. O filtro de status vale aqui e não no 4.1.', '', 'obs'],
+    ], 'conta dos assinados (4.1)'),
   reg: () => 'Contratos OGU em Contratado - Normal. Prazo efetivo = o maior entre o legal e 30/10/2026, na data da extração. '
     + (state.rpc72 === 'sim'
       ? 'Inclui <b>' + I(RGN.pc72p) + '</b> sem edital e <b>' + I(RGN.pc72h) + '</b> sem homologação assinados antes de 21/10/2025 (PC 72) '
@@ -3914,7 +3924,7 @@ function renderFunil() {
     if (!origem(r) || !passa(SRC.sel, r, t)) continue;
     b.sel[0]++; b.sel[1] += r[4] + r[5];
   }
-  FUN.bx = 0;
+  FUN.bx = 0; FUN.bxv = 0; FUN.sn = 0; FUN.sm = 0; FUN.sr = 0; FUN.si = 0; FUN.smr = 0;
   const conta = (r, v) => {
     b.ass[0]++; b.ass[1] += v;
     const o = sitObra(r), f = fisico(r);
@@ -3925,11 +3935,13 @@ function renderFunil() {
   for (const r of CT) {
     if (!origem(r) || r[5] === 3 || r[5] === 4 || !passa(SRC.ct, r, t)) continue;
     conta(r, vMig(r, 8));
+    if (r[3] === 0) { FUN.sm++; FUN.smr += vMig(r, 8); } else { FUN.sn++; FUN.sr += r[8]; FUN.si += r[7]; }  // para a conta da nota
   }
   if (comBal()) for (const r of BX) {
     if (!origem(r) || !passa(SRC.bx, r, t)) continue;
-    conta(r, r[8]); FUN.bx++;
+    conta(r, r[8]); FUN.bx++; FUN.bxv += r[8];
   }
+  FUN.ass = b.ass.slice();
   const anosSel = state.gmig && state.gnov ? 'migradas + portarias de 2023, 2025 e 2026'
     : state.gmig ? 'migradas (legado)' : 'portarias de 2023, 2025 e 2026';
   const BLOCOS = [
