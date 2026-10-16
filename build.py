@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.25'  # subir a cada commit que altere a apresentação
+VERSAO = '1.26'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -53,6 +53,7 @@ HISTORICO = [
     ('1.23', 'Slide 1.2: ícones de Renovação de Frota (ônibus) e Regularização Fundiária; ícones em cinza, azul só OGU, verde só FIN.'),
     ('1.24', 'Slide 2.2: "ver a conta passo a passo" na nota, dos contratos OGU do 2.1 às bolinhas do gráfico.'),
     ('1.25', 'Slide 1.2: ícones das modalidades maiores.'),
+    ('1.26', 'Slide 3.1: conta da coluna "Em suspensiva" (pendentes do 2.1 × etapa mais avançada).'),
 ]
 
 D = dados.load()
@@ -252,6 +253,7 @@ EXTRA_CSS = """
   .conta-pop tr.sub td{ border-top:1px solid var(--line); font-weight:700; }
   .conta-pop tr.tot td{ border-top:2px solid var(--line-strong); font-weight:800; color:var(--navy); }
   .conta-pop tr:first-child td{ border-top:0; }
+  .conta-pop tr.obs td{ border-top:1px solid var(--line); padding-top:6px; font-size:14px; font-style:italic; color:var(--ink-soft); font-weight:400; }
   @media print{ .conta-pop{ display:none !important; } }
   .rodape-row{ display:flex; justify-content:space-between; align-items:flex-start; gap:40px; margin-top:8px; }
   .rodape-row .nota{ margin:0; padding-top:4px; }
@@ -1068,9 +1070,9 @@ function exclCt(keep, cod = 1, rows = CT, src = SRC.ct) {
 const SEMMOD = ' (exceção provisória, a revisar)';
 
 // quadro "ver a conta passo a passo" (aparece ao passar o mouse): título + linhas [texto, valor, tipo]
-function quadroConta(titulo, linhas) {
+function quadroConta(titulo, linhas, rotulo = 'ver a conta passo a passo') {
   const L = ([txt, v, tipo]) => '<tr class="' + (tipo || '') + '"><td>' + txt + '</td><td>' + v + '</td></tr>';
-  return '<span class="conta" tabindex="0">ver a conta passo a passo ⓘ<span class="conta-pop" role="tooltip"><b class="conta-t">'
+  return '<span class="conta" tabindex="0">' + rotulo + ' ⓘ<span class="conta-pop" role="tooltip"><b class="conta-t">'
     + titulo + '</b><table>' + linhas.map(L).join('') + '</table></span></span>';
 }
 
@@ -1090,6 +1092,20 @@ function quadroOgu(c) {
       + L('= contratos deste slide (inclui ' + I(c.emc) + ' em contratação)', I(c.ativos), 'tot')
       + '</table></span>';
     return '<span class="conta" tabindex="0">ver a conta passo a passo ⓘ' + quadro + '</span>';
+}
+
+// suspensivas pendentes (2.1) × etapa mais avançada (3.1), no recorte — FASES: 1 suspensiva · 2 retirada ·
+// 3 LAE · 4 publicação · 5 homologação · 6 VRPL · 7 AIO · 8 obra
+function pendEtapa() {
+  const e = { pend: 0, susp: 0, lae: 0, pub: 0, hom: 0, vrpl: 0, outra: 0 }, t = {};
+  for (const r of OG) {
+    if (r[5] || r[6] !== 1 || !passa(SRC.og, r, t)) continue;
+    e.pend++;
+    const f = r[9];
+    if (f === 1) e.susp++; else if (f === 2 || f === 3) e.lae++; else if (f === 4) e.pub++;
+    else if (f === 5) e.hom++; else if (f === 6 || f === 7) e.vrpl++; else e.outra++;
+  }
+  return e;
 }
 
 function cadeiaOgu() {
@@ -1171,7 +1187,21 @@ const REFS = {
   lic1: () => {
     const c = cadeiaOgu();
     return 'De <b>' + I(c.sel) + '</b> seleções OGU (slide 1.1) a <b>' + I(c.ativos) + '</b> contratos OGU: migradas, seleções sem contrato, '
-      + 'bln_pac = NÃO, sem modalidade e cancelados saem; contratos sem proposta ligada entram. ' + quadroOgu(c);
+      + 'bln_pac = NÃO, sem modalidade e cancelados saem; contratos sem proposta ligada entram. ' + quadroOgu(c)
+      + (() => {
+        const e = pendEtapa();
+        return ' · ' + quadroConta('Suspensivas pendentes (slide 2.1) × coluna "Em suspensiva"', [
+          ['Suspensivas pendentes (slide 2.1)', I(e.pend), 'tot'],
+          ['− já com LAE registrada (coluna Suspensiva retirada/LAE)', '− ' + I(e.lae)],
+          ['− já com edital publicado', '− ' + I(e.pub)],
+          ['− já com licitação homologada', '− ' + I(e.hom)],
+          ['− já com VRPL/AIO registrado', '− ' + I(e.vrpl)],
+          ...(e.outra ? [['− outra etapa', '− ' + I(e.outra)]] : []),
+          ['= coluna "Em suspensiva" deste slide', I(e.susp), 'tot'],
+          ['Os ' + I(e.pend - e.susp) + ' contratos acima têm a suspensiva pendente, mas já há data de etapa posterior no TGOV/BDGestores; '
+            + 'o slide os classifica pela etapa mais avançada.', '', 'obs'],
+        ], 'conta da coluna Em suspensiva');
+      })();
   },
   susp1: () => { const c = cadeiaOgu(); return 'Base: <b>' + I(c.ativos) + '</b> contratos OGU do painelpac, sem cancelados e sem os <b>'
     + I(c.excl) + '</b> com bln_pac = NÃO e dos <b>' + I(c.semmod) + '</b> sem modalidade' + SEMMOD + '. ' + quadroOgu(c); },
