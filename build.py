@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.23'  # subir a cada commit que altere a apresentação
+VERSAO = '1.24'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -51,6 +51,7 @@ HISTORICO = [
     ('1.21', 'Slide 2.2: clicar numa bolinha abre a lista dos contratos do grupo, com link para o SACI.'),
     ('1.22', 'Extração de 16/10: 55 contratos da SNP saíram da fase Novo PAC no SACI (já estavam fora das contas).'),
     ('1.23', 'Slide 1.2: ícones de Renovação de Frota (ônibus) e Regularização Fundiária; ícones em cinza, azul só OGU, verde só FIN.'),
+    ('1.24', 'Slide 2.2: "ver a conta passo a passo" na nota, dos contratos OGU do 2.1 às bolinhas do gráfico.'),
 ]
 
 D = dados.load()
@@ -1065,6 +1066,13 @@ function exclCt(keep, cod = 1, rows = CT, src = SRC.ct) {
 }
 const SEMMOD = ' (exceção provisória, a revisar)';
 
+// quadro "ver a conta passo a passo" (aparece ao passar o mouse): título + linhas [texto, valor, tipo]
+function quadroConta(titulo, linhas) {
+  const L = ([txt, v, tipo]) => '<tr class="' + (tipo || '') + '"><td>' + txt + '</td><td>' + v + '</td></tr>';
+  return '<span class="conta" tabindex="0">ver a conta passo a passo ⓘ<span class="conta-pop" role="tooltip"><b class="conta-t">'
+    + titulo + '</b><table>' + linhas.map(L).join('') + '</table></span></span>';
+}
+
 function quadroOgu(c) {
     const L = (txt, v, tipo) => '<tr class="' + (tipo || '') + '"><td>' + txt + '</td><td>' + v + '</td></tr>';
     const quadro = '<span class="conta-pop" role="tooltip"><b class="conta-t">Das seleções OGU aos contratos do slide</b><table>'
@@ -1132,7 +1140,18 @@ const REFS = {
     : (state.alnp === 'pend' ? 'Só pendentes. ' : '') + '<b>' + I(ALN.n) + '</b> com data alinhada = <b>' + I(ALN.pc)
       + '</b> pendentes + <b>' + I(ALN.ret) + '</b> já retiradas' + (ALN.canc ? ' + <b>' + I(ALN.canc) + '</b> cancelado(s)' : '')
       + ' (a data vale mesmo após a retirada). As <b>' + I(ALN.pc + ALN.ps) + '</b> pendentes do 2.1 = <b>' + I(ALN.pc)
-      + '</b> com data + <b>' + I(ALN.ps) + '</b> fora do alinhamento de 08/2026.',
+      + '</b> com data + <b>' + I(ALN.ps) + '</b> fora do alinhamento de 08/2026. '
+      + quadroConta('Dos contratos OGU (slide 2.1) às bolinhas do gráfico', [
+        ['Contratos OGU (slide 2.1, sem cancelados)', I(ALN.ct), 'tot'],
+        ['− sem cláusula suspensiva', '− ' + I(ALN.sem)],
+        ['− suspensiva já retirada', '− ' + I(ALN.ret21)],
+        ['= suspensivas pendentes (slide 2.1)', I(ALN.pc + ALN.ps), 'sub'],
+        ['− pendentes fora do alinhamento de 08/2026 (sem data)', '− ' + I(ALN.ps)],
+        ['= pendentes com data alinhada', I(ALN.pc), 'sub'],
+        ['+ já retiradas com data alinhada (a data vale depois da retirada)', '+ ' + I(ALN.ret)],
+        ['+ canceladas com data alinhada', '+ ' + I(ALN.canc)],
+        ['= contratos com data alinhada (bolinhas do gráfico)', I(ALN.n), 'tot'],
+      ]),
   ex1: (T) => {
     const t = T['t-ex1'];
     let s = 'Total = <b>' + I(t.sel) + '</b> Novo PAC Seleção + <b>' + I(t.mig) + '</b> migrados'
@@ -1545,10 +1564,11 @@ function renderAlinhamento() {
   const el = document.getElementById('g-alin');
   if (!el) return;
   const t = {};
-  Object.assign(ALN, { n: 0, ret: 0, pc: 0, canc: 0, ps: 0 });
+  Object.assign(ALN, { n: 0, ret: 0, pc: 0, canc: 0, ps: 0, ct: 0, sem: 0, ret21: 0 });
   const grupos = new Map();
   for (const r of OG) {
     if (!passa(SRC.og, r, t)) continue;
+    if (!r[5]) { ALN.ct++; if (r[6] === 2) ALN.sem++; else if (r[6] === 0) ALN.ret21++; }  // base do slide 2.1
     if (!r[13]) { if (r[6] === 1 && !r[5]) ALN.ps++; continue; }
     ALN.n++;
     const ret = r[6] === 0;
