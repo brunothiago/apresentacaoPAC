@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.27'  # subir a cada commit que altere a apresentação
+VERSAO = '1.28'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -55,6 +55,7 @@ HISTORICO = [
     ('1.25', 'Slide 1.2: ícones das modalidades maiores.'),
     ('1.26', 'Slide 3.1: conta da coluna "Em suspensiva" (pendentes do 2.1 × etapa mais avançada).'),
     ('1.27', 'Slide 2.1: a mesma conta das pendentes × coluna "Em suspensiva" do 3.1.'),
+    ('1.28', 'Slides 3.1 e 3.2: conta da coluna "Suspensiva retirada/LAE" até os pontos da régua.'),
 ]
 
 D = dados.load()
@@ -187,11 +188,13 @@ for _, r in D['ogu'].iterrows():
                '' if pd.isna(r.dt_alinhamento) else f'{r.dt_alinhamento:%Y-%m-%d}',
                1 if str(r.num_proposta_selecao_pac_saci).strip() in PROP_SEL_OGU else 0,
                1 if r.dsc_situacao_contrato_mcid_saci == 'Em Contratação' else 0, 1 if r.excl else 2 if r.semmod else 0,
-               str(r.num_convenio_saci or ''), str(_mun_saci.get(r.cod_tci_saci, '') or ''), r.cod_tci_saci])
+               str(r.num_convenio_saci or ''), str(_mun_saci.get(r.cod_tci_saci, '') or ''), r.cod_tci_saci,
+               1 if r.dsc_situacao_contrato_mcid_saci == 'Contratado - Normal' else 0])
 
 # régua do prazo da licitação (3.2, porte do regua-licitacao.js do painelpac): contratos OGU em
 # "Contratado - Normal" — [mod, uf, kind, ano, repasse, fora do PAC, prazo legal pub (LAE+60), prazo efetivo pub,
-#  edital publicado, prazo legal hom (pub+120), prazo efetivo hom, homologada, assinatura, convênio, município, TCI]
+#  edital publicado, prazo legal hom (pub+120), prazo efetivo hom, homologada, assinatura, convênio, município, TCI,
+#  etapa atual (índice em FASES)]
 _iso = lambda v: '' if pd.isna(v) else f'{pd.Timestamp(v):%Y-%m-%d}'
 _mun = D['saci'].set_index('cod_tci').txt_municipio
 RG = []
@@ -199,7 +202,8 @@ for _, r in D['ogu'][D['ogu'].dsc_situacao_contrato_mcid_saci == 'Contratado - N
     RG.append([MODS.index(r['mod']), r.uf, int(r.kind), r.ano, num(r.vlr_repasse_saci), 1 if r.excl else 2 if r.semmod else 0,
                _iso(r.prazo_pub_licitacao_36a_calc), _iso(r.prazo_pub_licitacao_calc), 0 if pd.isna(r.dte_publicacao_licitacao_tgov) else 1,
                _iso(r.prazo_homolog_licitacao_120d), _iso(r.prazo_homolog_licitacao_calc), 0 if pd.isna(r.dte_homologacao_licitacao_tgov) else 1,
-               _iso(r.dte_assinatura_contrato_saci), str(r.num_convenio_saci or ''), str(_mun.get(r.cod_tci_saci, '') or ''), r.cod_tci_saci])
+               _iso(r.dte_assinatura_contrato_saci), str(r.num_convenio_saci or ''), str(_mun.get(r.cod_tci_saci, '') or ''), r.cod_tci_saci,
+               FASES.index(r.fase_atual_calc) if r.fase_atual_calc in FASES else 0])
 
 ANOS = sorted({r[6] for r in SEL if r[6]})
 ufs = sorted(({r[2] for r in SEL} | {r[2] for r in CT} | {r[1] for r in OG}) - {'BR', ''})
@@ -1127,6 +1131,35 @@ function quadroEmSusp(aqui) {
   ], 'conta da coluna Em suspensiva (3.1)');
 }
 
+// coluna "Suspensiva retirada/LAE" (3.1) → pontos sem edital da régua (3.2), no recorte. FASES 2 e 3 = a coluna.
+// A régua só conta "Contratado - Normal" com prazo pelo art. 36-A (assinado a partir de 21/10/2025 e com LAE).
+function ponteRegua() {
+  const t = {}, p = { col: 0, naoNormal: 0, pc72: 0, semPrazo: 0, comPrazo: 0, extra: 0 };
+  for (const r of OG) {
+    if (r[5] || !(r[9] === 2 || r[9] === 3) || !passa(SRC.og, r, t)) continue;
+    p.col++; if (!r[20]) p.naoNormal++;
+  }
+  for (const r of RG) {
+    if (r[8] || !passa(SRC.rg, r, t)) continue;  // só sem edital publicado
+    const naColuna = r[16] === 2 || r[16] === 3, pc72 = r[12] && dUTC(r[12]) < dUTC(RG_PC72);
+    if (naColuna) { if (pc72) p.pc72++; else if (!r[6]) p.semPrazo++; else p.comPrazo++; }
+    else if (!pc72 && r[6]) p.extra++;  // ponto da régua que no 3.1 está em outra coluna
+  }
+  return p;
+}
+function quadroRegua(aqui) {
+  const p = ponteRegua();
+  return quadroConta('Coluna "Suspensiva retirada/LAE" (3.1) → pontos da régua (3.2)', [
+    [aqui === '3.1' ? 'Coluna "Suspensiva retirada/LAE" deste slide' : 'Coluna "Suspensiva retirada/LAE" (slide 3.1)', I(p.col), 'tot'],
+    ['− fora de "Contratado - Normal" (a régua só conta contratos normais)', '− ' + I(p.naoNormal)],
+    ['− assinados antes de 21/10/2025: sem prazo (PC 72)', '− ' + I(p.pc72)],
+    ['− sem LAE registrada: prazo não calculado', '− ' + I(p.semPrazo)],
+    ['= com prazo de publicação do edital', I(p.comPrazo), 'sub'],
+    ...(p.extra ? [['+ sem edital registrado, mas em etapa posterior no 3.1 (ex.: obra iniciada)', '+ ' + I(p.extra)]] : []),
+    [aqui === '3.2' ? '= pontos da régua deste slide (sem edital publicado)' : '= pontos da régua (slide 3.2)', I(p.comPrazo + p.extra), 'tot'],
+  ], 'conta até a régua (3.2)');
+}
+
 function cadeiaOgu() {
   const t = {}, c = { sel: 0, mig: 0, nov: 0, comCt: 0, semCt: 0, ct: 0, lig: 0, semProp: 0, canc: 0, emc: 0, ativos: 0, excl: 0, semmod: 0 };
   for (const r of SEL) {
@@ -1171,7 +1204,7 @@ const REFS = {
   reg: () => 'Contratos OGU em Contratado - Normal (como no painelpac). Prazo efetivo = o maior entre o legal e 30/10/2026; '
     + 'antes × agora na data da extração. Ficam de fora <b>' + I(RGN.pc72) + '</b> sem prazo (PC 72, assinados antes de 21/10/2025), <b>'
     + I(RGN.semLae) + '</b> sem LAE' + (RGN.excl ? ', <b>' + I(RGN.excl) + '</b> com bln_pac = NÃO' : '')
-    + (RGN.semmod ? ' e <b>' + I(RGN.semmod) + '</b> sem modalidade' : '') + '. Clique num ponto para abrir no SACI.',
+    + (RGN.semmod ? ' e <b>' + I(RGN.semmod) + '</b> sem modalidade' : '') + '. Clique num ponto para abrir no SACI. ' + quadroRegua('3.2'),
   aln: () => !ALN.n ? 'Nenhum contrato com data alinhada neste recorte.'
     : (state.alnp === 'pend' ? 'Só pendentes. ' : '') + '<b>' + I(ALN.n) + '</b> com data alinhada = <b>' + I(ALN.pc)
       + '</b> pendentes + <b>' + I(ALN.ret) + '</b> já retiradas' + (ALN.canc ? ' + <b>' + I(ALN.canc) + '</b> cancelado(s)' : '')
@@ -1207,7 +1240,7 @@ const REFS = {
     const c = cadeiaOgu();
     return 'De <b>' + I(c.sel) + '</b> seleções OGU (slide 1.1) a <b>' + I(c.ativos) + '</b> contratos OGU: migradas, seleções sem contrato, '
       + 'bln_pac = NÃO, sem modalidade e cancelados saem; contratos sem proposta ligada entram. ' + quadroOgu(c)
-      + ' · ' + quadroEmSusp('3.1');
+      + ' · ' + quadroEmSusp('3.1') + ' · ' + quadroRegua('3.1');
   },
   susp1: () => {
     const c = cadeiaOgu();
