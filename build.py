@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.28'  # subir a cada commit que altere a apresentação
+VERSAO = '1.29'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -56,6 +56,7 @@ HISTORICO = [
     ('1.26', 'Slide 3.1: conta da coluna "Em suspensiva" (pendentes do 2.1 × etapa mais avançada).'),
     ('1.27', 'Slide 2.1: a mesma conta das pendentes × coluna "Em suspensiva" do 3.1.'),
     ('1.28', 'Slides 3.1 e 3.2: conta da coluna "Suspensiva retirada/LAE" até os pontos da régua.'),
+    ('1.29', 'Slide 2.2: faixa no topo com a ponte do 2.1 (1.525 → 294 → 283 → 363) e nota explicando 363 > 294.'),
 ]
 
 D = dados.load()
@@ -383,6 +384,15 @@ EXTRA_CSS = """
   .rg-trilho{ display:flex; gap:2px; height:24px; border-radius:3px; overflow:hidden; background:#EEF1F5; }
   .rg-seg{ display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:800; min-width:0; overflow:hidden; white-space:nowrap; }
   .alin{ margin-top:4px; position:relative; }
+  /* faixa do 2.2: ponte do slide 2.1 até as bolinhas do gráfico */
+  .aln-ponte{ display:flex; align-items:center; gap:6px; margin:0 0 6px; }
+  .ap-b{ flex:none; display:flex; align-items:baseline; gap:8px; background:var(--paper-2); border-left:4px solid var(--line-strong); padding:4px 12px; border-radius:3px; }
+  .ap-b b{ font-size:22px; font-weight:800; color:var(--navy); font-variant-numeric:tabular-nums; }
+  .ap-b span{ font-size:13px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); white-space:nowrap; }
+  .ap-b.fim{ border-left-color:var(--accent); } .ap-b.fim b{ color:var(--accent-deep); }
+  .ap-s{ flex:1; min-width:0; padding:0 6px; display:flex; flex-direction:column; align-items:center; font-size:12.5px; color:var(--ink-soft); white-space:nowrap; }
+  .ap-s i{ display:block; width:100%; height:0; border-top:2px solid var(--line-strong); position:relative; margin-top:3px; }
+  .ap-s i::after{ content:''; position:absolute; right:-1px; top:-6px; border:5px solid transparent; border-left:7px solid var(--line-strong); }
   .aln-b{ cursor:pointer; outline:none; }
   .aln-b:hover circle:first-of-type, .aln-b:focus circle:first-of-type{ fill-opacity:1; }
   .aln-b.sel circle:first-of-type{ fill:#0C3C8F; fill-opacity:1; stroke:#071D41; stroke-width:3; }
@@ -703,6 +713,7 @@ def slide_alinhamento(etapa, n, titulo, legenda, atualizado, fonte, dek='', kpis
     return (cabeca(etapa, n, titulo, 'g-alin', dek, so_ogu=True, extra=extra)
             + f"""{cartoes('g-alin', kpis)}
         {tmeta(atualizado, legenda, so_ogu=True)}
+        <div class="aln-ponte" id="aln-ponte"></div>
         <div class="alin" id="g-alin"></div>
         <p class="nota"><span data-ref="aln"></span></p>
       </div>
@@ -1206,10 +1217,10 @@ const REFS = {
     + I(RGN.semLae) + '</b> sem LAE' + (RGN.excl ? ', <b>' + I(RGN.excl) + '</b> com bln_pac = NÃO' : '')
     + (RGN.semmod ? ' e <b>' + I(RGN.semmod) + '</b> sem modalidade' : '') + '. Clique num ponto para abrir no SACI. ' + quadroRegua('3.2'),
   aln: () => !ALN.n ? 'Nenhum contrato com data alinhada neste recorte.'
-    : (state.alnp === 'pend' ? 'Só pendentes. ' : '') + '<b>' + I(ALN.n) + '</b> com data alinhada = <b>' + I(ALN.pc)
-      + '</b> pendentes + <b>' + I(ALN.ret) + '</b> já retiradas' + (ALN.canc ? ' + <b>' + I(ALN.canc) + '</b> cancelado(s)' : '')
-      + ' (a data vale mesmo após a retirada). As <b>' + I(ALN.pc + ALN.ps) + '</b> pendentes do 2.1 = <b>' + I(ALN.pc)
-      + '</b> com data + <b>' + I(ALN.ps) + '</b> fora do alinhamento de 08/2026. '
+    : (state.alnp === 'pend' ? 'Só pendentes. ' : '') + '<b>' + I(ALN.n) + '</b> &gt; <b>' + I(ALN.pc + ALN.ps)
+      + '</b> pendentes: às <b>' + I(ALN.pc) + '</b> pendentes com data somam-se <b>' + I(ALN.ret) + '</b> já retiradas'
+      + (ALN.canc ? ' e <b>' + I(ALN.canc) + '</b> cancelada' : '') + ' (a data vale após a retirada); <b>' + I(ALN.ps)
+      + '</b> pendentes ficaram fora do alinhamento. '
       + quadroConta('Dos contratos OGU (slide 2.1) às bolinhas do gráfico', [
         ['Contratos OGU (slide 2.1, sem cancelados)', I(ALN.ct), 'tot'],
         ['− sem cláusula suspensiva', '− ' + I(ALN.sem)],
@@ -1661,6 +1672,19 @@ function renderAlinhamento() {
     .map((g) => (pend ? { ...g, n: g.n - g.ret - g.canc, vlr: g.vlr - g.vret - g.vcanc, ret: 0, vret: 0 } : g))
     .filter((g) => g.n > 0);
   ALN.grupos = new Map(lista.map((g) => [g.key, g]));
+  // faixa do topo: a ponte do slide 2.1 até as bolinhas
+  const ponte = document.getElementById('aln-ponte');
+  if (ponte) {
+    const bloco = (n, rot, cls) => '<div class="ap-b' + (cls ? ' ' + cls : '') + '"><b>' + I(n) + '</b><span>' + rot + '</span></div>';
+    const seta = (txt) => '<div class="ap-s"><span>' + txt + '</span><i></i></div>';
+    ponte.innerHTML = bloco(ALN.ct, 'contratos OGU (2.1)')
+      + seta('−' + I(ALN.sem) + ' sem susp. −' + I(ALN.ret21) + ' retiradas')
+      + bloco(ALN.pc + ALN.ps, 'pendentes (2.1)')
+      + seta('−' + I(ALN.ps) + ' sem data')
+      + bloco(ALN.pc, 'pendentes com data')
+      + seta('+' + I(ALN.ret) + ' retiradas' + (ALN.canc ? ' +' + I(ALN.canc) + ' cancel.' : '') + ' com data')
+      + bloco(ALN.n, 'no gráfico', 'fim');
+  }
   const totMod = new Map();
   for (const g of lista) {
     const tm = totMod.get(g.mod) || { n: 0, v: 0 };
@@ -1668,7 +1692,7 @@ function renderAlinhamento() {
   }
   if (!lista.length) { el.innerHTML = '<p class="nota">Sem contratos com data alinhada neste recorte.</p>'; return; }
 
-  const W = 1712, LEFT = 260, RIGHT = 16, HEAD = 34, HMAX = 572, FOLGA = 12;  // FOLGA: respiro entre as linhas
+  const W = 1712, LEFT = 260, RIGHT = 16, HEAD = 34, HMAX = 470, FOLGA = 6;  // FOLGA: respiro entre as linhas
   const T0 = Date.UTC(2026, 3, 1), T1 = Date.UTC(2027, 3, 1), PLOT = W - LEFT - RIGHT;
   const x = (ms) => LEFT + (ms - T0) / (T1 - T0) * PLOT;
   const pelo = state.aln === 'n' ? 'n' : 'vlr';
@@ -1698,12 +1722,12 @@ function renderAlinhamento() {
         if (!f) faixas.push(f = { itens: [], fim: -1e9, rmax: 0 });
         f.itens.push(it); f.fim = it.fim; f.rmax = Math.max(f.rmax, it.r);
       }
-      const h = Math.max(42 + FOLGA, faixas.reduce((s, l) => s + l.rmax * 2 + 8, 0) + 6 + FOLGA);
+      const h = Math.max(40 + FOLGA, faixas.reduce((s, l) => s + l.rmax * 2 + 6, 0) + 4 + FOLGA);
       const linha = { m, y: altura, h, faixas };
       altura += h;
       return linha;
     });
-    if (altura + 14 <= HMAX || RMAX <= 14) break;
+    if (altura + 14 <= HMAX || RMAX <= 12) break;
     RMAX -= 2;
   }
   const H = altura + 14;
