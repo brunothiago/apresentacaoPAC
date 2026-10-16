@@ -24,7 +24,7 @@ import dados
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f'{HERE}/index.html'
 PDF_NAME = 'novopac-balanco-carteira.pdf'
-VERSAO = '1.20'  # subir a cada commit que altere a apresentação
+VERSAO = '1.21'  # subir a cada commit que altere a apresentação
 # histórico exibido no popup do "versão x.y" (encerramento) — acrescentar uma linha a cada versão
 HISTORICO = [
     ('1.0', 'Primeira versão: seleção, suspensivas, licitação, contratação e execução.'),
@@ -48,6 +48,7 @@ HISTORICO = [
     ('1.18', 'Slide 1.2: ícones das modalidades nos cartões do painel de quadrados.'),
     ('1.19', 'Slide 1.2: ícone no canto superior direito do cartão, maior.'),
     ('1.20', 'Slide 1.2: ícone das modalidades ainda maior.'),
+    ('1.21', 'Slide 2.2: clicar numa bolinha abre a lista dos contratos do grupo, com link para o SACI.'),
 ]
 
 D = dados.load()
@@ -163,7 +164,8 @@ for _, r in D['bx'].iterrows():
 
 # contratos OGU (painelpac): [mod, uf, kind, ano, repasse, cancelado, susp, pc48, tetoVencido,
 #                             fase, pubLicitação, homLicitação, casaCivil, data alinhada DMP 08/26,
-#                             ligado a seleção OGU nova, em contratação, fora do PAC (bln_pac = NÃO)]
+#                             ligado a seleção OGU nova, em contratação, fora das contas, convênio, município, TCI]
+_mun_saci = D['saci'].set_index('cod_tci').txt_municipio
 OG = []
 for _, r in D['ogu'].iterrows():
     teto = pd.to_datetime(r.prazo_suspensiva_pc48_prorrogado_calc, errors='coerce')
@@ -176,7 +178,8 @@ for _, r in D['ogu'].iterrows():
                1 if r.status_regra_casa_civil_calc == 'Cumpriu o prazo' else 0,
                '' if pd.isna(r.dt_alinhamento) else f'{r.dt_alinhamento:%Y-%m-%d}',
                1 if str(r.num_proposta_selecao_pac_saci).strip() in PROP_SEL_OGU else 0,
-               1 if r.dsc_situacao_contrato_mcid_saci == 'Em Contratação' else 0, 1 if r.excl else 2 if r.semmod else 0])
+               1 if r.dsc_situacao_contrato_mcid_saci == 'Em Contratação' else 0, 1 if r.excl else 2 if r.semmod else 0,
+               str(r.num_convenio_saci or ''), str(_mun_saci.get(r.cod_tci_saci, '') or ''), r.cod_tci_saci])
 
 # régua do prazo da licitação (3.2, porte do regua-licitacao.js do painelpac): contratos OGU em
 # "Contratado - Normal" — [mod, uf, kind, ano, repasse, fora do PAC, prazo legal pub (LAE+60), prazo efetivo pub,
@@ -364,7 +367,28 @@ EXTRA_CSS = """
   .rg-barra{ display:grid; grid-template-columns:56px 1fr; align-items:center; gap:8px; margin-top:4px; font-size:14px; color:var(--ink-soft); }
   .rg-trilho{ display:flex; gap:2px; height:24px; border-radius:3px; overflow:hidden; background:#EEF1F5; }
   .rg-seg{ display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:800; min-width:0; overflow:hidden; white-space:nowrap; }
-  .alin{ margin-top:4px; }
+  .alin{ margin-top:4px; position:relative; }
+  .aln-b{ cursor:pointer; outline:none; }
+  .aln-b:hover circle:first-of-type, .aln-b:focus circle:first-of-type{ fill-opacity:1; }
+  .aln-b.sel circle:first-of-type{ fill:#0C3C8F; fill-opacity:1; stroke:#071D41; stroke-width:3; }
+  .aln-dica{ margin-left:auto; font-style:italic; }
+  .aln-lista{ position:absolute; top:36px; right:0; z-index:30; width:640px; max-height:440px; display:flex; flex-direction:column;
+    background:#fff; border:1px solid var(--line-strong); border-left:4px solid var(--accent); border-radius:6px; box-shadow:0 12px 34px rgba(7,29,65,.2); }
+  .aln-lista[hidden]{ display:none; }
+  .aln-lista.esq{ right:auto; left:260px; }  /* bolinha à direita: quadro à esquerda (depois dos rótulos) */
+  .aln-l-cab{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:12px 16px 8px; border-bottom:1px solid var(--line); }
+  .aln-l-cab b{ display:block; font-size:18px; color:var(--navy); }
+  .aln-l-cab span{ font-size:15px; color:var(--ink-soft); }
+  .aln-fechar{ border:0; background:none; font-size:28px; line-height:1; color:var(--ink-soft); cursor:pointer; padding:0 4px; }
+  .aln-l-corpo{ overflow:auto; padding:4px 16px 10px; }
+  .aln-l-corpo table{ width:100%; border-collapse:collapse; font-size:15px; font-variant-numeric:tabular-nums; }
+  .aln-l-corpo th{ text-align:left; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); padding:6px 8px 4px 0; position:sticky; top:0; background:#fff; }
+  .aln-l-corpo td{ padding:4px 8px 4px 0; border-top:1px solid var(--line); color:var(--ink); white-space:nowrap; }
+  .aln-l-corpo td:nth-child(4){ text-align:right; } .aln-l-corpo th:nth-child(4){ text-align:right; }
+  .aln-l-corpo a{ color:#1351B4; font-weight:700; text-decoration:none; }
+  .aln-st{ display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; }
+  .aln-st.pend{ background:#1351B4; } .aln-st.ret{ background:#168821; } .aln-st.canc{ background:#98A2B3; }
+  @media print{ .aln-lista, .aln-dica{ display:none !important; } }
   .alin svg{ display:block; width:100%; height:auto; }
   .alin-leg{ display:flex; gap:28px; font-size:16px; color:var(--ink-soft); margin-top:6px; }
   .alin-leg i{ display:inline-block; vertical-align:-3px; margin-right:8px; }
@@ -1506,7 +1530,7 @@ function renderRegua() {
 // uma linha por modalidade, um círculo por data alinhada (área ∝ repasse ou nº de contratos) e o anel
 // verde com a fatia já retirada. A data é fixa: o gráfico parte de todos os contratos com data.
 const HOJE_ISO = __HOJE__;
-const ALN = { n: 0, ret: 0, pc: 0, canc: 0, ps: 0 };
+const ALN = { n: 0, ret: 0, pc: 0, canc: 0, ps: 0, grupos: null, aberto: null };
 const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 const dUTC = (iso) => Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10));
 function renderAlinhamento() {
@@ -1523,8 +1547,8 @@ function renderAlinhamento() {
     if (ret) ALN.ret++; else if (r[5]) ALN.canc++; else ALN.pc++;
     const k = r[0] + '|' + r[13];
     let g = grupos.get(k);
-    if (!g) grupos.set(k, g = { mod: r[0], iso: r[13], n: 0, vlr: 0, ret: 0, vret: 0, canc: 0, vcanc: 0 });
-    g.n++; g.vlr += r[4];
+    if (!g) grupos.set(k, g = { key: k, mod: r[0], iso: r[13], n: 0, vlr: 0, ret: 0, vret: 0, canc: 0, vcanc: 0, rows: [] });
+    g.n++; g.vlr += r[4]; g.rows.push(r);
     if (ret) { g.ret++; g.vret += r[4]; } else if (r[5]) { g.canc++; g.vcanc += r[4]; }
   }
   // "Só pendentes": tira a fatia já retirada (o anel verde) e os cancelados — só o que falta retirar
@@ -1532,6 +1556,7 @@ function renderAlinhamento() {
   const lista = [...grupos.values()]
     .map((g) => (pend ? { ...g, n: g.n - g.ret - g.canc, vlr: g.vlr - g.vret - g.vcanc, ret: 0, vret: 0 } : g))
     .filter((g) => g.n > 0);
+  ALN.grupos = new Map(lista.map((g) => [g.key, g]));
   const totMod = new Map();
   for (const g of lista) {
     const tm = totMod.get(g.mod) || { n: 0, v: 0 };
@@ -1599,8 +1624,8 @@ function renderAlinhamento() {
       cy += f.rmax + 4;
       for (const { g, cx, r, txt, fora } of f.itens) {
         const dt = g.iso.slice(8, 10) + '/' + g.iso.slice(5, 7) + '/' + g.iso.slice(0, 4);
-        o.push('<g><title>' + MODS[g.mod] + ' · ' + dt + '\n' + I(g.n) + (pend ? ' pendentes · ' : ' contratos · ') + BM(g.vlr)
-          + (pend ? '' : '\nJá retiradas: ' + I(g.ret) + ' (' + BM(g.vret) + ') · pendentes: ' + I(g.n - g.ret)) + '</title>');
+        o.push('<g class="aln-b" data-k="' + g.key + '" tabindex="0" role="button"><title>' + MODS[g.mod] + ' · ' + dt + '\n' + I(g.n) + (pend ? ' pendentes · ' : ' contratos · ') + BM(g.vlr)
+          + (pend ? '' : '\nJá retiradas: ' + I(g.ret) + ' (' + BM(g.vret) + ') · pendentes: ' + I(g.n - g.ret)) + '\nClique para ver os contratos</title>');
         o.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#1351B4" fill-opacity="0.85"></circle>');
         if (g.ret) {
           const rr = r + 5, c = 2 * Math.PI * rr;
@@ -1623,8 +1648,54 @@ function renderAlinhamento() {
   o.push('<div class="alin-leg"><span><i class="lg-dot"></i>círculo = data alinhada · área ∝ ' + (pelo === 'n' ? 'nº de contratos' : 'repasse')
     + ' · número = ' + (pelo === 'n' ? 'contratos' : 'repasse somado (R$)') + '</span>'
     + (pend ? '<span>só pendentes: sem a fatia já retirada</span>' : '<span><i class="lg-ring"></i>anel verde = fatia já retirada</span>')
-    + '<span><i class="lg-hoje"></i>data da extração</span></div>');
+    + '<span><i class="lg-hoje"></i>data da extração</span><span class="aln-dica">clique numa bolinha para ver os contratos</span></div>');
+  o.push('<div class="aln-lista" hidden></div>');
   el.innerHTML = o.join('');
+  if (!el.dataset.clique) {  // clique numa bolinha abre a lista; fora dela (ou Esc) fecha
+    el.dataset.clique = '1';
+    const abrir = (b) => {  // o quadro abre do lado oposto ao da bolinha, para não cobri-la
+      const rb = b.getBoundingClientRect(), re = el.getBoundingClientRect();
+      ALN.lado = rb.left + rb.width / 2 > re.left + re.width / 2 ? 'esq' : 'dir';
+      ALN.aberto = b.dataset.k; listaAlinhamento();
+    };
+    el.addEventListener('click', (e) => {
+      // no toque, o deck avança o slide em área não interativa: o clique no gráfico fica com o gráfico
+      if (!e.target.closest('a[href]') && (e.target.closest('.aln-b') || e.target.closest('.aln-lista'))) e.preventDefault();
+      const b = e.target.closest('.aln-b');
+      if (b) { abrir(b); return; }
+      if (e.target.closest('.aln-fechar') || !e.target.closest('.aln-lista')) { ALN.aberto = null; listaAlinhamento(); }
+    });
+    el.addEventListener('keydown', (e) => {
+      const b = e.target.closest && e.target.closest('.aln-b');
+      if (b && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); abrir(b); }
+      if (e.key === 'Escape') { ALN.aberto = null; listaAlinhamento(); }
+    });
+  }
+  listaAlinhamento();  // reabre a lista após troca de filtro, se o grupo ainda existir
+}
+
+// quadro com os contratos do grupo clicado (modalidade × data alinhada)
+function listaAlinhamento() {
+  const box = document.querySelector('#g-alin .aln-lista');
+  if (!box) return;
+  const g = ALN.aberto && ALN.grupos && ALN.grupos.get(ALN.aberto);
+  document.querySelectorAll('#g-alin .aln-b').forEach((b) => b.classList.toggle('sel', !!g && b.dataset.k === ALN.aberto));
+  if (!g) { box.hidden = true; box.innerHTML = ''; return; }
+  const pend = state.alnp === 'pend';
+  const sit = (r) => (r[6] === 0 ? ['retirada', 'ret'] : r[5] ? ['cancelado', 'canc'] : ['pendente', 'pend']);
+  const rows = g.rows.filter((r) => !pend || (r[6] !== 0 && !r[5]))
+    .sort((a, b) => (sit(a)[1] === 'pend' ? 0 : 1) - (sit(b)[1] === 'pend' ? 0 : 1) || b[4] - a[4]);
+  const dt = g.iso.slice(8, 10) + '/' + g.iso.slice(5, 7) + '/' + g.iso.slice(0, 4);
+  box.innerHTML = '<div class="aln-l-cab"><div><b>' + MODS[g.mod] + '</b><span>data alinhada ' + dt + ' · ' + I(rows.length)
+    + (pend ? ' pendentes' : ' contratos') + ' · ' + BM(rows.reduce((s, r) => s + r[4], 0)) + '</span></div>'
+    + '<button type="button" class="aln-fechar" aria-label="Fechar">×</button></div><div class="aln-l-corpo"><table>'
+    + '<thead><tr><th>Situação</th><th>Convênio</th><th>Município/UF</th><th>Repasse</th><th></th></tr></thead><tbody>'
+    + rows.map((r) => { const [t, c] = sit(r); return '<tr><td><i class="aln-st ' + c + '"></i>' + t + '</td><td>' + (r[17] || '—')
+      + '</td><td>' + [r[18], r[1]].filter(Boolean).join('/') + '</td><td>' + BM(r[4]) + '</td><td><a href="https://saci.cidades.gov.br/contratos/'
+      + encodeURIComponent(r[19]) + '" target="_blank" rel="noopener">SACI ↗</a></td></tr>'; }).join('')
+    + '</tbody></table></div>';
+  box.classList.toggle('esq', ALN.lado === 'esq');
+  box.hidden = false;
 }
 
 function td(c) {
